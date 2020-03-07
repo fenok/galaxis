@@ -1,0 +1,19 @@
+{
+    "compilerOptions": {
+        "target": "es6",
+        "moduleResolution": "node",
+        "strict": true,
+        "jsx": "react",
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+        "allowSyntheticDefaultImports": true,
+        "module": "es6",
+        "forceConsistentCasingInFileNames": true,
+        "noImplicitReturns": true,
+        "outDir": "./dist",
+        "declaration": true,
+        "incremental": true
+    },
+    "include": ["src"],
+    "exclude": ["__tests__"]
+}

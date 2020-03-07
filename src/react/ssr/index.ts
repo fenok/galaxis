@@ -1,0 +1,1 @@
+export {getDataFromTree} from './getDataFromTree'

@@ -1,0 +1,1 @@
+export {getUrlDefault} from './getUrlDefault'

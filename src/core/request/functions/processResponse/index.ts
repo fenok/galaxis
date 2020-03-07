@@ -1,0 +1,1 @@
+export {processResponseRestfulJson} from './processResponseRestfulJson'
