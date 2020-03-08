@@ -8,13 +8,13 @@ module.exports = {
     overrides: [
         {
             files: ['**/*.ts', '**/*.tsx'],
+            plugins: ['@typescript-eslint', 'react-hooks'],
             extends: [
                 'plugin:@typescript-eslint/eslint-recommended',
                 'plugin:@typescript-eslint/recommended',
                 'plugin:@typescript-eslint/recommended-requiring-type-checking',
                 'prettier/@typescript-eslint',
             ],
-            plugins: ['@typescript-eslint'],
             parser: '@typescript-eslint/parser',
             parserOptions: {
                 tsconfigRootDir: __dirname,
@@ -22,6 +22,8 @@ module.exports = {
             },
             rules: {
                 '@typescript-eslint/no-use-before-define': ['error', 'nofunc'],
+                'react-hooks/rules-of-hooks': 'error',
+                'react-hooks/exhaustive-deps': 'error',
             },
         },
     ],

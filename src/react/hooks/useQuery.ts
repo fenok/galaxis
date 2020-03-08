@@ -43,6 +43,7 @@ export function useQuery<
             },
         }),
 
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         [client, requestId, componentId],
     );
 
@@ -65,6 +66,7 @@ export function useQuery<
                 multiAbortSignal: multiAbortControllerRef.current.signal,
             });
         },
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         [client, requestId, componentId],
     );
 

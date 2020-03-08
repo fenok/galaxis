@@ -32,7 +32,8 @@ export function useMutation<
 
     const mutate = React.useCallback(() => {
         return client.mutate(request, { callerId: componentId });
-    }, [client, requestId]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [client, requestId, componentId]);
 
     return { mutate };
 }
