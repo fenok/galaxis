@@ -223,7 +223,14 @@ When mutation completes, all loading queries are forced to rerun network request
 
 ### Fetch policies
 
+Queries:
+
 -   `cache-only` - never makes network request. Returns data from cache or `undefined`.
 -   `cache-first` - only makes network request, if there is no data in cache. Returns data from cache or `undefined` and then data/error from network, if there was network request.
 -   `cache-and-network` - always makes network request. Returns data or `undefined` from cache and data/error from network.
--   `no-cache` - always makes network request. Returns data or `undefined` from cache and data/error from network. It's cached on per-caller basis and never touches `sharedData` (it can't have `toCache`/`fromCache` functions), so initially it always returns `undefined`.
+-   `no-cache` - always makes network request. Returns data or `undefined` from cache and data/error from network. It's cached on per-caller basis and never touches `sharedData`, so initially it always returns `undefined`.
+
+Mutations:
+
+-   `cache-only`, `cache-first`, `cache-and-network` - returns data/error and updates `sharedData`
+-   `no-cache` - returns data/error without touching `sharedData`

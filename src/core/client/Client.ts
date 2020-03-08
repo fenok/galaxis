@@ -117,13 +117,16 @@ class Client {
             .then(data => {
                 Object.values(this.requests).forEach(promiseData => promiseData?.rerunNetworkRequest());
 
+                // Delay state update to let all planned state updates finish
                 return data;
             })
             .then(data => {
                 this.cache.onMutateSuccess(
                     this.getRequestId(mergedRequest, callerId),
                     data,
-                    mergedRequest.toCache?.(this.cache.getState().sharedData, data, mergedRequest),
+                    mergedRequest.fetchPolicy !== 'no-cache'
+                        ? mergedRequest.toCache?.(this.cache.getState().sharedData, data, mergedRequest)
+                        : undefined,
                 );
 
                 return data;
@@ -152,10 +155,14 @@ class Client {
 
     private getDataFromCache<T>(mergedRequest: RequestData, callerId: string): T | undefined {
         try {
-            return mergedRequest.fromCache!(this.cache.getState().sharedData, mergedRequest);
+            if (mergedRequest.fromCache && mergedRequest.fetchPolicy !== 'no-cache') {
+                return mergedRequest.fromCache(this.cache.getState().sharedData, mergedRequest);
+            }
         } catch {
-            return this.cache.getState().requestStates[this.getRequestId(mergedRequest, callerId)]?.data;
+            // fromCache may throw, that's expected, falling back to requestState
         }
+
+        return this.cache.getState().requestStates[this.getRequestId(mergedRequest, callerId)]?.data;
     }
 
     private async getDataFromNetwork<T>(mergedRequest: RequestData, options: QueryOptions): Promise<T> {
@@ -207,7 +214,9 @@ class Client {
                         this.cache.onQuerySuccess(
                             requestId,
                             data,
-                            mergedRequest.toCache?.(this.cache.getState().sharedData, data, mergedRequest),
+                            mergedRequest.fetchPolicy !== 'no-cache'
+                                ? mergedRequest.toCache?.(this.cache.getState().sharedData, data, mergedRequest)
+                                : undefined,
                         );
                         return data;
                     })
