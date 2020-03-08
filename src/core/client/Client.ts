@@ -44,13 +44,9 @@ class Client {
         return this.cache.getState();
     }
 
-    public getCompleteRequestData<
-        C extends SDC = any,
-        R extends RC = any,
-        P extends PPC = any,
-        Q extends QPC = any,
-        B extends BC = any
-    >(request: PartialRequestData<C, R, P, Q, B>): RequestData<C, R, P, Q, B> {
+    public getCompleteRequestData<C extends SDC, R extends RC, P extends PPC, Q extends QPC, B extends BC>(
+        request: PartialRequestData<C, R, P, Q, B>,
+    ): RequestData<C, R, P, Q, B> {
         if (request.merge) {
             return request.merge(this.generalRequestData, request);
         }
@@ -58,13 +54,11 @@ class Client {
         return this.generalRequestData.merge(this.generalRequestData, request) as RequestData<C, R, P, Q, B>;
     }
 
-    public subscribe<
-        C extends SDC = any,
-        R extends RC = any,
-        P extends PPC = any,
-        Q extends QPC = any,
-        B extends BC = any
-    >(request: PartialRequestData<C, R, P, Q, B>, callerId: string, onChange: (state: RequestState<R>) => void) {
+    public subscribe<C extends SDC, R extends RC, P extends PPC, Q extends QPC, B extends BC>(
+        request: PartialRequestData<C, R, P, Q, B>,
+        callerId: string,
+        onChange: (state: RequestState<R>) => void,
+    ) {
         const mergedRequest = this.getCompleteRequestData(request);
 
         return this.cache.subscribe(() => {
@@ -72,13 +66,10 @@ class Client {
         });
     }
 
-    public getState<
-        C extends SDC = any,
-        R extends RC = any,
-        P extends PPC = any,
-        Q extends QPC = any,
-        B extends BC = any
-    >(request: PartialRequestData<C, R, P, Q, B>, callerId: string): RequestState<R> {
+    public getState<C extends SDC, R extends RC, P extends PPC, Q extends QPC, B extends BC>(
+        request: PartialRequestData<C, R, P, Q, B>,
+        callerId: string,
+    ): RequestState<R> {
         const mergedRequest = this.getCompleteRequestData(request);
 
         const data = this.getDataFromCache<R>(mergedRequest, callerId);
@@ -96,13 +87,10 @@ class Client {
         return { ...initialState, ...requestState, data };
     }
 
-    public getSsrPromise<
-        C extends SDC = any,
-        R extends RC = any,
-        P extends PPC = any,
-        Q extends QPC = any,
-        B extends BC = any
-    >(request: PartialRequestData<C, R, P, Q, B>, callerId: string): Promise<R | undefined> | undefined {
+    public getSsrPromise<C extends SDC, R extends RC, P extends PPC, Q extends QPC, B extends BC>(
+        request: PartialRequestData<C, R, P, Q, B>,
+        callerId: string,
+    ): Promise<R | undefined> | undefined {
         const mergedRequest = this.getCompleteRequestData(request);
 
         const requestState = this.getState(mergedRequest, callerId);
@@ -119,13 +107,10 @@ class Client {
         return undefined;
     }
 
-    public async mutate<
-        C extends SDC = any,
-        R extends RC = any,
-        P extends PPC = any,
-        Q extends QPC = any,
-        B extends BC = any
-    >(request: PartialRequestData<C, R, P, Q, B>, { multiAbortSignal, callerId }: MutateOptions): Promise<R> {
+    public async mutate<C extends SDC, R extends RC, P extends PPC, Q extends QPC, B extends BC>(
+        request: PartialRequestData<C, R, P, Q, B>,
+        { multiAbortSignal, callerId }: MutateOptions,
+    ): Promise<R> {
         const mergedRequest = this.getCompleteRequestData(request);
 
         return this.getRequestPromise(mergedRequest, { multiAbortSignal, abortSignal: mergedRequest.signal })
@@ -146,13 +131,10 @@ class Client {
     }
 
     // May reject with error that differs from the cached one. This generally implies a bug in external code
-    public async query<
-        C extends SDC = any,
-        R extends RC = any,
-        P extends PPC = any,
-        Q extends QPC = any,
-        B extends BC = any
-    >(request: PartialRequestData<C, R, P, Q, B>, requestOptions: QueryOptions): Promise<R | undefined> {
+    public async query<C extends SDC, R extends RC, P extends PPC, Q extends QPC, B extends BC>(
+        request: PartialRequestData<C, R, P, Q, B>,
+        requestOptions: QueryOptions,
+    ): Promise<R | undefined> {
         const mergedRequest = this.getCompleteRequestData(request);
 
         const cachedData = this.getDataFromCache<R>(mergedRequest, requestOptions.callerId);
