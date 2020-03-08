@@ -9,23 +9,14 @@ import { getRequestId } from './getRequestId';
 import { useComponentId } from './useComponentId';
 import { useSubscription } from './useSubscription';
 
-interface QueryOptions<
-    C extends SDC = any,
-    R extends RC = any,
-    P extends PPC = any,
-    Q extends QPC = any,
-    B extends BC = any
-> {
+interface QueryOptions<C extends SDC, R extends RC, P extends PPC, Q extends QPC, B extends BC> {
     getPartialRequestId?(request: PartialRequestData<C, R, P, Q, B>): string | number;
 }
 
-export function useQuery<
-    C extends SDC = any,
-    R extends RC = any,
-    P extends PPC = any,
-    Q extends QPC = any,
-    B extends BC = any
->(request: PartialRequestData<C, R, P, Q, B>, { getPartialRequestId }: QueryOptions = {}) {
+export function useQuery<C extends SDC, R extends RC, P extends PPC, Q extends QPC, B extends BC>(
+    request: PartialRequestData<C, R, P, Q, B>,
+    { getPartialRequestId }: QueryOptions<C, R, P, Q, B> = {},
+) {
     const componentId = useComponentId();
 
     const client = React.useContext(ClientContext);
