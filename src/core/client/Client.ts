@@ -22,8 +22,8 @@ interface MutateOptions {
 }
 
 interface RequestPromiseData {
-    promise: Promise<any>,
-    callerAwaitStatuses: {[callerId: string]: boolean},
+    promise: Promise<any>;
+    callerAwaitStatuses: { [callerId: string]: boolean };
     abort(): void;
     rerunNetworkRequest(): void;
 }
@@ -32,9 +32,9 @@ class Client {
     private readonly cache: Cache;
     private readonly fetchFn?: typeof fetch;
     private readonly generalRequestData: GeneralRequestData;
-    private requests: {[requestId: string]: RequestPromiseData | undefined} = {};
+    private requests: { [requestId: string]: RequestPromiseData | undefined } = {};
 
-    constructor({cache, fetch: fetchFn, generalRequestData}: ClientOptions) {
+    constructor({ cache, fetch: fetchFn, generalRequestData }: ClientOptions) {
         this.cache = cache;
         this.fetchFn = fetchFn;
         this.generalRequestData = generalRequestData;
@@ -44,84 +44,127 @@ class Client {
         return this.cache.getState();
     }
 
-    public getCompleteRequestData<C extends SDC = any, R extends RC = any, P extends PPC = any, Q extends QPC = any, B extends BC = any>(request: PartialRequestData<C, R, P, Q, B>): RequestData<C, R, P, Q, B> {
-        if(request.merge) {
+    public getCompleteRequestData<
+        C extends SDC = any,
+        R extends RC = any,
+        P extends PPC = any,
+        Q extends QPC = any,
+        B extends BC = any
+    >(request: PartialRequestData<C, R, P, Q, B>): RequestData<C, R, P, Q, B> {
+        if (request.merge) {
             return request.merge(this.generalRequestData, request);
         }
 
         return this.generalRequestData.merge(this.generalRequestData, request) as RequestData<C, R, P, Q, B>;
     }
 
-    public subscribe<C extends SDC = any, R extends RC = any, P extends PPC = any, Q extends QPC = any, B extends BC = any>(request: PartialRequestData<C, R, P, Q, B>, callerId: string, onChange: (state: RequestState<R>) => void) {
+    public subscribe<
+        C extends SDC = any,
+        R extends RC = any,
+        P extends PPC = any,
+        Q extends QPC = any,
+        B extends BC = any
+    >(request: PartialRequestData<C, R, P, Q, B>, callerId: string, onChange: (state: RequestState<R>) => void) {
         const mergedRequest = this.getCompleteRequestData(request);
 
         return this.cache.subscribe(() => {
             onChange(this.getState(mergedRequest, callerId));
-        })
+        });
     }
 
-    public getState<C extends SDC = any, R extends RC = any, P extends PPC = any, Q extends QPC = any, B extends BC = any>(request: PartialRequestData<C, R, P, Q, B>, callerId: string): RequestState<R> {
+    public getState<
+        C extends SDC = any,
+        R extends RC = any,
+        P extends PPC = any,
+        Q extends QPC = any,
+        B extends BC = any
+    >(request: PartialRequestData<C, R, P, Q, B>, callerId: string): RequestState<R> {
         const mergedRequest = this.getCompleteRequestData(request);
 
         const data = this.getDataFromCache<R>(mergedRequest, callerId);
         const requestState = this.cache.getState().requestStates[this.getRequestId(mergedRequest, callerId)];
 
-        const initialState = {loading: false, data: data, error: undefined};
+        const initialState = { loading: false, data: data, error: undefined };
 
-        if (mergedRequest.fetchPolicy === 'no-cache' || (mergedRequest.fetchPolicy !== 'cache-only' && data === undefined)) {
+        if (
+            mergedRequest.fetchPolicy === 'no-cache' ||
+            (mergedRequest.fetchPolicy !== 'cache-only' && data === undefined)
+        ) {
             initialState.loading = true;
         }
 
-        return({ ...initialState, ...requestState, data });
+        return { ...initialState, ...requestState, data };
     }
 
-    public getSsrPromise<C extends SDC = any, R extends RC = any, P extends PPC = any, Q extends QPC = any, B extends BC = any>(request: PartialRequestData<C, R, P, Q, B>, callerId: string): Promise<R | undefined> | undefined {
+    public getSsrPromise<
+        C extends SDC = any,
+        R extends RC = any,
+        P extends PPC = any,
+        Q extends QPC = any,
+        B extends BC = any
+    >(request: PartialRequestData<C, R, P, Q, B>, callerId: string): Promise<R | undefined> | undefined {
         const mergedRequest = this.getCompleteRequestData(request);
 
         const requestState = this.getState(mergedRequest, callerId);
 
-        if(
-            typeof window === "undefined" &&
-            !(['no-cache', 'cache-only'].includes(mergedRequest.fetchPolicy)) &&
-            (requestState.data === undefined && requestState.error === undefined)
+        if (
+            typeof window === 'undefined' &&
+            !['no-cache', 'cache-only'].includes(mergedRequest.fetchPolicy) &&
+            requestState.data === undefined && requestState.error === undefined
         ) {
-            return this.query(mergedRequest, {callerId, forceNetworkRequest: false});
+            return this.query(mergedRequest, { callerId, forceNetworkRequest: false });
         }
 
         return undefined;
     }
 
-    public async mutate<C extends SDC = any, R extends RC = any, P extends PPC = any, Q extends QPC = any, B extends BC = any>(request: PartialRequestData<C, R, P, Q, B>, {multiAbortSignal, callerId}: MutateOptions): Promise<R> {
+    public async mutate<
+        C extends SDC = any,
+        R extends RC = any,
+        P extends PPC = any,
+        Q extends QPC = any,
+        B extends BC = any
+    >(request: PartialRequestData<C, R, P, Q, B>, { multiAbortSignal, callerId }: MutateOptions): Promise<R> {
         const mergedRequest = this.getCompleteRequestData(request);
 
-        return this.getRequestPromise(mergedRequest, {multiAbortSignal, abortSignal: mergedRequest.signal})
+        return this.getRequestPromise(mergedRequest, { multiAbortSignal, abortSignal: mergedRequest.signal })
             .then(data => {
                 Object.values(this.requests).forEach(promiseData => promiseData?.rerunNetworkRequest());
 
                 return data;
             })
             .then(data => {
-                this.cache.onMutateSuccess(this.getRequestId(mergedRequest, callerId), data, mergedRequest.toCache?.(this.cache.getState().sharedData, data, mergedRequest));
+                this.cache.onMutateSuccess(
+                    this.getRequestId(mergedRequest, callerId),
+                    data,
+                    mergedRequest.toCache?.(this.cache.getState().sharedData, data, mergedRequest),
+                );
 
                 return data;
             });
     }
 
     // May reject with error that differs from the cached one. This generally implies a bug in external code
-    public async query<C extends SDC = any, R extends RC = any, P extends PPC = any, Q extends QPC = any, B extends BC = any>(request: PartialRequestData<C, R, P, Q, B>, requestOptions : QueryOptions): Promise<R | undefined> {
+    public async query<
+        C extends SDC = any,
+        R extends RC = any,
+        P extends PPC = any,
+        Q extends QPC = any,
+        B extends BC = any
+    >(request: PartialRequestData<C, R, P, Q, B>, requestOptions: QueryOptions): Promise<R | undefined> {
         const mergedRequest = this.getCompleteRequestData(request);
 
         const cachedData = this.getDataFromCache<R>(mergedRequest, requestOptions.callerId);
 
-        if(mergedRequest.fetchPolicy === 'cache-only') {
+        if (mergedRequest.fetchPolicy === 'cache-only') {
             return cachedData;
         }
 
-        if(mergedRequest.fetchPolicy === 'cache-first' && cachedData !== undefined) {
+        if (mergedRequest.fetchPolicy === 'cache-first' && cachedData !== undefined) {
             return cachedData;
         }
 
-       return this.getDataFromNetwork(mergedRequest, requestOptions);
+        return this.getDataFromNetwork(mergedRequest, requestOptions);
     }
 
     private getDataFromCache<T>(mergedRequest: RequestData, callerId: string): T | undefined {
@@ -132,8 +175,8 @@ class Client {
         }
     }
 
-    private async getDataFromNetwork<T>(mergedRequest: RequestData, options : QueryOptions): Promise<T> {
-        const {callerId, multiAbortSignal} = options;
+    private async getDataFromNetwork<T>(mergedRequest: RequestData, options: QueryOptions): Promise<T> {
+        const { callerId, multiAbortSignal } = options;
 
         const requestData = this.initRequestPromiseData(mergedRequest, options);
 
@@ -150,14 +193,20 @@ class Client {
         return await requestData.promise;
     }
 
-    private initRequestPromiseData(mergedRequest: RequestData, {forceNetworkRequest, callerId}: QueryOptions): RequestPromiseData {
+    private initRequestPromiseData(
+        mergedRequest: RequestData,
+        { forceNetworkRequest, callerId }: QueryOptions,
+    ): RequestPromiseData {
         const requestId = this.getRequestId(mergedRequest, callerId);
 
         if (!this.requests[requestId]) {
             const multiAbortController = new MultiAbortController();
             const rerunController = new RerunController();
 
-            const promise = this.getRequestPromise(mergedRequest, {multiAbortSignal: multiAbortController.signal, rerunSignal: rerunController.signal});
+            const promise = this.getRequestPromise(mergedRequest, {
+                multiAbortSignal: multiAbortController.signal,
+                rerunSignal: rerunController.signal,
+            });
 
             this.requests[requestId] = {
                 rerunNetworkRequest() {
@@ -172,8 +221,12 @@ class Client {
                 promise: promise
                     .then(data => {
                         this.requests[requestId] = undefined;
-                        this.cache.onQuerySuccess(requestId, data, mergedRequest.toCache?.(this.cache.getState().sharedData, data, mergedRequest));
-                        return data
+                        this.cache.onQuerySuccess(
+                            requestId,
+                            data,
+                            mergedRequest.toCache?.(this.cache.getState().sharedData, data, mergedRequest),
+                        );
+                        return data;
                     })
                     .catch(error => {
                         this.requests[requestId] = undefined;
@@ -185,7 +238,7 @@ class Client {
             this.cache.onQueryStart(requestId);
         } else {
             this.requests[requestId]!.callerAwaitStatuses[callerId] = true;
-            if(forceNetworkRequest) {
+            if (forceNetworkRequest) {
                 this.requests[requestId]!.rerunNetworkRequest();
             }
         }
@@ -196,7 +249,7 @@ class Client {
     private getRequestId(mergedRequest: RequestData, callerId: string) {
         const pureId = mergedRequest.getId(mergedRequest);
 
-        if(mergedRequest.fetchPolicy === 'no-cache') {
+        if (mergedRequest.fetchPolicy === 'no-cache') {
             return `${callerId}-${pureId}`;
         }
 
@@ -204,8 +257,14 @@ class Client {
     }
 
     private getRequestPromise(mergedRequest: RequestData, signals: Signals = {}) {
-        return smartPromise((signal) => (this.fetchFn || fetch)(mergedRequest.getUrl(mergedRequest), {...mergedRequest, signal}).then(mergedRequest.processResponse), signals);
+        return smartPromise(
+            signal =>
+                (this.fetchFn || fetch)(mergedRequest.getUrl(mergedRequest), { ...mergedRequest, signal }).then(
+                    mergedRequest.processResponse,
+                ),
+            signals,
+        );
     }
 }
 
-export {Client, ClientOptions}
+export { Client, ClientOptions };

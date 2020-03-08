@@ -7,16 +7,19 @@ interface ReduxDevTools {
     subscribe(callback: (message: Message) => void): void;
 }
 
-type Action =  {
+type Action = {
     type: string;
-} & {[key: string]: any}
+} & { [key: string]: any };
 
 interface Message {
-    type: "DISPATCH",
+    type: 'DISPATCH';
     payload: {
-        type: "JUMP_TO_ACTION",
-    }
+        type: 'JUMP_TO_ACTION';
+    };
     state: string;
 }
 
-export const devTools = typeof window !== 'undefined' && (window as any).__REDUX_DEVTOOLS_EXTENSION__ ? (window as any).__REDUX_DEVTOOLS_EXTENSION__ as ReduxDevtoolExtension : undefined;
+export const devTools =
+    typeof window !== 'undefined' && (window as any).__REDUX_DEVTOOLS_EXTENSION__
+        ? ((window as any).__REDUX_DEVTOOLS_EXTENSION__ as ReduxDevtoolExtension)
+        : undefined;

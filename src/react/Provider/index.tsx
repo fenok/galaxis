@@ -8,10 +8,8 @@ interface ProviderProps {
     client: Client;
 }
 
-const Provider: React.FC<ProviderProps> = ({children, client}) => {
-    return <ClientContext.Provider value={client}>
-            {children}
-    </ClientContext.Provider>;
+const Provider: React.FC<ProviderProps> = ({ children, client }) => {
+    return <ClientContext.Provider value={client}>{children}</ClientContext.Provider>;
 };
 
-export {Provider, ClientContext, SsrPromisesManagerContext};
+export { Provider, ClientContext, SsrPromisesManagerContext };

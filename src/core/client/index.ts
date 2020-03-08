@@ -1,2 +1,2 @@
-export {Client, ClientOptions} from './Client'
-export {SsrPromisesManager} from './SsrPromisesManager'
+export { Client, ClientOptions } from './Client';
+export { SsrPromisesManager } from './SsrPromisesManager';

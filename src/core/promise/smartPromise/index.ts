@@ -1,1 +1,1 @@
-export {smartPromise, Signals} from './smartPromise'
+export { smartPromise, Signals } from './smartPromise';

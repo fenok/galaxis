@@ -1,1 +1,1 @@
-export {ResponseError} from './ResponseError'
+export { ResponseError } from './ResponseError';

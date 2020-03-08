@@ -1,35 +1,35 @@
-import {serializeError, ErrorObject} from 'serialize-error';
+import { serializeError, ErrorObject } from 'serialize-error';
 import { devTools } from './devTools';
 
 interface CacheState<C = any> {
-    requestStates: {[id: string]: RequestState | undefined};
+    requestStates: { [id: string]: RequestState | undefined };
     sharedData: C;
 }
 
 interface RequestState<D = any> {
     loading: boolean;
-    error?: ErrorObject,
-    data?: D,
+    error?: ErrorObject;
+    data?: D;
 }
 
 class Cache {
     public static readonly INITIAL_STATE: CacheState = {
         requestStates: {},
-        sharedData: {}
+        sharedData: {},
     };
 
-    private devtools = (process.env.NODE_ENV !== 'production' && devTools) ? devTools.connect() : null;
+    private devtools = process.env.NODE_ENV !== 'production' && devTools ? devTools.connect() : null;
 
     private _state = Cache.INITIAL_STATE;
     private subscribers: ((state: CacheState) => void)[] = [];
 
     constructor(initialState?: CacheState) {
         this.subscribeToDevtools();
-        this.devtools?.send({type: 'INIT', state: this.state}, this.state);
+        this.devtools?.send({ type: 'INIT', state: this.state }, this.state);
 
-        if(initialState) {
+        if (initialState) {
             this.state = initialState;
-            this.devtools?.send({type: 'HYDRATE', state: this.state}, this.state);
+            this.devtools?.send({ type: 'HYDRATE', state: this.state }, this.state);
         }
     }
 
@@ -51,7 +51,7 @@ class Cache {
 
         return () => {
             this.subscribers = this.subscribers.filter(subscriber => subscriber !== callback);
-        }
+        };
     }
 
     public purge() {
@@ -59,49 +59,52 @@ class Cache {
     }
 
     public onQueryStart(id: string) {
-        this.updateState({id, state: {loading: true, error: undefined}});
-        this.devtools?.send({type: 'QUERY_START', id}, this.state);
+        this.updateState({ id, state: { loading: true, error: undefined } });
+        this.devtools?.send({ type: 'QUERY_START', id }, this.state);
     }
 
     public onQueryFail(id: string, error: Error) {
         const errorObj = serializeError(error);
 
-        this.updateState({id, state: {loading: false, error: errorObj}});
-        this.devtools?.send({type: 'QUERY_FAIL', id, error: errorObj}, this.state);
+        this.updateState({ id, state: { loading: false, error: errorObj } });
+        this.devtools?.send({ type: 'QUERY_FAIL', id, error: errorObj }, this.state);
     }
 
     public onQuerySuccess(id: string, data: any, sharedData?: any) {
-        this.updateState({id, state: {loading: false, data, error: undefined}, sharedData});
-        this.devtools?.send({type: 'QUERY_SUCCESS', id, data, sharedData}, this.state);
+        this.updateState({ id, state: { loading: false, data, error: undefined }, sharedData });
+        this.devtools?.send({ type: 'QUERY_SUCCESS', id, data, sharedData }, this.state);
     }
 
     public onMutateSuccess(id: string, data: any, sharedData?: any) {
-        this.updateState({sharedData}); // Not error, only sharedData affects state
-        this.devtools?.send({type: 'MUTATE_SUCCESS', id, data, sharedData}, this.state);
+        this.updateState({ sharedData }); // Not error, only sharedData affects state
+        this.devtools?.send({ type: 'MUTATE_SUCCESS', id, data, sharedData }, this.state);
     }
 
-    private updateState({id, state, sharedData}: {id?: string, state?: RequestState, sharedData?: any} = {}) {
+    private updateState({ id, state, sharedData }: { id?: string; state?: RequestState; sharedData?: any } = {}) {
         this.state = {
             ...this.state,
-            requestStates: (id !== undefined && state !== undefined) ? {
-                ...this.state.requestStates,
-                [id]: {
-                    ...(this.state.requestStates[id] || {}),
-                    ...state
-                }
-            } : this.state.requestStates,
-            sharedData: sharedData !== undefined ? sharedData : this.state.sharedData
-        }
+            requestStates:
+                id !== undefined && state !== undefined
+                    ? {
+                          ...this.state.requestStates,
+                          [id]: {
+                              ...(this.state.requestStates[id] || {}),
+                              ...state,
+                          },
+                      }
+                    : this.state.requestStates,
+            sharedData: sharedData !== undefined ? sharedData : this.state.sharedData,
+        };
     }
 
     private subscribeToDevtools() {
         // TODO: React to all messages
-        this.devtools?.subscribe((message) => {
-            if(message.type === "DISPATCH" && message.payload.type === "JUMP_TO_ACTION") {
+        this.devtools?.subscribe(message => {
+            if (message.type === 'DISPATCH' && message.payload.type === 'JUMP_TO_ACTION') {
                 this.state = JSON.parse(message.state);
             }
-        })
+        });
     }
 }
 
-export {Cache, CacheState, RequestState}
+export { Cache, CacheState, RequestState };

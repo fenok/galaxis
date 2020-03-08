@@ -1,5 +1,5 @@
 export class EventListenerManager<T extends string = string, D = any> {
-    protected listeners: {[type: string]: ((data: D) => void)[]} = {};
+    protected listeners: { [type: string]: ((data: D) => void)[] } = {};
 
     public addEventListener(type: T, callback: (data: D) => void) {
         this.listeners[type] = this.listeners[type] || [];

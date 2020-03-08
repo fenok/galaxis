@@ -1,1 +1,1 @@
-export {wireAbortSignals} from './wireAbortSignals'
+export { wireAbortSignals } from './wireAbortSignals';

@@ -1,1 +1,1 @@
-export {mergeShallow} from './mergeShallow'
+export { mergeShallow } from './mergeShallow';

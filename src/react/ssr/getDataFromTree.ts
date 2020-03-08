@@ -1,4 +1,4 @@
-import {renderToStaticMarkup} from 'react-dom/server';
+import { renderToStaticMarkup } from 'react-dom/server';
 import { SsrPromisesManager } from '../../core/client';
 import { SsrPromisesManagerContext } from '../Provider';
 import * as React from 'react';
@@ -11,16 +11,10 @@ export function getDataFromTree(tree: React.ReactNode): Promise<string> {
 
     function process(): Promise<string> | string {
         const html = renderToStaticMarkup(
-            React.createElement(
-                SsrPromisesManagerContext.Provider,
-                { value: ssrPromisesManager },
-                tree
-            )
+            React.createElement(SsrPromisesManagerContext.Provider, { value: ssrPromisesManager }, tree),
         );
 
-        return ssrPromisesManager.hasPromises()
-            ? ssrPromisesManager.awaitPromises().then(process)
-            : html;
+        return ssrPromisesManager.hasPromises() ? ssrPromisesManager.awaitPromises().then(process) : html;
     }
 
     return Promise.resolve().then(process);

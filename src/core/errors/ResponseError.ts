@@ -1,5 +1,5 @@
 class ResponseError<R> extends Error {
-    public readonly name = "ResponseError";
+    public readonly name = 'ResponseError';
     public readonly response: R;
 
     constructor(response: R, message?: string) {
@@ -9,4 +9,4 @@ class ResponseError<R> extends Error {
     }
 }
 
-export {ResponseError};
+export { ResponseError };

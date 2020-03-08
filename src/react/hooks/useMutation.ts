@@ -6,11 +6,23 @@ import { ensureClient } from './ensureClient';
 import { getRequestId } from './getRequestId';
 import { useComponentId } from './useComponentId';
 
-interface MutationOptions<C extends SDC = any, R extends RC = any, P extends PPC = any, Q extends QPC = any, B extends BC = any> {
+interface MutationOptions<
+    C extends SDC = any,
+    R extends RC = any,
+    P extends PPC = any,
+    Q extends QPC = any,
+    B extends BC = any
+> {
     getPartialRequestId?(request: PartialRequestData<C, R, P, Q, B>): string | number;
 }
 
-export function useMutation<C extends SDC = any, R extends RC = any, P extends PPC = any, Q extends QPC = any, B extends BC = any>(request: PartialRequestData<C, R, P, Q, B>, {getPartialRequestId} : MutationOptions = {}) {
+export function useMutation<
+    C extends SDC = any,
+    R extends RC = any,
+    P extends PPC = any,
+    Q extends QPC = any,
+    B extends BC = any
+>(request: PartialRequestData<C, R, P, Q, B>, { getPartialRequestId }: MutationOptions = {}) {
     const componentId = useComponentId();
     const client = React.useContext(ClientContext);
 
@@ -19,8 +31,8 @@ export function useMutation<C extends SDC = any, R extends RC = any, P extends P
     const requestId = getRequestId(request, client, getPartialRequestId);
 
     const mutate = React.useCallback(() => {
-        return client.mutate(request, {callerId: componentId});
+        return client.mutate(request, { callerId: componentId });
     }, [client, requestId]);
 
-    return {mutate};
+    return { mutate };
 }

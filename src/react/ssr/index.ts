@@ -1,1 +1,1 @@
-export {getDataFromTree} from './getDataFromTree'
+export { getDataFromTree } from './getDataFromTree';

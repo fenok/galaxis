@@ -1,42 +1,44 @@
 {
-  "name": "react-fetching-hooks",
-  "version": "0.0.3",
-  "repository": "github:fenok/react-fetching-hooks",
-  "license": "MIT",
-  "author": "Leonid Fenko <fenok2112@gmail.com>",
-  "sideEffects": false,
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "scripts": {
-    "build": "rimraf ./dist && tsc",
-    "prepare": "yarn build",
-    "prepublishOnly": "yarn test",
-    "test": "jest"
-  },
-  "dependencies": {
-    "@types/uuid": "^7.0.0",
-    "path-to-regexp": "^6.1.0",
-    "query-string": "^6.11.1",
-    "serialize-error": "^5.0.0",
-    "uuid": "^7.0.2"
-  },
-  "devDependencies": {
-    "@types/jest": "25.1.4",
-    "@types/node": "13.9.0",
-    "@types/react": "*",
-    "@types/react-dom": "*",
-    "glob": "7.1.6",
-    "jest": "25.1.0",
-    "react": "^16.8.0",
-    "react-dom": "^16.8.0",
-    "rimraf": "3.0.2",
-    "ts-jest": "25.2.1",
-    "typescript": "3.8.3"
-  },
-  "peerDependencies": {
-    "@types/react": "*",
-    "@types/react-dom": "*",
-    "react": "^16.8.0",
-    "react-dom": "^16.8.0"
-  }
+    "name": "react-fetching-hooks",
+    "version": "0.0.3",
+    "repository": "github:fenok/react-fetching-hooks",
+    "license": "MIT",
+    "author": "Leonid Fenko <fenok2112@gmail.com>",
+    "sideEffects": false,
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "scripts": {
+        "build": "rimraf ./dist && tsc",
+        "prepare": "yarn build",
+        "prepublishOnly": "yarn test",
+        "test": "jest",
+        "prettier:all": "prettier --write \"**/*.{js,ts,tsx,json,md,*rc}\""
+    },
+    "dependencies": {
+        "@types/uuid": "^7.0.0",
+        "path-to-regexp": "^6.1.0",
+        "query-string": "^6.11.1",
+        "serialize-error": "^5.0.0",
+        "uuid": "^7.0.2"
+    },
+    "devDependencies": {
+        "@types/jest": "25.1.4",
+        "@types/node": "13.9.0",
+        "@types/react": "*",
+        "@types/react-dom": "*",
+        "glob": "7.1.6",
+        "jest": "25.1.0",
+        "prettier": "1.19.1",
+        "react": "^16.8.0",
+        "react-dom": "^16.8.0",
+        "rimraf": "3.0.2",
+        "ts-jest": "25.2.1",
+        "typescript": "3.8.3"
+    },
+    "peerDependencies": {
+        "@types/react": "*",
+        "@types/react-dom": "*",
+        "react": "^16.8.0",
+        "react-dom": "^16.8.0"
+    }
 }

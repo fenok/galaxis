@@ -1,1 +1,1 @@
-export {getUrlDefault} from './getUrlDefault'
+export { getUrlDefault } from './getUrlDefault';

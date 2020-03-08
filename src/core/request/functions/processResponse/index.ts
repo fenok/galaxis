@@ -1,1 +1,1 @@
-export {processResponseRestfulJson} from './processResponseRestfulJson'
+export { processResponseRestfulJson } from './processResponseRestfulJson';

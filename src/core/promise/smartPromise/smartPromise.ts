@@ -8,15 +8,18 @@ export interface Signals {
     rerunSignal?: RerunSignal | null;
 }
 
-export function smartPromise<T>(promiseFactory: (abortSignal?: AbortSignal) => Promise<T>, {multiAbortSignal, rerunSignal, abortSignal}: Signals = {}): Promise<T> {
+export function smartPromise<T>(
+    promiseFactory: (abortSignal?: AbortSignal) => Promise<T>,
+    { multiAbortSignal, rerunSignal, abortSignal }: Signals = {},
+): Promise<T> {
     return new Promise((resolve, reject) => {
-        const abortController = typeof AbortController !== "undefined" ? new AbortController() : null;
+        const abortController = typeof AbortController !== 'undefined' ? new AbortController() : null;
 
         const onAbort = () => {
-            if(abortController) {
+            if (abortController) {
                 abortController.abort();
             } else if (typeof window !== 'undefined') {
-                logger.warn("Include AbortController polyfill for network request cancelling.")
+                logger.warn('Include AbortController polyfill for network request cancelling.');
             } else {
                 logger.warn("Cancelling request on server shouldn't happen.");
             }
@@ -27,11 +30,13 @@ export function smartPromise<T>(promiseFactory: (abortSignal?: AbortSignal) => P
         const onRerun = () => {
             rerunSignal?.removeEventListener('rerun', onRerun);
             onAbort();
-            resolve(smartPromise(promiseFactory, {multiAbortSignal, rerunSignal, abortSignal}));
+            resolve(smartPromise(promiseFactory, { multiAbortSignal, rerunSignal, abortSignal }));
         };
 
         rerunSignal?.addEventListener('rerun', onRerun);
 
-        promiseFactory(abortController?.signal).then(resolve).catch(reject);
+        promiseFactory(abortController?.signal)
+            .then(resolve)
+            .catch(reject);
     });
 }

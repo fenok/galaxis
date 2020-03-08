@@ -1,4 +1,4 @@
-import {useEffect, useState} from 'react';
+import { useEffect, useState } from 'react';
 import { RequestState } from '../../core/cache';
 
 interface Options {
@@ -9,14 +9,14 @@ interface Options {
 /**
  * https://github.com/facebook/react/tree/master/packages/use-subscription
  */
-export function useSubscription({ getCurrentValue, subscribe}: Options) {
+export function useSubscription({ getCurrentValue, subscribe }: Options) {
     const [state, setState] = useState(() => ({ getCurrentValue, subscribe, value: getCurrentValue() }));
 
     let valueToReturn = state.value;
 
     if (state.getCurrentValue !== getCurrentValue || state.subscribe !== subscribe) {
         // Request never starts in error state
-        valueToReturn = {...getCurrentValue(), error: undefined};
+        valueToReturn = { ...getCurrentValue(), error: undefined };
 
         setState({ getCurrentValue, subscribe, value: valueToReturn });
     }
@@ -32,10 +32,7 @@ export function useSubscription({ getCurrentValue, subscribe}: Options) {
             const value = getCurrentValue();
 
             setState(prevState => {
-                if (
-                    prevState.getCurrentValue !== getCurrentValue ||
-                    prevState.subscribe !== subscribe
-                ) {
+                if (prevState.getCurrentValue !== getCurrentValue || prevState.subscribe !== subscribe) {
                     return prevState;
                 }
 
@@ -43,11 +40,15 @@ export function useSubscription({ getCurrentValue, subscribe}: Options) {
                     return prevState;
                 }
 
-                if (prevState.value.loading === value.loading && prevState.value.error === value.error && prevState.value.data === value.data) {
+                if (
+                    prevState.value.loading === value.loading &&
+                    prevState.value.error === value.error &&
+                    prevState.value.data === value.data
+                ) {
                     return prevState;
                 }
 
-                return {...prevState, value};
+                return { ...prevState, value };
             });
         };
         const unsubscribe = subscribe(checkForUpdates);

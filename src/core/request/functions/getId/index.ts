@@ -1,2 +1,2 @@
-export {getIdUrl} from './getIdUrl';
-export {getIdBase64} from './getIdBase64'
+export { getIdUrl } from './getIdUrl';
+export { getIdBase64 } from './getIdBase64';

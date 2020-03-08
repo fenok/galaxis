@@ -19,21 +19,21 @@ class SsrPromisesManager {
         return new Promise(resolve => {
             let unsettledCount = this.promises.length;
 
-            if(!unsettledCount) {
+            if (!unsettledCount) {
                 resolve();
             }
 
             const onSettle = () => {
-                if(--unsettledCount <= 0) {
+                if (--unsettledCount <= 0) {
                     resolve();
                 }
             };
 
             this.promises.forEach(promise => {
                 promise.then(onSettle, onSettle);
-            })
-        })
+            });
+        });
     }
 }
 
-export {SsrPromisesManager};
+export { SsrPromisesManager };
