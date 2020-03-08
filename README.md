@@ -1,5 +1,7 @@
 # React Fetching Hooks
 
+![npm](https://img.shields.io/npm/v/react-fetching-hooks)
+
 > ⚠ This library is work-in-progress and published only for some real-life testing. Expect bugs, documentation inconsistency and breaking changes on every release until version 1.0.0.
 
 Library for querying and mutating data in apollo-like way for any backend (GraphQL-based ones should just use Apollo instead, obviously).
