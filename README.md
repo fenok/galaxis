@@ -158,7 +158,7 @@ All functions are replaceable. The library provides default/example ones:
 
 ### Cache
 
-Cache is responsible for storing all cacheable data. It also provides redux-devtools bindings.
+Cache is responsible for storing all cacheable data.
 
 Cache consists of two parts: `requestStates` and `sharedData`.
 
@@ -170,9 +170,15 @@ Cache consists of two parts: `requestStates` and `sharedData`.
 
 `requestStates` is for internal usage only.
 
-`sharedData` stores data from `processResponse` function, normalized by `toCache` function. Shape of `sharedData` is completely up to you, but generally it should be as normalized and deduplicated as possible.
+`sharedData` stores data from `processResponse` function, normalized by `toCache` function (from all requests). Shape of `sharedData` is completely up to you, but generally it should be as normalized and deduplicated as possible.
 
-In case of SSR, you should provide initial cache state (from server).
+If request result updates `sharedData`, `data` field in `requestStates` is set to `undefined` to prevent duplication.
+
+Cache options (all optional):
+
+-   `initialState` - object that will be used for cache initialization (both `requestStates` and `sharedData`). You can provide SSR result here. Defaults to empty cache.
+-   `enableDevTools` - enable redux-devtools bindings. Defaults to `false`.
+-   `enableDataDuplication` - if `true`, `data` field in `requestStates` will always be set. Defaults to `false`.
 
 ### Client
 

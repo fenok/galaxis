@@ -1,5 +1,5 @@
 import { serializeError, ErrorObject } from 'serialize-error';
-import { devTools } from './devTools';
+import { devTools, ReduxDevTools } from './devTools';
 
 interface CacheState<C = any> {
     requestStates: { [id: string]: RequestState | undefined };
@@ -12,18 +12,30 @@ interface RequestState<D = any> {
     data?: D;
 }
 
+interface CacheOptions {
+    initialState?: CacheState;
+    enableDevTools?: boolean;
+    enableDataDuplication?: boolean;
+}
+
 class Cache {
     public static readonly INITIAL_STATE: CacheState = {
         requestStates: {},
         sharedData: {},
     };
 
-    private devtools = process.env.NODE_ENV !== 'production' && devTools ? devTools.connect() : null;
+    private readonly devtools: ReduxDevTools | null;
 
     private _state = Cache.INITIAL_STATE;
+
     private subscribers: ((state: CacheState) => void)[] = [];
 
-    constructor(initialState?: CacheState) {
+    private readonly enableDataDuplication: boolean;
+
+    constructor({ initialState, enableDataDuplication, enableDevTools }: CacheOptions = {}) {
+        this.enableDataDuplication = Boolean(enableDataDuplication);
+
+        this.devtools = enableDevTools && devTools ? devTools.connect() : null;
         this.subscribeToDevtools();
         this.devtools?.send({ type: 'INIT', state: this.state }, this.state);
 
@@ -71,7 +83,9 @@ class Cache {
     }
 
     public onQuerySuccess(id: string, data: any, sharedData?: any) {
-        this.updateState({ id, state: { loading: false, data, error: undefined }, sharedData });
+        const dataToWrite = sharedData === undefined || this.enableDataDuplication ? data : undefined;
+
+        this.updateState({ id, state: { loading: false, data: dataToWrite, error: undefined }, sharedData });
         this.devtools?.send({ type: 'QUERY_SUCCESS', id, data, sharedData }, this.state);
     }
 

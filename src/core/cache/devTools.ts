@@ -19,7 +19,9 @@ interface Message {
     state: string;
 }
 
-export const devTools =
+const devTools =
     typeof window !== 'undefined' && (window as any).__REDUX_DEVTOOLS_EXTENSION__
         ? ((window as any).__REDUX_DEVTOOLS_EXTENSION__ as ReduxDevtoolExtension)
         : undefined;
+
+export { devTools, ReduxDevTools };
