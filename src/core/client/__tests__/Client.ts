@@ -105,7 +105,7 @@ const requestWithSharedData: PartialRequestData<CacheState, ResponseData, { id: 
 it('can query data', async () => {
     fakeBackendState = JSON.parse(JSON.stringify(INITIAL_FAKE_BACKEND_STATE));
 
-    let response = await client.query({ ...request, pathParams: { id: '1' } }, { callerId: 'test' });
+    const response = await client.query({ ...request, pathParams: { id: '1' } }, { callerId: 'test' });
 
     expect(response).toEqual({ data: FIRST_ITEM });
 });
@@ -113,7 +113,7 @@ it('can query data', async () => {
 it('can mutate data', async () => {
     fakeBackendState = JSON.parse(JSON.stringify(INITIAL_FAKE_BACKEND_STATE));
 
-    let response = await client.mutate(
+    const response = await client.mutate(
         { ...request, pathParams: { id: '1' }, method: 'POST', body: JSON.stringify(ALTERED_ITEM) },
         { callerId: 'test' },
     );
@@ -125,7 +125,7 @@ it('caches queried data', async () => {
     fakeBackendState = JSON.parse(JSON.stringify(INITIAL_FAKE_BACKEND_STATE));
 
     await client.query({ ...request, pathParams: { id: '1' } }, { callerId: 'test' });
-    let { data: responseFromCache } = client.getState({ ...request, pathParams: { id: '1' } }, 'test');
+    const { data: responseFromCache } = client.getState({ ...request, pathParams: { id: '1' } }, 'test');
 
     expect(responseFromCache).toEqual({ data: FIRST_ITEM });
 });
@@ -134,7 +134,7 @@ it('caches queried data for request with custom caching', async () => {
     fakeBackendState = JSON.parse(JSON.stringify(INITIAL_FAKE_BACKEND_STATE));
 
     await client.query({ ...requestWithSharedData, pathParams: { id: '1' } }, { callerId: 'test' });
-    let { data: responseFromCache } = client.getState({ ...requestWithSharedData, pathParams: { id: '1' } }, 'test');
+    const { data: responseFromCache } = client.getState({ ...requestWithSharedData, pathParams: { id: '1' } }, 'test');
 
     expect(responseFromCache).toEqual({ data: FIRST_ITEM });
 });

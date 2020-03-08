@@ -110,7 +110,8 @@ class Client {
         if (
             typeof window === 'undefined' &&
             !['no-cache', 'cache-only'].includes(mergedRequest.fetchPolicy) &&
-            requestState.data === undefined && requestState.error === undefined
+            requestState.data === undefined &&
+            requestState.error === undefined
         ) {
             return this.query(mergedRequest, { callerId, forceNetworkRequest: false });
         }
@@ -260,6 +261,8 @@ class Client {
         return smartPromise(
             signal =>
                 (this.fetchFn || fetch)(mergedRequest.getUrl(mergedRequest), { ...mergedRequest, signal }).then(
+                    // It's pure function
+                    // eslint-disable-next-line @typescript-eslint/unbound-method
                     mergedRequest.processResponse,
                 ),
             signals,
