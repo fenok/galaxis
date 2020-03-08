@@ -10,7 +10,7 @@
     "scripts": {
         "build": "rimraf ./dist && tsc",
         "prepare": "yarn build",
-        "prepublishOnly": "yarn test",
+        "prepublishOnly": "yarn test && yarn lint:js && yarn lint:ts",
         "test": "jest",
         "prettier:all": "prettier --write \"**/*.{js,ts,tsx,json,md,*rc}\"",
         "lint:js": "eslint .",
