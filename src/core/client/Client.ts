@@ -115,7 +115,9 @@ class Client {
 
         return this.getRequestPromise(mergedRequest, { multiAbortSignal, abortSignal: mergedRequest.signal })
             .then(data => {
-                Object.values(this.requests).forEach(promiseData => promiseData?.rerunNetworkRequest());
+                if (mergedRequest.fetchPolicy !== 'no-cache') {
+                    Object.values(this.requests).forEach(promiseData => promiseData?.rerunNetworkRequest());
+                }
 
                 // Delay state update to let all planned state updates finish
                 return data;
