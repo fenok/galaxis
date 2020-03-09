@@ -150,7 +150,7 @@ it("guarantees that old query data won't overwrite state after mutation", async 
 
     await Promise.all([queryPromise, mutatePromise]);
 
-    const { data: responseFromCache } = client.getState({ ...request, pathParams: { id: '1' } }, 'test');
+    const { data: responseFromCache } = client.getState({ ...requestWithSharedData, pathParams: { id: '1' } }, 'test');
 
     expect(responseFromCache).toEqual({ data: ALTERED_ITEM });
 });
