@@ -84,12 +84,12 @@ const client = new Client({
     },
 });
 
-const request: PartialRequestData<CacheState, ResponseData, { id: string }> = {
+const request: PartialRequestData<CacheState, ResponseData, Error, { id: string }> = {
     pathParams: { id: '1' },
     path: '/item/:id',
 };
 
-const requestWithSharedData: PartialRequestData<CacheState, ResponseData, { id: string }> = {
+const requestWithSharedData: PartialRequestData<CacheState, ResponseData, Error, { id: string }> = {
     ...request,
     toCache(sharedData, responseData, request) {
         return {

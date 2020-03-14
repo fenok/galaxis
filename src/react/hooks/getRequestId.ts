@@ -1,11 +1,11 @@
 import { Client } from '../../core/client';
 import { PartialRequestData } from '../../core/request';
-import { SDC, RC, PPC, QPC, BC } from '../../core/request/types';
+import { SDC, RC, PPC, QPC, BC, EC } from '../../core/request/types';
 
-export function getRequestId<C extends SDC, R extends RC, P extends PPC, Q extends QPC, B extends BC>(
-    request: PartialRequestData<C, R, P, Q, B>,
+export function getRequestId<C extends SDC, R extends RC, E extends EC, P extends PPC, Q extends QPC, B extends BC>(
+    request: PartialRequestData<C, R, E, P, Q, B>,
     client: Client,
-    getPartialRequestId?: (request: PartialRequestData<C, R, P, Q, B>) => string | number,
+    getPartialRequestId?: (request: PartialRequestData<C, R, E, P, Q, B>) => string | number,
 ) {
     let requestId: string | number;
     if (getPartialRequestId) {
