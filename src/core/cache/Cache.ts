@@ -1,4 +1,4 @@
-import { serializeError, ErrorObject } from 'serialize-error';
+import { serializeError, ErrorObject, deserializeError } from 'serialize-error';
 import { devTools, ReduxDevTools } from './devTools';
 
 interface CacheState<C = any> {
@@ -6,14 +6,25 @@ interface CacheState<C = any> {
     sharedData: C;
 }
 
-interface RequestState<D = any> {
+interface SerializableCacheState<C = any> {
+    requestStates: { [id: string]: SerializableRequestState | undefined };
+    sharedData: C;
+}
+
+interface RequestState<D = any, E extends Error = Error> {
     loading: boolean;
-    error?: ErrorObject;
+    error?: E | Error; // Regular error can always slip through
+    data?: D;
+}
+
+interface SerializableRequestState<D = any, E extends ErrorObject = ErrorObject> {
+    loading: boolean;
+    error?: E | ErrorObject;
     data?: D;
 }
 
 interface CacheOptions {
-    initialState?: CacheState;
+    initialSerializableState?: SerializableCacheState;
     enableDevTools?: boolean;
     enableDataDuplication?: boolean;
 }
@@ -32,15 +43,15 @@ class Cache {
 
     private readonly enableDataDuplication: boolean;
 
-    constructor({ initialState, enableDataDuplication, enableDevTools }: CacheOptions = {}) {
+    constructor({ initialSerializableState, enableDataDuplication, enableDevTools }: CacheOptions = {}) {
         this.enableDataDuplication = Boolean(enableDataDuplication);
 
-        this.devtools = enableDevTools && devTools ? devTools.connect() : null;
+        this.devtools = enableDevTools && devTools ? devTools.connect({ serializeState: true }) : null;
         this.subscribeToDevtools();
         this.devtools?.send({ type: 'INIT', state: this.state }, this.state);
 
-        if (initialState) {
-            this.state = initialState;
+        if (initialSerializableState) {
+            this.state = this.deserializeState(initialSerializableState);
             this.devtools?.send({ type: 'HYDRATE', state: this.state }, this.state);
         }
     }
@@ -56,6 +67,34 @@ class Cache {
 
     public getState() {
         return this.state;
+    }
+
+    public getSerializableState(): SerializableCacheState {
+        const serializableRequestStates = Object.fromEntries(
+            Object.entries(this.state.requestStates).map(([id, state]) => [
+                id,
+                state ? { ...state, error: state.error ? serializeError(state.error) : state.error } : state,
+            ]),
+        );
+
+        return {
+            ...this.state,
+            requestStates: serializableRequestStates,
+        };
+    }
+
+    private deserializeState(serializableState: SerializableCacheState): CacheState {
+        const deserializedRequestStates = Object.fromEntries(
+            Object.entries(serializableState.requestStates).map(([id, state]) => [
+                id,
+                state ? { ...state, error: state.error ? deserializeError(state.error) : state.error } : state,
+            ]),
+        );
+
+        return {
+            ...serializableState,
+            requestStates: deserializedRequestStates,
+        };
     }
 
     public subscribe(callback: (state: CacheState) => void) {
@@ -76,10 +115,8 @@ class Cache {
     }
 
     public onQueryFail(id: string, error: Error) {
-        const errorObj = serializeError(error);
-
-        this.updateState({ id, state: { loading: false, error: errorObj } });
-        this.devtools?.send({ type: 'QUERY_FAIL', id, error: errorObj }, this.state);
+        this.updateState({ id, state: { loading: false, error } });
+        this.devtools?.send({ type: 'QUERY_FAIL', id, error }, this.state);
     }
 
     public onQuerySuccess(id: string, data: any, sharedData?: any) {
@@ -121,4 +158,4 @@ class Cache {
     }
 }
 
-export { Cache, CacheState, RequestState };
+export { Cache, CacheState, RequestState, SerializableCacheState, SerializableRequestState };

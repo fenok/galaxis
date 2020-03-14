@@ -41,7 +41,7 @@ class Client {
     }
 
     public extract() {
-        return this.cache.getState();
+        return this.cache.getSerializableState();
     }
 
     public getCompleteRequestData<C extends SDC, R extends RC, P extends PPC, Q extends QPC, B extends BC>(
