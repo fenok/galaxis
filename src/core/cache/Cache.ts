@@ -47,13 +47,13 @@ class Cache {
     constructor({ initialSerializableState, enableDataDuplication, enableDevTools }: CacheOptions = {}) {
         this.enableDataDuplication = Boolean(enableDataDuplication);
 
-        this.devtools = enableDevTools && devTools ? devTools.connect({ serializeState: true }) : null;
+        this.devtools = enableDevTools && devTools ? devTools.connect() : null;
         this.subscribeToDevtools();
         this.devtools?.send({ type: 'INIT', state: this.state }, this.state);
 
         if (initialSerializableState) {
             this.state = this.deserializeState(initialSerializableState);
-            this.devtools?.send({ type: 'HYDRATE', state: this.state }, this.state);
+            this.devtools?.send({ type: 'HYDRATE', state: initialSerializableState }, this.state);
         }
     }
 
@@ -117,7 +117,7 @@ class Cache {
 
     public onQueryFail(id: string, error: Error) {
         this.updateState({ id, state: { loading: false, error } });
-        this.devtools?.send({ type: 'QUERY_FAIL', id, error }, this.state);
+        this.devtools?.send({ type: 'QUERY_FAIL', id, error: serializeError(error) }, this.state);
     }
 
     public onQuerySuccess(id: string, data: any, sharedData?: any) {

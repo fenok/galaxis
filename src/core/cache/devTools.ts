@@ -1,9 +1,5 @@
 interface ReduxDevtoolExtension {
-    connect(opts?: ConnectOptions): ReduxDevTools;
-}
-
-interface ConnectOptions {
-    serializeState: boolean;
+    connect(): ReduxDevTools;
 }
 
 interface ReduxDevTools {
