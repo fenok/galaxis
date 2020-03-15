@@ -4,6 +4,7 @@ import { getUrlDefault } from '../../request/functions/getUrl';
 import { mergeShallow } from '../../request/functions/merge';
 import { Client } from '../Client';
 import { Cache } from '../../cache';
+import { serializeError, deserializeError } from 'serialize-error';
 
 const FIRST_ITEM = {
     id: 1,
@@ -70,7 +71,7 @@ const fetchFn = (url: string, { method, body }: RequestInit) => {
 };
 
 const client = new Client({
-    cache: new Cache(),
+    cache: new Cache({ serializeError: serializeError as any, deserializeError: deserializeError }),
     fetch: fetchFn as typeof fetch,
     generalRequestData: {
         root: 'http://test.test',

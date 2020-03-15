@@ -20,7 +20,6 @@
         "@types/uuid": "^7.0.0",
         "path-to-regexp": "^6.1.0",
         "query-string": "^6.11.1",
-        "serialize-error": "^5.0.0",
         "uuid": "^7.0.2"
     },
     "devDependencies": {
@@ -39,6 +38,7 @@
         "react": "^16.8.0",
         "react-dom": "^16.8.0",
         "rimraf": "3.0.2",
+        "serialize-error": "^5.0.0",
         "ts-jest": "25.2.1",
         "typescript": "3.8.3"
     },

@@ -1,14 +1,8 @@
-import { serializeError, ErrorObject, deserializeError } from 'serialize-error';
 import { devTools, ReduxDevTools } from './devTools';
 import { RC } from '../request/types';
 
 interface CacheState<C = any> {
     requestStates: { [id: string]: RequestState | undefined };
-    sharedData: C;
-}
-
-interface SerializableCacheState<C = any> {
-    requestStates: { [id: string]: SerializableRequestState | undefined };
     sharedData: C;
 }
 
@@ -18,14 +12,10 @@ interface RequestState<D extends RC = any, E extends Error = Error> {
     data?: D;
 }
 
-interface SerializableRequestState<D = any, E extends ErrorObject = ErrorObject> {
-    loading: boolean;
-    error?: E | ErrorObject;
-    data?: D;
-}
-
 interface CacheOptions {
-    initialSerializableState?: SerializableCacheState;
+    serializeError(error: Error): Error;
+    deserializeError(error: Error): Error;
+    initialSerializableState?: CacheState;
     enableDevTools?: boolean;
     enableDataDuplication?: boolean;
     preserveErrorStacksOnSerialization?: boolean;
@@ -45,13 +35,20 @@ class Cache {
 
     private readonly enableDataDuplication: boolean;
     private readonly preserveErrorStacksOnSerialization: boolean;
+    private readonly serializeError: (error: Error) => Error;
+    private readonly deserializeError: (error: Error) => Error;
 
     constructor({
+        serializeError,
+        deserializeError,
         initialSerializableState,
         enableDataDuplication,
         preserveErrorStacksOnSerialization,
         enableDevTools,
-    }: CacheOptions = {}) {
+    }: CacheOptions) {
+        this.serializeError = serializeError;
+        this.deserializeError = deserializeError;
+
         this.enableDataDuplication = Boolean(enableDataDuplication);
         this.preserveErrorStacksOnSerialization = Boolean(preserveErrorStacksOnSerialization);
 
@@ -83,10 +80,10 @@ class Cache {
         return this.state;
     }
 
-    public getSerializableState(): SerializableCacheState {
+    public getSerializableState(): CacheState {
         const serializableRequestStates = Object.fromEntries(
             Object.entries(this.state.requestStates).map(([id, state]) => {
-                const serializedError = serializeError(state?.error);
+                const serializedError = state?.error ? this.serializeError(state.error) : undefined;
                 if (serializedError && !this.preserveErrorStacksOnSerialization) {
                     serializedError.stack = '';
                 }
@@ -101,11 +98,11 @@ class Cache {
         };
     }
 
-    private deserializeState(serializableState: SerializableCacheState): CacheState {
+    private deserializeState(serializableState: CacheState): CacheState {
         const deserializedRequestStates = Object.fromEntries(
             Object.entries(serializableState.requestStates).map(([id, state]) => [
                 id,
-                state ? { ...state, error: state.error ? deserializeError(state.error) : state.error } : state,
+                state ? { ...state, error: state.error ? this.deserializeError(state.error) : state.error } : state,
             ]),
         );
 
@@ -176,4 +173,4 @@ class Cache {
     }
 }
 
-export { Cache, CacheState, RequestState, SerializableCacheState, SerializableRequestState };
+export { Cache, CacheState, RequestState };
