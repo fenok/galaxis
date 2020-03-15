@@ -71,7 +71,7 @@ const fetchFn = (url: string, { method, body }: RequestInit) => {
 };
 
 const client = new Client({
-    cache: new Cache({ serializeError: serializeError as any, deserializeError: deserializeError }),
+    cache: new Cache({ serializeError, deserializeError }),
     fetch: fetchFn as typeof fetch,
     generalRequestData: {
         root: 'http://test.test',
