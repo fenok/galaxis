@@ -72,7 +72,9 @@ export function useQuery<C extends SDC, R extends RC, E extends EC, P extends PP
     }, []);
 
     React.useEffect(() => {
-        query();
+        query().catch(() => {
+            // Prevent uncaught error message (error will be in state)
+        });
 
         return () => {
             abort();
