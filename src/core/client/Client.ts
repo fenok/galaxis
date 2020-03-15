@@ -166,12 +166,8 @@ class Client {
     }
 
     private getDataFromCache<T>(mergedRequest: RequestData, callerId: string): T | undefined {
-        try {
-            if (mergedRequest.fromCache && mergedRequest.fetchPolicy !== 'no-cache') {
-                return mergedRequest.fromCache(this.cache.getState().sharedData, mergedRequest);
-            }
-        } catch {
-            // fromCache may throw, that's expected, falling back to requestState
+        if (mergedRequest.fromCache && mergedRequest.fetchPolicy !== 'no-cache') {
+            return mergedRequest.fromCache(this.cache.getState().sharedData, mergedRequest);
         }
 
         return this.cache.getState().requestStates[this.getRequestId(mergedRequest, callerId)]?.data;
