@@ -55,7 +55,12 @@ class Cache {
         this.enableDataDuplication = Boolean(enableDataDuplication);
         this.preserveErrorStacksOnSerialization = Boolean(preserveErrorStacksOnSerialization);
 
-        this.devtools = enableDevTools && devTools ? devTools.connect() : null;
+        this.devtools =
+            enableDevTools && devTools
+                ? devTools.connect({
+                      serialize: { replacer: (_, value) => (value instanceof Error ? serializeError(value) : value) },
+                  })
+                : null;
         this.subscribeToDevtools();
         this.devtools?.send({ type: 'INIT', state: this.state }, this.state);
 
@@ -129,7 +134,7 @@ class Cache {
 
     public onQueryFail(id: string, error: Error) {
         this.updateState({ id, state: { loading: false, error } });
-        this.devtools?.send({ type: 'QUERY_FAIL', id, error: serializeError(error) }, this.state);
+        this.devtools?.send({ type: 'QUERY_FAIL', id, error }, this.state);
     }
 
     public onQuerySuccess(id: string, data: any, sharedData?: any) {

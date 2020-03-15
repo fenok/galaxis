@@ -1,5 +1,11 @@
 interface ReduxDevtoolExtension {
-    connect(): ReduxDevTools;
+    connect(opts?: Options): ReduxDevTools;
+}
+
+interface Options {
+    serialize?: {
+        replacer?(key: string, value: any): any;
+    }
 }
 
 interface ReduxDevTools {
