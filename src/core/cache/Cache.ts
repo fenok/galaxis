@@ -28,6 +28,7 @@ interface CacheOptions {
     initialSerializableState?: SerializableCacheState;
     enableDevTools?: boolean;
     enableDataDuplication?: boolean;
+    preserveErrorStacksOnSerialization?: boolean;
 }
 
 class Cache {
@@ -43,9 +44,16 @@ class Cache {
     private subscribers: ((state: CacheState) => void)[] = [];
 
     private readonly enableDataDuplication: boolean;
+    private readonly preserveErrorStacksOnSerialization: boolean;
 
-    constructor({ initialSerializableState, enableDataDuplication, enableDevTools }: CacheOptions = {}) {
+    constructor({
+        initialSerializableState,
+        enableDataDuplication,
+        preserveErrorStacksOnSerialization,
+        enableDevTools,
+    }: CacheOptions = {}) {
         this.enableDataDuplication = Boolean(enableDataDuplication);
+        this.preserveErrorStacksOnSerialization = Boolean(preserveErrorStacksOnSerialization);
 
         this.devtools = enableDevTools && devTools ? devTools.connect() : null;
         this.subscribeToDevtools();
@@ -72,10 +80,14 @@ class Cache {
 
     public getSerializableState(): SerializableCacheState {
         const serializableRequestStates = Object.fromEntries(
-            Object.entries(this.state.requestStates).map(([id, state]) => [
-                id,
-                state ? { ...state, error: state.error ? serializeError(state.error) : state.error } : state,
-            ]),
+            Object.entries(this.state.requestStates).map(([id, state]) => {
+                const serializedError = serializeError(state?.error);
+                if (serializedError && !this.preserveErrorStacksOnSerialization) {
+                    serializedError.stack = '';
+                }
+
+                return [id, state ? { ...state, error: serializedError } : state];
+            }),
         );
 
         return {
