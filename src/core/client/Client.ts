@@ -250,7 +250,7 @@ class Client {
         const pureId = mergedRequest.getId(mergedRequest);
 
         if (mergedRequest.fetchPolicy === 'no-cache') {
-            return `${callerId}-${pureId}`;
+            return `no-cache:${callerId}:${pureId}`;
         }
 
         return pureId;
