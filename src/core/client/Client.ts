@@ -33,11 +33,16 @@ class Client {
     private readonly fetchFn?: typeof fetch;
     private readonly generalRequestData: GeneralRequestData;
     private requests: { [requestId: string]: RequestPromiseData | undefined } = {};
+    private idCounter = 1;
 
     constructor({ cache, fetch: fetchFn, generalRequestData }: ClientOptions) {
         this.cache = cache;
         this.fetchFn = fetchFn;
         this.generalRequestData = generalRequestData;
+    }
+
+    public generateId(): string {
+        return String(this.idCounter++);
     }
 
     public extract() {

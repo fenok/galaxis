@@ -17,10 +17,8 @@
         "lint:ts": "eslint ./src/**/*.{ts,tsx}"
     },
     "dependencies": {
-        "@types/uuid": "^7.0.0",
         "path-to-regexp": "^6.1.0",
-        "query-string": "^6.11.1",
-        "uuid": "^7.0.2"
+        "query-string": "^6.11.1"
     },
     "devDependencies": {
         "@types/jest": "25.1.4",

@@ -6,7 +6,7 @@ import { ClientContext, SsrPromisesManagerContext } from '../Provider';
 import { PartialRequestData } from '../../core/request';
 import { ensureClient } from './ensureClient';
 import { getRequestId } from './getRequestId';
-import { useComponentId } from './useComponentId';
+import { useId } from './useId';
 import { useSubscription } from './useSubscription';
 
 interface QueryOptions<C extends SDC, R extends RC, E extends EC, P extends PPC, Q extends QPC, B extends BC> {
@@ -17,7 +17,7 @@ export function useQuery<C extends SDC, R extends RC, E extends EC, P extends PP
     request: PartialRequestData<C, R, E, P, Q, B>,
     { getPartialRequestId }: QueryOptions<C, R, E, P, Q, B> = {},
 ) {
-    const componentId = useComponentId();
+    const callerId = useId();
 
     const client = React.useContext(ClientContext);
     const ssrPromisesManager = React.useContext(SsrPromisesManagerContext);
@@ -28,20 +28,20 @@ export function useQuery<C extends SDC, R extends RC, E extends EC, P extends PP
 
     const subscription = React.useMemo(
         () => ({
-            getCurrentValue: () => client.getState(request, componentId),
+            getCurrentValue: () => client.getState(request, callerId),
             subscribe: (callback: (state: RequestState<R, E>) => void) => {
-                return client.subscribe(request, componentId, callback);
+                return client.subscribe(request, callerId, callback);
             },
         }),
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        [client, requestId, componentId],
+        [client, requestId, callerId],
     );
 
     const multiAbortControllerRef = React.useRef<MultiAbortController>();
 
     if (typeof window === 'undefined') {
-        const ssrPromise = client.getSsrPromise(request, componentId);
+        const ssrPromise = client.getSsrPromise(request, callerId);
         ssrPromise && ssrPromisesManager?.addPromise(ssrPromise);
     }
 
@@ -52,13 +52,13 @@ export function useQuery<C extends SDC, R extends RC, E extends EC, P extends PP
             }
 
             return client.query(request, {
-                callerId: componentId,
+                callerId: callerId,
                 forceNetworkRequest: !!forceUpdate,
                 multiAbortSignal: multiAbortControllerRef.current.signal,
             });
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        [client, requestId, componentId],
+        [client, requestId, callerId],
     );
 
     const refetch = React.useCallback(() => {
