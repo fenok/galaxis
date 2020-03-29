@@ -234,3 +234,7 @@ Mutations:
 
 -   `cache-only`, `cache-first`, `cache-and-network` - returns data/error and updates `sharedData`
 -   `no-cache` - returns data/error without touching `sharedData`
+
+## Known issues
+
+-   Errors in external code may lead to different errors in state and `query().catch()`;
