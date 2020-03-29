@@ -3,6 +3,7 @@ import { MultiAbortController, MultiAbortSignal, RerunController } from '../prom
 import { smartPromise, Signals, wireAbortSignals } from '../promise';
 import { GeneralRequestData, PartialRequestData, RequestData } from '../request';
 import { BC, PPC, QPC, RC, SDC, EC } from '../request/types';
+import * as logger from '../logger';
 
 interface ClientOptions {
     cache: Cache;
@@ -161,23 +162,28 @@ class Client {
         request: PartialRequestData<C, R, E, P, Q, B>,
         requestOptions: QueryOptions,
     ): Promise<R | undefined> {
-        const mergedRequest = this.getCompleteRequestData(request);
+        try {
+            const mergedRequest = this.getCompleteRequestData(request);
 
-        const cachedData = this.getDataFromCache<R>(mergedRequest, requestOptions.callerId);
+            const cachedData = this.getDataFromCache<R>(mergedRequest, requestOptions.callerId);
 
-        if (requestOptions.respectLazy && mergedRequest.lazy) {
-            return cachedData;
+            if (requestOptions.respectLazy && mergedRequest.lazy) {
+                return cachedData;
+            }
+
+            if (mergedRequest.fetchPolicy === 'cache-only') {
+                return cachedData;
+            }
+
+            if (mergedRequest.fetchPolicy === 'cache-first' && cachedData !== undefined) {
+                return cachedData;
+            }
+
+            return this.getDataFromNetwork(mergedRequest, requestOptions);
+        } catch (error) {
+            this.warnAboutDivergedError(error, request, requestOptions);
+            throw error;
         }
-
-        if (mergedRequest.fetchPolicy === 'cache-only') {
-            return cachedData;
-        }
-
-        if (mergedRequest.fetchPolicy === 'cache-first' && cachedData !== undefined) {
-            return cachedData;
-        }
-
-        return this.getDataFromNetwork(mergedRequest, requestOptions);
     }
 
     private getDataFromCache<T>(mergedRequest: RequestData, callerId: string): T | undefined {
@@ -281,6 +287,26 @@ class Client {
                 ),
             signals,
         );
+    }
+
+    private warnAboutDivergedError<
+        C extends SDC,
+        R extends RC,
+        E extends EC,
+        P extends PPC,
+        Q extends QPC,
+        B extends BC
+    >(error: Error, request: PartialRequestData<C, R, E, P, Q, B>, options: GetStateOptions) {
+        if (process.env.NODE_ENV !== 'production') {
+            const requestState = this.getState(request, options);
+            if (error !== requestState.error) {
+                logger.error(
+                    "Error from state diverged from actual error. This likely indicates illegal exception in request's function. This can also indicate error in the library itself, so file an issue if request's functions are definitely correct.",
+                );
+                logger.error('State error:', requestState.error);
+                logger.error('Actual error:', error);
+            }
+        }
     }
 }
 
