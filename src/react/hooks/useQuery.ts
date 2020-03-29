@@ -28,8 +28,12 @@ export function useQuery<C extends SDC, R extends RC, E extends EC, P extends PP
 
     const subscription = React.useMemo(
         () => ({
-            getCurrentValue: (initial?: boolean) =>
-                client.getState(request, { callerId, overrideWithInitialState: initial }),
+            getCurrentValue: (mount: boolean, update: boolean) =>
+                client.getState(request, {
+                    callerId,
+                    overrideWithInitialMountState: mount,
+                    overrideWithInitialUpdateState: update,
+                }),
             subscribe: (callback: (state: RequestState<R, E>) => void) => {
                 return client.subscribe(request, callerId, callback);
             },

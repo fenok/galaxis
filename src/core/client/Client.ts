@@ -32,7 +32,8 @@ interface RequestPromiseData {
 
 interface GetStateOptions {
     callerId: string;
-    overrideWithInitialState?: boolean;
+    overrideWithInitialMountState?: boolean;
+    overrideWithInitialUpdateState?: boolean;
 }
 
 class Client {
@@ -85,17 +86,25 @@ class Client {
 
     public getState<C extends SDC, R extends RC, E extends EC, P extends PPC, Q extends QPC, B extends BC>(
         request: PartialRequestData<C, R, E, P, Q, B>,
-        { callerId, overrideWithInitialState }: GetStateOptions,
+        { callerId, overrideWithInitialMountState, overrideWithInitialUpdateState }: GetStateOptions,
     ): RequestState<R, E> {
         const mergedRequest = this.getCompleteRequestData(request);
         const requestState = this.getCompleteRequestState<R, E>(mergedRequest, callerId);
 
         if (
-            overrideWithInitialState &&
+            overrideWithInitialMountState &&
             !mergedRequest.lazy &&
-            (mergedRequest.fetchPolicy === 'no-cache' ||
-                (mergedRequest.fetchPolicy !== 'cache-only' &&
-                    !this.isCachedDataSufficient(mergedRequest, requestState)))
+            mergedRequest.fetchPolicy !== 'cache-only' && !this.isCachedDataSufficient(mergedRequest, requestState)
+        ) {
+            requestState.loading = true;
+            requestState.error = undefined;
+        }
+
+        if (
+            overrideWithInitialUpdateState &&
+            !mergedRequest.lazy &&
+            mergedRequest.fetchPolicy !== 'cache-only' &&
+            !(mergedRequest.fetchPolicy === 'cache-first' && this.isCachedDataSufficient(mergedRequest, requestState))
         ) {
             requestState.loading = true;
             requestState.error = undefined;

@@ -3,7 +3,7 @@ import { RequestState } from '../../core/cache';
 import { RC, EC } from '../../core/request/types';
 
 interface Options<D extends RC, E extends EC> {
-    getCurrentValue(initial?: boolean): RequestState<D, E>;
+    getCurrentValue(mount: boolean, update: boolean): RequestState<D, E>;
     subscribe(cb: (state: RequestState<D, E>) => void): () => void;
 }
 
@@ -11,12 +11,12 @@ interface Options<D extends RC, E extends EC> {
  * https://github.com/facebook/react/tree/master/packages/use-subscription
  */
 export function useSubscription<D extends RC, E extends EC>({ getCurrentValue, subscribe }: Options<D, E>) {
-    const [state, setState] = useState(() => ({ getCurrentValue, subscribe, value: getCurrentValue(true) }));
+    const [state, setState] = useState(() => ({ getCurrentValue, subscribe, value: getCurrentValue(true, false) }));
 
     let valueToReturn = state.value;
 
     if (state.getCurrentValue !== getCurrentValue || state.subscribe !== subscribe) {
-        valueToReturn = { ...getCurrentValue(true) };
+        valueToReturn = { ...getCurrentValue(false, true) };
 
         setState({ getCurrentValue, subscribe, value: valueToReturn });
     }
@@ -29,7 +29,7 @@ export function useSubscription<D extends RC, E extends EC>({ getCurrentValue, s
                 return;
             }
 
-            const value = getCurrentValue();
+            const value = getCurrentValue(false, false);
 
             setState(prevState => {
                 if (prevState.getCurrentValue !== getCurrentValue || prevState.subscribe !== subscribe) {

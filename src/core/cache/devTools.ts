@@ -5,7 +5,7 @@ interface ReduxDevtoolExtension {
 interface Options {
     serialize?: {
         replacer?(key: string, value: any): any;
-    }
+    };
 }
 
 interface ReduxDevTools {
