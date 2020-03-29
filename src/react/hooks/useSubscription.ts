@@ -11,7 +11,7 @@ interface Options<D extends RC, E extends EC> {
  * https://github.com/facebook/react/tree/master/packages/use-subscription
  */
 export function useSubscription<D extends RC, E extends EC>({ getCurrentValue, subscribe }: Options<D, E>) {
-    const [state, setState] = useState(() => ({ getCurrentValue, subscribe, value: getCurrentValue() }));
+    const [state, setState] = useState(() => ({ getCurrentValue, subscribe, value: getCurrentValue(true) }));
 
     let valueToReturn = state.value;
 
