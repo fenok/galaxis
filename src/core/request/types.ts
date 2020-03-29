@@ -30,6 +30,7 @@ export interface GeneralRequestData<
     queryParams?: Q;
     body?: B;
     lazy?: boolean;
+    applyFetchPolicyToError?: boolean | ((error: E) => boolean);
     getId(requestInit: RequestData<C, R, E, P, Q, B>): string;
     getUrl(requestInit: RequestData<C, R, E, P, Q, B>): string;
     processResponse(response: Response): Promise<R>;

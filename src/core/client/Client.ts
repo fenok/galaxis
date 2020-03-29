@@ -88,24 +88,20 @@ class Client {
         { callerId, overrideWithInitialState }: GetStateOptions,
     ): RequestState<R, E> {
         const mergedRequest = this.getCompleteRequestData(request);
-
-        const data = this.getDataFromCache<R>(mergedRequest, callerId);
-        const requestState = this.cache.getState().requestStates[this.getRequestId(mergedRequest, callerId)];
-
-        const defaultState = { loading: false, data: undefined, error: undefined };
-
-        const initialState = { loading: requestState?.loading || false, data: data, error: requestState?.error };
+        const requestState = this.getCompleteRequestState<R, E>(mergedRequest, callerId);
 
         if (
+            overrideWithInitialState &&
             !mergedRequest.lazy &&
             (mergedRequest.fetchPolicy === 'no-cache' ||
-                (mergedRequest.fetchPolicy !== 'cache-only' && data === undefined))
+                (mergedRequest.fetchPolicy !== 'cache-only' &&
+                    !this.isCachedDataSufficient(mergedRequest, requestState)))
         ) {
-            initialState.loading = true;
-            initialState.error = undefined;
+            requestState.loading = true;
+            requestState.error = undefined;
         }
 
-        return { ...defaultState, ...requestState, data, ...(overrideWithInitialState ? initialState : {}) };
+        return requestState;
     }
 
     public getSsrPromise<C extends SDC, R extends RC, E extends EC, P extends PPC, Q extends QPC, B extends BC>(
@@ -164,19 +160,21 @@ class Client {
     ): Promise<R | undefined> {
         try {
             const mergedRequest = this.getCompleteRequestData(request);
-
-            const cachedData = this.getDataFromCache<R>(mergedRequest, requestOptions.callerId);
+            const requestState = this.getCompleteRequestState<R, E>(mergedRequest, requestOptions.callerId);
 
             if (requestOptions.respectLazy && mergedRequest.lazy) {
-                return cachedData;
+                return this.returnOrThrowRequestState(requestState);
             }
 
             if (mergedRequest.fetchPolicy === 'cache-only') {
-                return cachedData;
+                return this.returnOrThrowRequestState(requestState);
             }
 
-            if (mergedRequest.fetchPolicy === 'cache-first' && cachedData !== undefined) {
-                return cachedData;
+            if (
+                mergedRequest.fetchPolicy === 'cache-first' &&
+                this.isCachedDataSufficient(mergedRequest, requestState)
+            ) {
+                return this.returnOrThrowRequestState(requestState);
             }
 
             return this.getDataFromNetwork(mergedRequest, requestOptions);
@@ -186,12 +184,20 @@ class Client {
         }
     }
 
-    private getDataFromCache<T>(mergedRequest: RequestData, callerId: string): T | undefined {
+    private getCompleteRequestState<D extends RC = any, E extends Error = Error>(
+        mergedRequest: RequestData,
+        callerId: string,
+    ): RequestState<D, E> {
+        const defaultState = { loading: false, data: undefined, error: undefined };
+
+        const rawState = this.cache.getState().requestStates[this.getRequestId(mergedRequest, callerId)];
+
+        let data = rawState?.data;
         if (mergedRequest.fromCache && mergedRequest.fetchPolicy !== 'no-cache') {
-            return mergedRequest.fromCache(this.cache.getState().sharedData, mergedRequest);
+            data = mergedRequest.fromCache(this.cache.getState().sharedData, mergedRequest);
         }
 
-        return this.cache.getState().requestStates[this.getRequestId(mergedRequest, callerId)]?.data;
+        return { ...defaultState, ...rawState, data };
     }
 
     private async getDataFromNetwork<T>(mergedRequest: RequestData, options: QueryOptions): Promise<T> {
@@ -287,6 +293,23 @@ class Client {
                 ),
             signals,
         );
+    }
+
+    private isCachedDataSufficient(mergedRequest: RequestData, requestState: RequestState): boolean {
+        const applyFetchPolicyToError =
+            typeof mergedRequest.applyFetchPolicyToError === 'function'
+                ? mergedRequest.applyFetchPolicyToError(requestState.error)
+                : Boolean(mergedRequest.applyFetchPolicyToError);
+
+        return requestState.data !== undefined || (applyFetchPolicyToError && requestState.error !== undefined);
+    }
+
+    private returnOrThrowRequestState(requestState: RequestState) {
+        if (requestState.error !== undefined) {
+            throw requestState.error;
+        }
+
+        return requestState.data;
     }
 
     private warnAboutDivergedError<
