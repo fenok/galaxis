@@ -29,6 +29,7 @@ export interface GeneralRequestData<
     pathParams?: P;
     queryParams?: Q;
     body?: B;
+    lazy?: boolean;
     getId(requestInit: RequestData<C, R, E, P, Q, B>): string;
     getUrl(requestInit: RequestData<C, R, E, P, Q, B>): string;
     processResponse(response: Response): Promise<R>;

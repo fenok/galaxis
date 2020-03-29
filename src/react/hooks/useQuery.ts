@@ -28,7 +28,8 @@ export function useQuery<C extends SDC, R extends RC, E extends EC, P extends PP
 
     const subscription = React.useMemo(
         () => ({
-            getCurrentValue: () => client.getState(request, callerId),
+            getCurrentValue: (initial?: boolean) =>
+                client.getState(request, { callerId, overrideWithInitialState: initial }),
             subscribe: (callback: (state: RequestState<R, E>) => void) => {
                 return client.subscribe(request, callerId, callback);
             },
@@ -46,14 +47,15 @@ export function useQuery<C extends SDC, R extends RC, E extends EC, P extends PP
     }
 
     const query = React.useCallback(
-        (forceUpdate?: boolean) => {
+        (respectLazy: boolean, forceNetworkRequest: boolean) => {
             if (!multiAbortControllerRef.current || multiAbortControllerRef.current.signal.aborted) {
                 multiAbortControllerRef.current = new MultiAbortController();
             }
 
             return client.query(request, {
                 callerId: callerId,
-                forceNetworkRequest: !!forceUpdate,
+                forceNetworkRequest: forceNetworkRequest,
+                respectLazy: respectLazy,
                 multiAbortSignal: multiAbortControllerRef.current.signal,
             });
         },
@@ -61,9 +63,12 @@ export function useQuery<C extends SDC, R extends RC, E extends EC, P extends PP
         [client, requestId, callerId],
     );
 
-    const refetch = React.useCallback(() => {
-        return query(true);
-    }, [query]);
+    const refetch = React.useCallback(
+        (forceNetworkRequest?: boolean) => {
+            return query(false, Boolean(forceNetworkRequest));
+        },
+        [query],
+    );
 
     const abort = React.useCallback((multi?: boolean) => {
         if (multiAbortControllerRef.current) {
@@ -72,7 +77,7 @@ export function useQuery<C extends SDC, R extends RC, E extends EC, P extends PP
     }, []);
 
     React.useEffect(() => {
-        query().catch(() => {
+        query(true, false).catch(() => {
             // Prevent uncaught error message (error will be in state)
         });
 

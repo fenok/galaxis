@@ -13,6 +13,7 @@ interface ClientOptions {
 interface QueryOptions {
     callerId: string;
     forceNetworkRequest?: boolean;
+    respectLazy?: boolean;
     multiAbortSignal?: MultiAbortSignal;
 }
 
@@ -26,6 +27,11 @@ interface RequestPromiseData {
     callerAwaitStatuses: { [callerId: string]: boolean };
     abort(): void;
     rerunNetworkRequest(): void;
+}
+
+interface GetStateOptions {
+    callerId: string;
+    overrideWithInitialState?: boolean;
 }
 
 class Client {
@@ -72,29 +78,33 @@ class Client {
         const mergedRequest = this.getCompleteRequestData(request);
 
         return this.cache.subscribe(() => {
-            onChange(this.getState(mergedRequest, callerId));
+            onChange(this.getState(mergedRequest, { callerId }));
         });
     }
 
     public getState<C extends SDC, R extends RC, E extends EC, P extends PPC, Q extends QPC, B extends BC>(
         request: PartialRequestData<C, R, E, P, Q, B>,
-        callerId: string,
+        { callerId, overrideWithInitialState }: GetStateOptions,
     ): RequestState<R, E> {
         const mergedRequest = this.getCompleteRequestData(request);
 
         const data = this.getDataFromCache<R>(mergedRequest, callerId);
         const requestState = this.cache.getState().requestStates[this.getRequestId(mergedRequest, callerId)];
 
-        const initialState = { loading: false, data: data, error: undefined };
+        const defaultState = { loading: false, data: undefined, error: undefined };
+
+        const initialState = { loading: requestState?.loading || false, data: data, error: requestState?.error };
 
         if (
-            mergedRequest.fetchPolicy === 'no-cache' ||
-            (mergedRequest.fetchPolicy !== 'cache-only' && data === undefined)
+            !mergedRequest.lazy &&
+            (mergedRequest.fetchPolicy === 'no-cache' ||
+                (mergedRequest.fetchPolicy !== 'cache-only' && data === undefined))
         ) {
             initialState.loading = true;
+            initialState.error = undefined;
         }
 
-        return { ...initialState, ...requestState, data };
+        return { ...defaultState, ...requestState, data, ...(overrideWithInitialState ? initialState : {}) };
     }
 
     public getSsrPromise<C extends SDC, R extends RC, E extends EC, P extends PPC, Q extends QPC, B extends BC>(
@@ -103,9 +113,10 @@ class Client {
     ): Promise<R | undefined> | undefined {
         const mergedRequest = this.getCompleteRequestData(request);
 
-        const requestState = this.getState(mergedRequest, callerId);
+        const requestState = this.getState(mergedRequest, { callerId });
 
         if (
+            !mergedRequest.lazy &&
             typeof window === 'undefined' &&
             !['no-cache', 'cache-only'].includes(mergedRequest.fetchPolicy) &&
             requestState.data === undefined &&
@@ -153,6 +164,10 @@ class Client {
         const mergedRequest = this.getCompleteRequestData(request);
 
         const cachedData = this.getDataFromCache<R>(mergedRequest, requestOptions.callerId);
+
+        if (requestOptions.respectLazy && mergedRequest.lazy) {
+            return cachedData;
+        }
 
         if (mergedRequest.fetchPolicy === 'cache-only') {
             return cachedData;

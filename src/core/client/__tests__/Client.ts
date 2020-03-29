@@ -126,7 +126,7 @@ it('caches queried data', async () => {
     fakeBackendState = JSON.parse(JSON.stringify(INITIAL_FAKE_BACKEND_STATE));
 
     await client.query({ ...request, pathParams: { id: '1' } }, { callerId: 'test' });
-    const { data: responseFromCache } = client.getState({ ...request, pathParams: { id: '1' } }, 'test');
+    const { data: responseFromCache } = client.getState({ ...request, pathParams: { id: '1' } }, { callerId: 'test' });
 
     expect(responseFromCache).toEqual({ data: FIRST_ITEM });
 });
@@ -135,7 +135,10 @@ it('caches queried data for request with custom caching', async () => {
     fakeBackendState = JSON.parse(JSON.stringify(INITIAL_FAKE_BACKEND_STATE));
 
     await client.query({ ...requestWithSharedData, pathParams: { id: '1' } }, { callerId: 'test' });
-    const { data: responseFromCache } = client.getState({ ...requestWithSharedData, pathParams: { id: '1' } }, 'test');
+    const { data: responseFromCache } = client.getState(
+        { ...requestWithSharedData, pathParams: { id: '1' } },
+        { callerId: 'test' },
+    );
 
     expect(responseFromCache).toEqual({ data: FIRST_ITEM });
 });
@@ -151,7 +154,10 @@ it("guarantees that old query data won't overwrite state after mutation", async 
 
     await Promise.all([queryPromise, mutatePromise]);
 
-    const { data: responseFromCache } = client.getState({ ...requestWithSharedData, pathParams: { id: '1' } }, 'test');
+    const { data: responseFromCache } = client.getState(
+        { ...requestWithSharedData, pathParams: { id: '1' } },
+        { callerId: 'test' },
+    );
 
     expect(responseFromCache).toEqual({ data: ALTERED_ITEM });
 });

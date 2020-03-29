@@ -3,7 +3,7 @@ import { RequestState } from '../../core/cache';
 import { RC, EC } from '../../core/request/types';
 
 interface Options<D extends RC, E extends EC> {
-    getCurrentValue(): RequestState<D, E>;
+    getCurrentValue(initial?: boolean): RequestState<D, E>;
     subscribe(cb: (state: RequestState<D, E>) => void): () => void;
 }
 
@@ -16,8 +16,7 @@ export function useSubscription<D extends RC, E extends EC>({ getCurrentValue, s
     let valueToReturn = state.value;
 
     if (state.getCurrentValue !== getCurrentValue || state.subscribe !== subscribe) {
-        // Request never starts in error state
-        valueToReturn = { ...getCurrentValue(), error: undefined };
+        valueToReturn = { ...getCurrentValue(true) };
 
         setState({ getCurrentValue, subscribe, value: valueToReturn });
     }
