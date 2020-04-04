@@ -19,9 +19,11 @@ export function smartPromise<T>(
             if (abortController) {
                 abortController.abort();
             } else if (typeof window !== 'undefined') {
-                logger.warn('Include AbortController polyfill for network request cancelling.');
+                reject(new Error('No AbortController detected'));
+                logger.error('Include AbortController polyfill for network request cancelling');
             } else {
-                logger.warn("Cancelling request on server shouldn't happen.");
+                reject(new Error('Unexpected request cancel on server'));
+                logger.error("Request can't (and shouldn't) be canceled on server");
             }
         };
 
