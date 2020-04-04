@@ -1,6 +1,12 @@
 import { Cache, RequestState } from '../cache';
-import { MultiAbortController, MultiAbortSignal, RerunController } from '../promise';
-import { smartPromise, Signals, wireAbortSignals } from '../promise';
+import {
+    MultiAbortController,
+    MultiAbortSignal,
+    RerunController,
+    smartPromise,
+    Signals,
+    wireAbortSignals,
+} from '../promise';
 import { GeneralRequestData, PartialRequestData, RequestData } from '../request';
 import { BC, PPC, QPC, RC, SDC, EC } from '../request/types';
 import * as logger from '../logger';
@@ -251,10 +257,10 @@ class Client {
                 callerAwaitStatuses: {
                     [callerId]: true,
                 },
-                promise: Promise.reject(),
+                promise: Promise.resolve(),
             };
 
-            const promise = this.getRequestPromise(mergedRequest, {
+            requestPromiseData.promise = this.getRequestPromise(mergedRequest, {
                 multiAbortSignal: multiAbortController.signal,
                 rerunSignal: rerunController.signal,
             })
@@ -279,7 +285,6 @@ class Client {
                     throw error;
                 });
 
-            requestPromiseData.promise = promise;
             this.requests[requestId] = requestPromiseData;
 
             this.cache.onQueryStart(requestId);
