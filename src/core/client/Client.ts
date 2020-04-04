@@ -26,6 +26,7 @@ interface MutateOptions {
 interface RequestPromiseData {
     promise: Promise<any>;
     callerAwaitStatuses: { [callerId: string]: boolean };
+    aborted: boolean;
     abort(): void;
     rerunNetworkRequest(): void;
 }
@@ -94,7 +95,8 @@ class Client {
         if (
             overrideWithInitialMountState &&
             !mergedRequest.lazy &&
-            mergedRequest.fetchPolicy !== 'cache-only' && !this.isCachedDataSufficient(mergedRequest, requestState)
+            mergedRequest.fetchPolicy !== 'cache-only' &&
+            !this.isCachedDataSufficient(mergedRequest, requestState)
         ) {
             requestState.loading = true;
             requestState.error = undefined;
@@ -233,27 +235,31 @@ class Client {
     ): RequestPromiseData {
         const requestId = this.getRequestId(mergedRequest, callerId);
 
-        if (!this.requests[requestId]) {
+        if (!this.requests[requestId] || this.requests[requestId]?.aborted) {
             const multiAbortController = new MultiAbortController();
             const rerunController = new RerunController();
 
-            const promise = this.getRequestPromise(mergedRequest, {
-                multiAbortSignal: multiAbortController.signal,
-                rerunSignal: rerunController.signal,
-            });
-
-            this.requests[requestId] = {
+            const requestPromiseData: RequestPromiseData = {
                 rerunNetworkRequest() {
                     rerunController.rerun();
                 },
                 abort() {
                     multiAbortController.abort();
+                    this.aborted = true;
                 },
+                aborted: false,
                 callerAwaitStatuses: {
                     [callerId]: true,
                 },
-                promise: promise
-                    .then(data => {
+                promise: Promise.reject(),
+            };
+
+            const promise = this.getRequestPromise(mergedRequest, {
+                multiAbortSignal: multiAbortController.signal,
+                rerunSignal: rerunController.signal,
+            })
+                .then(data => {
+                    if (this.requests[requestId] === requestPromiseData) {
                         this.requests[requestId] = undefined;
                         this.cache.onQuerySuccess(
                             requestId,
@@ -262,14 +268,19 @@ class Client {
                                 ? mergedRequest.toCache?.(this.cache.getState().sharedData, data, mergedRequest)
                                 : undefined,
                         );
-                        return data;
-                    })
-                    .catch(error => {
+                    }
+                    return data;
+                })
+                .catch(error => {
+                    if (this.requests[requestId] === requestPromiseData) {
                         this.requests[requestId] = undefined;
                         this.cache.onQueryFail(requestId, error);
-                        throw error;
-                    }),
-            };
+                    }
+                    throw error;
+                });
+
+            requestPromiseData.promise = promise;
+            this.requests[requestId] = requestPromiseData;
 
             this.cache.onQueryStart(requestId);
         } else {
