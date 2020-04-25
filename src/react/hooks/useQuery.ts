@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { RequestState } from '../../core/cache';
 import { MultiAbortController } from '../../core/promise';
-import { BC, PPC, QPC, RC, SDC, EC } from '../../core/request/types';
+import { BC, PPC, QPC, RC, SDC, EC, HC } from '../../core/request/types';
 import { ClientContext, SsrPromisesManagerContext } from '../Provider';
 import { PartialRequestData } from '../../core/request';
 import { ensureClient } from './ensureClient';
@@ -9,14 +9,27 @@ import { getRequestId } from './getRequestId';
 import { useId } from './useId';
 import { useSubscription } from './useSubscription';
 
-interface QueryOptions<C extends SDC, R extends RC, E extends EC, P extends PPC, Q extends QPC, B extends BC> {
-    getPartialRequestId?(request: PartialRequestData<C, R, E, P, Q, B>): string | number;
+interface QueryOptions<
+    C extends SDC,
+    R extends RC,
+    E extends EC,
+    P extends PPC,
+    Q extends QPC,
+    B extends BC,
+    H extends HC
+> {
+    getPartialRequestId?(request: PartialRequestData<C, R, E, P, Q, B, H>): string | number;
 }
 
-export function useQuery<C extends SDC, R extends RC, E extends EC, P extends PPC, Q extends QPC, B extends BC>(
-    request: PartialRequestData<C, R, E, P, Q, B>,
-    { getPartialRequestId }: QueryOptions<C, R, E, P, Q, B> = {},
-) {
+export function useQuery<
+    C extends SDC,
+    R extends RC,
+    E extends EC,
+    P extends PPC,
+    Q extends QPC,
+    B extends BC,
+    H extends HC
+>(request: PartialRequestData<C, R, E, P, Q, B, H>, { getPartialRequestId }: QueryOptions<C, R, E, P, Q, B, H> = {}) {
     const callerId = useId();
 
     const client = React.useContext(ClientContext);

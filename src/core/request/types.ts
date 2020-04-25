@@ -10,11 +10,13 @@ export type EC = Error;
 
 // Request part
 // Path params constraint
-export type PPC = { [key: string]: string | undefined };
+export type PPC = Record<string, string | undefined>;
 // Query params constraint
-export type QPC = { [key: string]: string | undefined | null };
+export type QPC = Record<string, string[] | string | undefined | null>;
 // Body constraint
 export type BC = BodyInit | null;
+// Headers constraint
+export type HC = HeadersInit;
 
 export interface GeneralRequestData<
     C extends SDC = any,
@@ -22,7 +24,8 @@ export interface GeneralRequestData<
     E extends EC = any,
     P extends PPC = any,
     Q extends QPC = any,
-    B extends BC = any
+    B extends BC = any,
+    H extends HC = any
 > extends RequestInit {
     root: string;
     fetchPolicy: FetchPolicy;
@@ -31,22 +34,23 @@ export interface GeneralRequestData<
     body?: B;
     lazy?: boolean;
     applyFetchPolicyToError?: boolean | ((error: E) => boolean);
-    getId(requestInit: RequestData<C, R, E, P, Q, B>): string;
-    getUrl(requestInit: RequestData<C, R, E, P, Q, B>): string;
+    getId(requestInit: RequestData<C, R, E, P, Q, B, H>): string;
+    getUrl(requestInit: RequestData<C, R, E, P, Q, B, H>): string;
     processResponse(response: Response): Promise<R>;
     merge(
-        generalData: GeneralRequestData<C, R, E, P, Q, B>,
-        partialData: PartialRequestData<C, R, E, P, Q, B>,
-    ): RequestData<C, R, E, P, Q, B>;
-    toCache?(sharedData: C, responseData: R, requestInit: RequestData<C, R, E, P, Q, B>): C;
-    fromCache?(cache: C, requestInit: RequestData<C, R, E, P, Q, B>): R;
+        generalData: GeneralRequestData<C, R, E, P, Q, B, H>,
+        partialData: PartialRequestData<C, R, E, P, Q, B, H>,
+    ): RequestData<C, R, E, P, Q, B, H>;
+    toCache?(sharedData: C, responseData: R, requestInit: RequestData<C, R, E, P, Q, B, H>): C;
+    fromCache?(cache: C, requestInit: RequestData<C, R, E, P, Q, B, H>): R;
 }
 
-export type ConcreteRequestData<P extends PPC = any, Q extends QPC = any, B extends BC = any> = {
+export type ConcreteRequestData<P extends PPC = any, Q extends QPC = any, B extends BC = any, H extends HC = any> = {
     path: string;
-} & (P extends { [key: string]: string | undefined } ? { pathParams: P } : {}) &
-    (Q extends { [key: string]: string | undefined | null } ? { queryParams: Q } : {}) &
-    (B extends BodyInit | null ? { body: B } : {});
+} & (P extends PPC ? { pathParams: P } : {}) &
+    (Q extends QPC ? { queryParams: Q } : {}) &
+    (B extends BC ? { body: B } : {}) &
+    (H extends HC ? { headers: H } : {});
 
 export type RequestData<
     C extends SDC = any,
@@ -54,8 +58,9 @@ export type RequestData<
     E extends EC = any,
     P extends PPC = any,
     Q extends QPC = any,
-    B extends BC = any
-> = GeneralRequestData<C, R, E, P, Q, B> & ConcreteRequestData<P, Q, B>;
+    B extends BC = any,
+    H extends HC = any
+> = GeneralRequestData<C, R, E, P, Q, B, H> & ConcreteRequestData<P, Q, B, H>;
 
 export type PartialRequestData<
     C extends SDC = any,
@@ -63,5 +68,6 @@ export type PartialRequestData<
     E extends EC = any,
     P extends PPC = any,
     Q extends QPC = any,
-    B extends BC = any
-> = Partial<GeneralRequestData<C, R, E, P, Q, B>> & ConcreteRequestData<P, Q, B>;
+    B extends BC = any,
+    H extends HC = any
+> = Partial<GeneralRequestData<C, R, E, P, Q, B, H>> & ConcreteRequestData<P, Q, B, H>;

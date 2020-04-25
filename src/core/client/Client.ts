@@ -8,7 +8,7 @@ import {
     wireAbortSignals,
 } from '../promise';
 import { GeneralRequestData, PartialRequestData, RequestData } from '../request';
-import { BC, PPC, QPC, RC, SDC, EC } from '../request/types';
+import { BC, PPC, QPC, RC, SDC, EC, HC } from '../request/types';
 import * as logger from '../logger';
 
 interface ClientOptions {
@@ -70,17 +70,26 @@ class Client {
         E extends EC,
         P extends PPC,
         Q extends QPC,
-        B extends BC
-    >(request: PartialRequestData<C, R, E, P, Q, B>): RequestData<C, R, E, P, Q, B> {
+        B extends BC,
+        H extends HC
+    >(request: PartialRequestData<C, R, E, P, Q, B, H>): RequestData<C, R, E, P, Q, B, H> {
         if (request.merge) {
             return request.merge(this.generalRequestData, request);
         }
 
-        return this.generalRequestData.merge(this.generalRequestData, request) as RequestData<C, R, E, P, Q, B>;
+        return this.generalRequestData.merge(this.generalRequestData, request) as RequestData<C, R, E, P, Q, B, H>;
     }
 
-    public subscribe<C extends SDC, R extends RC, E extends EC, P extends PPC, Q extends QPC, B extends BC>(
-        request: PartialRequestData<C, R, E, P, Q, B>,
+    public subscribe<
+        C extends SDC,
+        R extends RC,
+        E extends EC,
+        P extends PPC,
+        Q extends QPC,
+        B extends BC,
+        H extends HC
+    >(
+        request: PartialRequestData<C, R, E, P, Q, B, H>,
         callerId: string,
         onChange: (state: RequestState<R, E>) => void,
     ) {
@@ -91,8 +100,16 @@ class Client {
         });
     }
 
-    public getState<C extends SDC, R extends RC, E extends EC, P extends PPC, Q extends QPC, B extends BC>(
-        request: PartialRequestData<C, R, E, P, Q, B>,
+    public getState<
+        C extends SDC,
+        R extends RC,
+        E extends EC,
+        P extends PPC,
+        Q extends QPC,
+        B extends BC,
+        H extends HC
+    >(
+        request: PartialRequestData<C, R, E, P, Q, B, H>,
         { callerId, overrideWithInitialMountState, overrideWithInitialUpdateState }: GetStateOptions,
     ): RequestState<R, E> {
         const mergedRequest = this.getCompleteRequestData(request);
@@ -121,10 +138,15 @@ class Client {
         return requestState;
     }
 
-    public getSsrPromise<C extends SDC, R extends RC, E extends EC, P extends PPC, Q extends QPC, B extends BC>(
-        request: PartialRequestData<C, R, E, P, Q, B>,
-        callerId: string,
-    ): Promise<R | undefined> | undefined {
+    public getSsrPromise<
+        C extends SDC,
+        R extends RC,
+        E extends EC,
+        P extends PPC,
+        Q extends QPC,
+        B extends BC,
+        H extends HC
+    >(request: PartialRequestData<C, R, E, P, Q, B, H>, callerId: string): Promise<R | undefined> | undefined {
         const mergedRequest = this.getCompleteRequestData(request);
 
         const requestState = this.getState(mergedRequest, { callerId });
@@ -142,10 +164,15 @@ class Client {
         return undefined;
     }
 
-    public async mutate<C extends SDC, R extends RC, E extends EC, P extends PPC, Q extends QPC, B extends BC>(
-        request: PartialRequestData<C, R, E, P, Q, B>,
-        { multiAbortSignal, callerId }: MutateOptions,
-    ): Promise<R> {
+    public async mutate<
+        C extends SDC,
+        R extends RC,
+        E extends EC,
+        P extends PPC,
+        Q extends QPC,
+        B extends BC,
+        H extends HC
+    >(request: PartialRequestData<C, R, E, P, Q, B, H>, { multiAbortSignal, callerId }: MutateOptions): Promise<R> {
         const mergedRequest = this.getCompleteRequestData(request);
 
         return this.getRequestPromise(mergedRequest, { multiAbortSignal, abortSignal: mergedRequest.signal })
@@ -171,10 +198,15 @@ class Client {
     }
 
     // May reject with error that differs from the cached one. This generally implies a bug in external code
-    public async query<C extends SDC, R extends RC, E extends EC, P extends PPC, Q extends QPC, B extends BC>(
-        request: PartialRequestData<C, R, E, P, Q, B>,
-        requestOptions: QueryOptions,
-    ): Promise<R | undefined> {
+    public async query<
+        C extends SDC,
+        R extends RC,
+        E extends EC,
+        P extends PPC,
+        Q extends QPC,
+        B extends BC,
+        H extends HC
+    >(request: PartialRequestData<C, R, E, P, Q, B, H>, requestOptions: QueryOptions): Promise<R | undefined> {
         try {
             const mergedRequest = this.getCompleteRequestData(request);
             const requestState = this.getCompleteRequestState<R, E>(mergedRequest, requestOptions.callerId);
@@ -343,8 +375,9 @@ class Client {
         E extends EC,
         P extends PPC,
         Q extends QPC,
-        B extends BC
-    >(error: Error, request: PartialRequestData<C, R, E, P, Q, B>, options: GetStateOptions) {
+        B extends BC,
+        H extends HC
+    >(error: Error, request: PartialRequestData<C, R, E, P, Q, B, H>, options: GetStateOptions) {
         if (process.env.NODE_ENV !== 'production') {
             const requestState = this.getState(request, options);
             if (error !== requestState.error) {

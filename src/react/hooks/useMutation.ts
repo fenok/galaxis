@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { BC, PPC, QPC, RC, SDC, EC } from '../../core/request/types';
+import { BC, PPC, QPC, RC, SDC, EC, HC } from '../../core/request/types';
 import { ClientContext } from '../Provider';
 import { PartialRequestData } from '../../core/request';
 import { ensureClient } from './ensureClient';
@@ -12,8 +12,8 @@ export function useMutation() {
     ensureClient(client);
 
     const mutate = React.useCallback(
-        <C extends SDC, R extends RC, E extends EC, P extends PPC, Q extends QPC, B extends BC>(
-            request: PartialRequestData<C, R, E, P, Q, B>,
+        <C extends SDC, R extends RC, E extends EC, P extends PPC, Q extends QPC, B extends BC, H extends HC>(
+            request: PartialRequestData<C, R, E, P, Q, B, H>,
         ) => {
             return client.mutate(request, { callerId: callerId });
         },
