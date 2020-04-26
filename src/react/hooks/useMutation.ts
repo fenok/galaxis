@@ -1,7 +1,6 @@
 import * as React from 'react';
-import { BC, PPC, QPC, RC, SDC, EC, HC } from '../../core/request/types';
 import { ClientContext } from '../Provider';
-import { PartialRequestData } from '../../core/request';
+import { PartialRequestData, BC, PPC, QPC, RC, SDC, EC, HC } from '../../core/request';
 import { ensureClient } from './ensureClient';
 import { useId } from './useId';
 

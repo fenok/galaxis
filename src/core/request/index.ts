@@ -1,2 +1,2 @@
-export { processResponseRestfulJson, getIdBase64, getIdUrl, getUrlDefault, mergeShallow } from './functions';
-export { FetchPolicy, RequestData, ConcreteRequestData, GeneralRequestData, PartialRequestData } from './types';
+export * from './functions';
+export * from './types';

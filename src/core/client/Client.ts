@@ -7,8 +7,7 @@ import {
     Signals,
     wireAbortSignals,
 } from '../promise';
-import { GeneralRequestData, PartialRequestData, RequestData } from '../request';
-import { BC, PPC, QPC, RC, SDC, EC, HC } from '../request/types';
+import { GeneralRequestData, PartialRequestData, RequestData, BC, PPC, QPC, RC, SDC, EC, HC } from '../request';
 import * as logger from '../logger';
 
 interface ClientOptions {

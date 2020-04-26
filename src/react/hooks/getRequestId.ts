@@ -1,6 +1,5 @@
 import { Client } from '../../core/client';
-import { PartialRequestData } from '../../core/request';
-import { SDC, RC, PPC, QPC, BC, EC, HC } from '../../core/request/types';
+import { PartialRequestData, SDC, RC, PPC, QPC, BC, EC, HC } from '../../core/request';
 
 export function getRequestId<
     C extends SDC,
