@@ -177,7 +177,7 @@ class Client {
 
         return this.getRequestPromise(mergedRequest, { multiAbortSignal, abortSignal: mergedRequest.signal })
             .then(data => {
-                if (mergedRequest.fetchPolicy !== 'no-cache') {
+                if (mergedRequest.fetchPolicy !== 'no-cache' && mergedRequest.rerunLoadingQueriesAfterMutation) {
                     Object.values(this.requests).forEach(promiseData => promiseData?.rerunNetworkRequest());
                 }
 
