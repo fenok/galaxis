@@ -32,6 +32,7 @@ export interface GeneralRequestData<
     pathParams?: P;
     queryParams?: Q;
     body?: B;
+    headers?: H;
     lazy?: boolean;
     applyFetchPolicyToError?: boolean | ((error: E) => boolean);
     rerunLoadingQueriesAfterMutation?: boolean;
