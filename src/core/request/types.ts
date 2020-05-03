@@ -34,6 +34,7 @@ export interface GeneralRequestData<
     body?: B;
     headers?: H;
     lazy?: boolean;
+    optimisticResponse?: R;
     applyFetchPolicyToError?: boolean | ((error: E) => boolean);
     rerunLoadingQueriesAfterMutation?: boolean;
     getId(requestInit: RequestData<C, R, E, P, Q, B, H>): string;
@@ -45,6 +46,11 @@ export interface GeneralRequestData<
     ): RequestData<C, R, E, P, Q, B, H>;
     toCache?(sharedData: C, responseData: R, requestInit: RequestData<C, R, E, P, Q, B, H>): C;
     fromCache?(cache: C, requestInit: RequestData<C, R, E, P, Q, B, H>): R;
+    clearCacheFromOptimisticResponse?(
+        sharedData: C,
+        optimisticResponse: R,
+        requestInit: RequestData<C, R, E, P, Q, B, H>,
+    ): C;
 }
 
 export type ConcreteRequestData<P extends PPC = any, Q extends QPC = any, B extends BC = any, H extends HC = any> = {

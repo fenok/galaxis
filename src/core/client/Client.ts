@@ -173,6 +173,25 @@ class Client {
         H extends HC
     >(request: PartialRequestData<C, R, E, P, Q, B, H>, { multiAbortSignal, callerId }: MutateOptions): Promise<R> {
         const mergedRequest = this.getCompleteRequestData(request);
+        const requestId = this.getRequestId(mergedRequest, callerId);
+
+        if (mergedRequest.optimisticResponse !== undefined && mergedRequest.clearCacheFromOptimisticResponse) {
+            this.cache.onMutateStartWithOptimisticResponse(
+                requestId,
+                mergedRequest.optimisticResponse,
+                mergedRequest.fetchPolicy !== 'no-cache'
+                    ? mergedRequest.toCache?.(
+                          this.cache.getState().sharedData,
+                          mergedRequest.optimisticResponse,
+                          mergedRequest,
+                      )
+                    : undefined,
+            );
+        } else if (mergedRequest.optimisticResponse !== undefined) {
+            logger.warn(
+                "Optimistic response for mutation won't work without clearCacheFromOptimisticResponse function",
+            );
+        }
 
         return this.getRequestPromise(mergedRequest, { multiAbortSignal, abortSignal: mergedRequest.signal })
             .then(data => {
@@ -184,15 +203,44 @@ class Client {
                 return data;
             })
             .then(data => {
+                let sharedData = this.cache.getState().sharedData;
+
+                if (mergedRequest.optimisticResponse !== undefined && mergedRequest.clearCacheFromOptimisticResponse) {
+                    sharedData = mergedRequest.clearCacheFromOptimisticResponse(
+                        sharedData,
+                        mergedRequest.optimisticResponse,
+                        mergedRequest,
+                    );
+                }
+
                 this.cache.onMutateSuccess(
-                    this.getRequestId(mergedRequest, callerId),
+                    requestId,
                     data,
                     mergedRequest.fetchPolicy !== 'no-cache'
-                        ? mergedRequest.toCache?.(this.cache.getState().sharedData, data, mergedRequest)
+                        ? mergedRequest.toCache?.(sharedData, data, mergedRequest)
                         : undefined,
                 );
 
                 return data;
+            })
+            .catch(error => {
+                if (mergedRequest.optimisticResponse !== undefined && mergedRequest.clearCacheFromOptimisticResponse) {
+                    const sharedData = this.cache.getState().sharedData;
+
+                    this.cache.onQueryFailWithOptimisticResponse(
+                        requestId,
+                        error,
+                        null, // Not cached anyway, can be any value
+                        mergedRequest.fetchPolicy !== 'no-cache'
+                            ? mergedRequest.clearCacheFromOptimisticResponse(
+                                  sharedData,
+                                  mergedRequest.optimisticResponse,
+                                  mergedRequest,
+                              )
+                            : undefined,
+                    );
+                }
+                throw error;
             });
     }
 
@@ -291,6 +339,8 @@ class Client {
                 promise: Promise.resolve(),
             };
 
+            const nonOptimisticData = this.getCompleteRequestState(mergedRequest, callerId).data;
+
             requestPromiseData.promise = this.getRequestPromise(mergedRequest, {
                 multiAbortSignal: multiAbortController.signal,
                 rerunSignal: rerunController.signal,
@@ -298,11 +348,25 @@ class Client {
                 .then(data => {
                     if (this.requests[requestId] === requestPromiseData) {
                         this.requests[requestId] = undefined;
+
+                        let sharedData = this.cache.getState().sharedData;
+
+                        if (
+                            mergedRequest.optimisticResponse !== undefined &&
+                            mergedRequest.clearCacheFromOptimisticResponse
+                        ) {
+                            sharedData = mergedRequest.clearCacheFromOptimisticResponse(
+                                sharedData,
+                                mergedRequest.optimisticResponse,
+                                mergedRequest,
+                            );
+                        }
+
                         this.cache.onQuerySuccess(
                             requestId,
                             data,
                             mergedRequest.fetchPolicy !== 'no-cache'
-                                ? mergedRequest.toCache?.(this.cache.getState().sharedData, data, mergedRequest)
+                                ? mergedRequest.toCache?.(sharedData, data, mergedRequest)
                                 : undefined,
                         );
                     }
@@ -311,14 +375,48 @@ class Client {
                 .catch(error => {
                     if (this.requests[requestId] === requestPromiseData) {
                         this.requests[requestId] = undefined;
-                        this.cache.onQueryFail(requestId, error);
+
+                        if (mergedRequest.optimisticResponse !== undefined) {
+                            const sharedData = this.cache.getState().sharedData;
+
+                            this.cache.onQueryFailWithOptimisticResponse(
+                                requestId,
+                                error,
+                                nonOptimisticData,
+                                mergedRequest.fetchPolicy !== 'no-cache'
+                                    ? mergedRequest.clearCacheFromOptimisticResponse
+                                        ? mergedRequest.clearCacheFromOptimisticResponse(
+                                              sharedData,
+                                              mergedRequest.optimisticResponse,
+                                              mergedRequest,
+                                          )
+                                        : mergedRequest.toCache?.(sharedData, nonOptimisticData, mergedRequest)
+                                    : undefined,
+                            );
+                        } else {
+                            this.cache.onQueryFail(requestId, error);
+                        }
                     }
                     throw error;
                 });
 
             this.requests[requestId] = requestPromiseData;
 
-            this.cache.onQueryStart(requestId);
+            if (mergedRequest.optimisticResponse !== undefined) {
+                this.cache.onQueryStartWithOptimisticResponse(
+                    requestId,
+                    mergedRequest.optimisticResponse,
+                    mergedRequest.fetchPolicy !== 'no-cache'
+                        ? mergedRequest.toCache?.(
+                              this.cache.getState().sharedData,
+                              mergedRequest.optimisticResponse,
+                              mergedRequest,
+                          )
+                        : undefined,
+                );
+            } else {
+                this.cache.onQueryStart(requestId);
+            }
         } else {
             this.requests[requestId]!.callerAwaitStatuses[callerId] = true;
             if (forceNetworkRequest) {

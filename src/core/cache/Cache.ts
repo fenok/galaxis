@@ -132,9 +132,19 @@ class Cache {
         this.devtools?.send({ type: 'QUERY_START', id }, this.state);
     }
 
+    public onQueryStartWithOptimisticResponse(id: string, data: any, sharedData?: any) {
+        this.updateState({ id, state: { loading: true, error: undefined, data }, sharedData });
+        this.devtools?.send({ type: 'QUERY_START_OPTIMISTIC_RESPONSE', id, data }, this.state);
+    }
+
     public onQueryFail(id: string, error: Error) {
         this.updateState({ id, state: { loading: false, error } });
         this.devtools?.send({ type: 'QUERY_FAIL', id, error }, this.state);
+    }
+
+    public onQueryFailWithOptimisticResponse(id: string, error: Error, data: any, sharedData?: any) {
+        this.updateState({ id, state: { loading: false, error, data }, sharedData });
+        this.devtools?.send({ type: 'QUERY_FAIL_OPTIMISTIC_RESPONSE', id, error, data }, this.state);
     }
 
     public onQuerySuccess(id: string, data: any, sharedData?: any) {
@@ -142,6 +152,16 @@ class Cache {
 
         this.updateState({ id, state: { loading: false, data: dataToWrite, error: undefined }, sharedData });
         this.devtools?.send({ type: 'QUERY_SUCCESS', id, data, sharedData }, this.state);
+    }
+
+    public onMutateStartWithOptimisticResponse(id: string, data: any, sharedData?: any) {
+        this.updateState({ sharedData }); // Not error, only sharedData affects state
+        this.devtools?.send({ type: 'MUTATE_START_OPTIMISTIC_RESPONSE', id, data, sharedData }, this.state);
+    }
+
+    public onMutateFailWithOptimisticResponse(id: string, data: any, sharedData?: any) {
+        this.updateState({ sharedData }); // Not error, only sharedData affects state
+        this.devtools?.send({ type: 'MUTATE_FAIL_OPTIMISTIC_RESPONSE', id, data, sharedData }, this.state);
     }
 
     public onMutateSuccess(id: string, data: any, sharedData?: any) {
