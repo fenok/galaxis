@@ -223,6 +223,7 @@ Requests are represented as `RequestData` objects. Due to flexibility, `RequestD
 -   `body` - body of the request.
 -   `headers` - headers of the request.
 -   `lazy` - boolean, lazy requests are not performed automatically.
+-   `optimisticResponse` - optimistic value for `data` field.
 -   `applyFetchPolicyToError` - boolean or function, if `true`, cached error will be treated as sufficient data for request, even if there is no cached data.
 -   `rerunLoadingQueriesAfterMutation` - boolean, if `true` and this `RequestData` object is used in mutation, loading queries will be forced to refetch from network.
 -   `getUrl` - function for generating request's URL.
@@ -230,6 +231,7 @@ Requests are represented as `RequestData` objects. Due to flexibility, `RequestD
 -   `processResponse` - function that returns data or throws an error based on request's `Response` (native).
 -   `merge` - function that merges `GeneralRequestData` and `PartialRequestData` into `RequestData`.
 -   `toCache`, `fromCache` - functions for writing data to and reading data from cache.
+-   `clearCacheFromOptimisticResponse` - function that removes optimistic response from cache.
 
 Every field may be configured either globally on `Client` instance or on concrete request.
 
@@ -262,6 +264,19 @@ All functions are replaceable. The library provides default/example ones:
 -   Think in redux way. `toCache` should work like reducer. `fromCache` should return the same object every time.
 -   They should never throw.
 -   Return `undefined`, if there is no data in cache.
+
+### Optimistic responses
+
+The value of `optimisticResponse` field is used for `data` field when the request starts.
+
+When the request either fails or completes, `clearCacheFromOptimisticResponse` function is used to clear cache before writing actual result (data or error).
+
+In case of query, the function is optional. If it's not provided, the following will happen:
+
+-   on success, the cache won't be cleared before writing actual data,
+-   on fail, the cache will be cleared by calling `toCache` with previous `data` value.
+
+In case of mutation, the function is required. Mutations are not cached to `requestStates`, so there is no previous `data` value available.
 
 ### Cache
 
@@ -381,7 +396,6 @@ const { mutate } = useMutation();
 -   You can't return `undefined` as query data (and probably shouldn't, because empty data can be represented as `null`)
 -   Race conditions handling is not 100% reliable, though no idea how to make it so (is it possible?).
 -   Redux-devtools integration is limited.
--   No optimistic responses.
 -   No `refetchQueries`.
 -   It's probably better to move request functions to separate package.
 -   Tests are really poor.
