@@ -57,9 +57,11 @@ export function useQuery<
 
     const multiAbortControllerRef = React.useRef<MultiAbortController>();
 
-    if (typeof window === 'undefined') {
+    if (typeof window === 'undefined' && ssrPromisesManager) {
         const ssrPromise = client.getSsrPromise(request, callerId);
-        ssrPromise && ssrPromisesManager?.addPromise(ssrPromise);
+        if (ssrPromise) {
+            ssrPromisesManager.addPromise(ssrPromise);
+        }
     }
 
     const query = React.useCallback(
