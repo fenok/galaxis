@@ -128,12 +128,12 @@ class Cache {
     }
 
     public onQueryStart(id: string) {
-        this.updateState({ id, state: { loading: true, error: undefined } });
+        this.updateState({ id, state: { loading: true } });
         this.devtools?.send({ type: 'QUERY_START', id }, this.state);
     }
 
     public onQueryStartWithOptimisticResponse(id: string, data: any, sharedData?: any) {
-        this.updateState({ id, state: { loading: true, error: undefined, data }, sharedData });
+        this.updateState({ id, state: { loading: true, data }, sharedData });
         this.devtools?.send({ type: 'QUERY_START_OPTIMISTIC_RESPONSE', id, data }, this.state);
     }
 

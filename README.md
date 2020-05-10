@@ -362,7 +362,7 @@ Return values:
 
 -   `data` - query data (actual or previous). May appear as (and never switches to) `undefined` (which means absence of data).
 -   `loading` - boolean, indicating network request.
--   `error` - query error. Always swicthes to `undefined` on network request start.
+-   `error` - query error. Always swicthes to `undefined` after network request success.
 -   `abort` - function for aborting query.
 -   `refetch` - function for forcing network request.
 

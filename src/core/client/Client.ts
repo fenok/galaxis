@@ -121,7 +121,6 @@ class Client {
             !this.isCachedDataSufficient(mergedRequest, requestState)
         ) {
             requestState.loading = true;
-            requestState.error = undefined;
         }
 
         if (
@@ -131,7 +130,6 @@ class Client {
             !(mergedRequest.fetchPolicy === 'cache-first' && this.isCachedDataSufficient(mergedRequest, requestState))
         ) {
             requestState.loading = true;
-            requestState.error = undefined;
         }
 
         return requestState;
