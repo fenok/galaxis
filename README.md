@@ -331,17 +331,7 @@ Mutations:
 
 ### Render details
 
-Queries are rendered differently on mount and update:
-
--   On mount query is always rendered in non-loading state, if cached data is sufficient.
--   On update query is always rendered in loading state, if it's going to be loaded from network.
-
-The difference may seem subtle, so consider an example:
-
--   Query with `fetchPolicy: 'cache-and-network'` has cached data.
--   It is mounted in non-loading state, so SSR result doesn't contain preloaders, and then it is updated to loading state because of the network request.
--   The network request is finished, and the query is updated into non-loading state.
--   Then it is updated by i.e. `pathParams` change into loading state, so it's impossible to have new `pathParams` and non-loading state. That allows things like `const loading = firstQueryLoading || secondQueryLoading`.
+Queries that are about to fetch data from network always start in loading state. That allows simple loading indicator for multiple related queries: `const loading = firstQueryLoading || secondQueryLoading;`.
 
 ### useQuery
 

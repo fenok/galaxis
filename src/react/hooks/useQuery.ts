@@ -7,6 +7,7 @@ import { ensureClient } from './ensureClient';
 import { getRequestId } from './getRequestId';
 import { useId } from './useId';
 import { useSubscription } from './useSubscription';
+import { usePrevious } from './usePrevious';
 
 interface QueryOptions<
     C extends SDC,
@@ -38,54 +39,31 @@ export function useQuery<
 
     const requestId = getRequestId(request, client, getPartialRequestId);
 
-    const subscription = React.useMemo(
-        () => ({
-            getCurrentValue: (mount: boolean, update: boolean) =>
-                client.getState(request, {
-                    callerId,
-                    overrideWithInitialMountState: mount,
-                    overrideWithInitialUpdateState: update,
-                }),
-            subscribe: (callback: (state: RequestState<R, E>) => void) => {
-                return client.subscribe(request, callerId, callback);
-            },
-        }),
-
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        [client, requestId, callerId],
-    );
-
     const multiAbortControllerRef = React.useRef<MultiAbortController>();
 
-    if (typeof window === 'undefined' && ssrPromisesManager) {
-        const ssrPromise = client.getSsrPromise(request, callerId);
-        if (ssrPromise) {
-            ssrPromisesManager.addPromise(ssrPromise);
-        }
-    }
-
-    const query = React.useCallback(
+    const getRequestOptions = React.useCallback(
         (respectLazy: boolean, forceNetworkRequest: boolean) => {
             if (!multiAbortControllerRef.current || multiAbortControllerRef.current.signal.aborted) {
                 multiAbortControllerRef.current = new MultiAbortController();
             }
 
-            return client.query(request, {
+            return {
                 callerId: callerId,
                 forceNetworkRequest: forceNetworkRequest,
                 respectLazy: respectLazy,
                 multiAbortSignal: multiAbortControllerRef.current.signal,
-            });
+            };
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        [client, requestId, callerId],
+        [],
     );
 
     const refetch = React.useCallback(
         (forceNetworkRequest?: boolean) => {
-            return query(false, Boolean(forceNetworkRequest));
+            return client.query(request, getRequestOptions(false, Boolean(forceNetworkRequest)));
         },
-        [query],
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [client, requestId],
     );
 
     const abort = React.useCallback((multi?: boolean) => {
@@ -94,20 +72,43 @@ export function useQuery<
         }
     }, []);
 
+    const prevClient = usePrevious(client);
+    const prevRequestId = usePrevious(requestId);
+
+    if (prevClient !== client || prevRequestId !== requestId) {
+        client.prepareQueryLoadingState(request, getRequestOptions(true, false));
+    }
+
     React.useEffect(() => {
-        query(true, false).catch(() => {
+        client.queryAfterPreparedLoadingState(request, getRequestOptions(true, false)).catch(() => {
             // Prevent uncaught error message (error will be in state)
         });
 
         return () => {
             abort();
         };
-    }, [query, abort]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [client, requestId]);
 
-    /**
-     * Ordering is crucial. Subscription effect must run after query effect, which guarantees that request state is
-     * updated AFTER this component's query.
-     */
+    if (typeof window === 'undefined' && ssrPromisesManager) {
+        const ssrPromise = client.getSsrPromise(request, callerId);
+        if (ssrPromise) {
+            ssrPromisesManager.addPromise(ssrPromise);
+        }
+    }
+
+    const subscription = React.useMemo(
+        () => ({
+            getCurrentValue: () => client.getState(request, { callerId }),
+            subscribe: (callback: (state: RequestState<R, E>) => void) => {
+                return client.subscribe(request, callerId, callback);
+            },
+        }),
+
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [client, requestId],
+    );
+
     const requestState = useSubscription(subscription);
 
     return { ...requestState, refetch, abort };

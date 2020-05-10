@@ -38,8 +38,6 @@ interface RequestPromiseData {
 
 interface GetStateOptions {
     callerId: string;
-    overrideWithInitialMountState?: boolean;
-    overrideWithInitialUpdateState?: boolean;
 }
 
 class Client {
@@ -107,32 +105,9 @@ class Client {
         Q extends QPC,
         B extends BC,
         H extends HC
-    >(
-        request: PartialRequestData<C, R, E, P, Q, B, H>,
-        { callerId, overrideWithInitialMountState, overrideWithInitialUpdateState }: GetStateOptions,
-    ): RequestState<R, E> {
+    >(request: PartialRequestData<C, R, E, P, Q, B, H>, { callerId }: GetStateOptions): RequestState<R, E> {
         const mergedRequest = this.getCompleteRequestData(request);
-        const requestState = this.getCompleteRequestState<R, E>(mergedRequest, callerId);
-
-        if (
-            overrideWithInitialMountState &&
-            !mergedRequest.lazy &&
-            mergedRequest.fetchPolicy !== 'cache-only' &&
-            !this.isCachedDataSufficient(requestState)
-        ) {
-            requestState.loading = true;
-        }
-
-        if (
-            overrideWithInitialUpdateState &&
-            !mergedRequest.lazy &&
-            mergedRequest.fetchPolicy !== 'cache-only' &&
-            !(mergedRequest.fetchPolicy === 'cache-first' && this.isCachedDataSufficient(requestState))
-        ) {
-            requestState.loading = true;
-        }
-
-        return requestState;
+        return this.getCompleteRequestState<R, E>(mergedRequest, callerId);
     }
 
     public getSsrPromise<
@@ -155,7 +130,7 @@ class Client {
             requestState.data === undefined &&
             requestState.error === undefined
         ) {
-            return this.query(mergedRequest, { callerId, forceNetworkRequest: false });
+            return this.queryAfterPreparedLoadingState(mergedRequest, { callerId, forceNetworkRequest: false });
         }
 
         return undefined;
@@ -242,8 +217,53 @@ class Client {
             });
     }
 
-    // May reject with error that differs from the cached one. This generally implies a bug in external code
     public async query<
+        C extends SDC,
+        R extends RC,
+        E extends EC,
+        P extends PPC,
+        Q extends QPC,
+        B extends BC,
+        H extends HC
+    >(request: PartialRequestData<C, R, E, P, Q, B, H>, requestOptions: QueryOptions): Promise<R | undefined> {
+        this.prepareQueryLoadingState(request, requestOptions);
+
+        return this.queryAfterPreparedLoadingState(request, requestOptions);
+    }
+
+    public prepareQueryLoadingState<
+        C extends SDC,
+        R extends RC,
+        E extends EC,
+        P extends PPC,
+        Q extends QPC,
+        B extends BC,
+        H extends HC
+    >(request: PartialRequestData<C, R, E, P, Q, B, H>, requestOptions: QueryOptions): void {
+        const mergedRequest = this.getCompleteRequestData(request);
+        const requestState = this.getCompleteRequestState<R, E>(mergedRequest, requestOptions.callerId);
+        const requestId = this.getRequestId(mergedRequest, requestOptions.callerId);
+
+        if (!this.shouldReturnOrThrowFromState(mergedRequest, requestState, requestOptions) && !requestState.loading) {
+            if (mergedRequest.optimisticResponse !== undefined) {
+                this.cache.onQueryStartWithOptimisticResponse(
+                    requestId,
+                    mergedRequest.optimisticResponse,
+                    mergedRequest.fetchPolicy !== 'no-cache'
+                        ? mergedRequest.toCache?.(
+                              this.cache.getState().sharedData,
+                              mergedRequest.optimisticResponse,
+                              mergedRequest,
+                          )
+                        : undefined,
+                );
+            } else {
+                this.cache.onQueryStart(requestId);
+            }
+        }
+    }
+
+    public async queryAfterPreparedLoadingState<
         C extends SDC,
         R extends RC,
         E extends EC,
@@ -256,15 +276,7 @@ class Client {
             const mergedRequest = this.getCompleteRequestData(request);
             const requestState = this.getCompleteRequestState<R, E>(mergedRequest, requestOptions.callerId);
 
-            if (requestOptions.respectLazy && mergedRequest.lazy) {
-                return this.returnOrThrowRequestState(requestState);
-            }
-
-            if (mergedRequest.fetchPolicy === 'cache-only') {
-                return this.returnOrThrowRequestState(requestState);
-            }
-
-            if (mergedRequest.fetchPolicy === 'cache-first' && this.isCachedDataSufficient(requestState)) {
+            if (this.shouldReturnOrThrowFromState(mergedRequest, requestState, requestOptions)) {
                 return this.returnOrThrowRequestState(requestState);
             }
 
@@ -396,22 +408,6 @@ class Client {
                 });
 
             this.requests[requestId] = requestPromiseData;
-
-            if (mergedRequest.optimisticResponse !== undefined) {
-                this.cache.onQueryStartWithOptimisticResponse(
-                    requestId,
-                    mergedRequest.optimisticResponse,
-                    mergedRequest.fetchPolicy !== 'no-cache'
-                        ? mergedRequest.toCache?.(
-                              this.cache.getState().sharedData,
-                              mergedRequest.optimisticResponse,
-                              mergedRequest,
-                          )
-                        : undefined,
-                );
-            } else {
-                this.cache.onQueryStart(requestId);
-            }
         } else {
             this.requests[requestId]!.callerAwaitStatuses[callerId] = true;
             if (forceNetworkRequest) {
@@ -441,6 +437,18 @@ class Client {
                     mergedRequest.processResponse,
                 ),
             signals,
+        );
+    }
+
+    private shouldReturnOrThrowFromState(
+        mergedRequest: RequestData,
+        requestState: RequestState,
+        queryOptions: QueryOptions,
+    ): boolean {
+        return (
+            (queryOptions.respectLazy && mergedRequest.lazy) ||
+            mergedRequest.fetchPolicy === 'cache-only' ||
+            (mergedRequest.fetchPolicy === 'cache-first' && this.isCachedDataSufficient(requestState))
         );
     }
 
