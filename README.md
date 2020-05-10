@@ -73,8 +73,6 @@ function createClient({ fetch }: Partial<ClientOptions>) {
             root: 'http://localhost:3001',
             // Default fetch policy
             fetchPolicy: 'cache-and-network',
-            // Treat all errors as data
-            applyFetchPolicyToError: true,
             // Make it less possible to overwrite mutation result with old query
             rerunLoadingQueriesAfterMutation: true,
             // Default request id generator
@@ -224,7 +222,6 @@ Requests are represented as `RequestData` objects. Due to flexibility, `RequestD
 -   `headers` - headers of the request.
 -   `lazy` - boolean, lazy requests are not performed automatically.
 -   `optimisticResponse` - optimistic value for `data` field.
--   `applyFetchPolicyToError` - boolean or function, if `true`, cached error will be treated as sufficient data for request, even if there is no cached data.
 -   `rerunLoadingQueriesAfterMutation` - boolean, if `true` and this `RequestData` object is used in mutation, loading queries will be forced to refetch from network.
 -   `getUrl` - function for generating request's URL.
 -   `getId` - function for generating request's id. _Requests with the same id are considered the same_.

@@ -118,7 +118,7 @@ class Client {
             overrideWithInitialMountState &&
             !mergedRequest.lazy &&
             mergedRequest.fetchPolicy !== 'cache-only' &&
-            !this.isCachedDataSufficient(mergedRequest, requestState)
+            !this.isCachedDataSufficient(requestState)
         ) {
             requestState.loading = true;
         }
@@ -127,7 +127,7 @@ class Client {
             overrideWithInitialUpdateState &&
             !mergedRequest.lazy &&
             mergedRequest.fetchPolicy !== 'cache-only' &&
-            !(mergedRequest.fetchPolicy === 'cache-first' && this.isCachedDataSufficient(mergedRequest, requestState))
+            !(mergedRequest.fetchPolicy === 'cache-first' && this.isCachedDataSufficient(requestState))
         ) {
             requestState.loading = true;
         }
@@ -264,10 +264,7 @@ class Client {
                 return this.returnOrThrowRequestState(requestState);
             }
 
-            if (
-                mergedRequest.fetchPolicy === 'cache-first' &&
-                this.isCachedDataSufficient(mergedRequest, requestState)
-            ) {
+            if (mergedRequest.fetchPolicy === 'cache-first' && this.isCachedDataSufficient(requestState)) {
                 return this.returnOrThrowRequestState(requestState);
             }
 
@@ -447,13 +444,8 @@ class Client {
         );
     }
 
-    private isCachedDataSufficient(mergedRequest: RequestData, requestState: RequestState): boolean {
-        const applyFetchPolicyToError =
-            typeof mergedRequest.applyFetchPolicyToError === 'function'
-                ? mergedRequest.applyFetchPolicyToError(requestState.error)
-                : Boolean(mergedRequest.applyFetchPolicyToError);
-
-        return requestState.data !== undefined || (applyFetchPolicyToError && requestState.error !== undefined);
+    private isCachedDataSufficient(requestState: RequestState): boolean {
+        return requestState.data !== undefined;
     }
 
     private returnOrThrowRequestState(requestState: RequestState) {

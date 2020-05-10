@@ -35,7 +35,6 @@ export interface GeneralRequestData<
     headers?: H;
     lazy?: boolean;
     optimisticResponse?: R;
-    applyFetchPolicyToError?: boolean | ((error: E) => boolean);
     rerunLoadingQueriesAfterMutation?: boolean;
     getId(requestInit: RequestData<C, R, E, P, Q, B, H>): string;
     getUrl(requestInit: RequestData<C, R, E, P, Q, B, H>): string;
