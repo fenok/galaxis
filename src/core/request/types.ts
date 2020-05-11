@@ -34,6 +34,7 @@ export interface GeneralRequestData<
     body?: B;
     headers?: H;
     lazy?: boolean;
+    disableSsr?: boolean;
     optimisticResponse?: R;
     rerunLoadingQueriesAfterMutation?: boolean;
     getId(requestInit: RequestData<C, R, E, P, Q, B, H>): string;

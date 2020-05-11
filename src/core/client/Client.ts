@@ -124,6 +124,7 @@ class Client {
         const requestState = this.getState(mergedRequest, { callerId });
 
         if (
+            !mergedRequest.disableSsr &&
             !mergedRequest.lazy &&
             typeof window === 'undefined' &&
             !['no-cache', 'cache-only'].includes(mergedRequest.fetchPolicy) &&

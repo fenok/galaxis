@@ -221,6 +221,7 @@ Requests are represented as `RequestData` objects. Due to flexibility, `RequestD
 -   `body` - body of the request.
 -   `headers` - headers of the request.
 -   `lazy` - boolean, lazy requests are not performed automatically.
+-   `disableSsr` - boolean, if `true`, there will be no network request on server.
 -   `optimisticResponse` - optimistic value for `data` field.
 -   `rerunLoadingQueriesAfterMutation` - boolean, if `true` and this `RequestData` object is used in mutation, loading queries will be forced to refetch from network.
 -   `getUrl` - function for generating request's URL.
