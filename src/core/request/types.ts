@@ -10,9 +10,9 @@ export type EC = Error;
 
 // Request part
 // Path params constraint
-export type PPC = Record<string, string | undefined>;
+export type PPC = Record<string, string | number | undefined>;
 // Query params constraint
-export type QPC = Record<string, string[] | string | undefined | null>;
+export type QPC = Record<string, (string | number)[] | string | number | undefined | null>;
 // Body constraint
 export type BC = BodyInit | null;
 // Headers constraint
