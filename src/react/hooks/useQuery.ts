@@ -18,6 +18,7 @@ interface QueryOptions<
     B extends BC,
     H extends HC
 > {
+    hookId?: string;
     getPartialRequestId?(request: PartialRequestData<C, R, E, P, Q, B, H>): string | number;
 }
 
@@ -29,8 +30,11 @@ export function useQuery<
     Q extends QPC,
     B extends BC,
     H extends HC
->(request: PartialRequestData<C, R, E, P, Q, B, H>, { getPartialRequestId }: QueryOptions<C, R, E, P, Q, B, H> = {}) {
-    const callerId = useId();
+>(
+    request: PartialRequestData<C, R, E, P, Q, B, H>,
+    { getPartialRequestId, hookId }: QueryOptions<C, R, E, P, Q, B, H> = {},
+) {
+    const callerId = useId(hookId);
 
     const client = React.useContext(ClientContext);
     const ssrPromisesManager = React.useContext(SsrPromisesManagerContext);

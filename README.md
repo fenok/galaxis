@@ -342,12 +342,16 @@ On initial render queries are not refetched if there is cached data (e.g. query 
 > You should build your own useQuery (using useQuery from the library) with API that is convenient for your app.
 
 ```typescript
-const { data, loading, error, abort, refetch } = useQuery(request, { getPartialRequestId: getIdBase64 });
+const { data, loading, error, abort, refetch } = useQuery(request, {
+    getPartialRequestId: getIdBase64,
+    hookId: 'my-hook',
+});
 ```
 
 Options:
 
 -   `getPartialRequestId` - function that calculates id of passed `PartialRequestData` object. It's optional with fallback to request's `getId`, but that's unreliable. In real world you should provide it (i.e. default `getIdBase64`).
+-   `hookId` - if you're using code-splitting, you **must** provide SSR- and code-splitting-friendly id. You'll likely use [react-uid](https://www.npmjs.com/package/react-uid) for that. Otherwise, you may omit this parameter.
 
 Return values:
 
@@ -383,7 +387,7 @@ const { mutate } = useMutation();
 
 -   Errors in external code may lead to different errors in state and promise rejections (i.e. `query().catch()`). It's likely not going to be fixed, but you should get diverged error warnings in development.
 -   No reliable way to reset cache (i.e. on logout). You can call `cacheInstance.purge()` directly, but data from requests started before purge will affect the new cache. As a workaround, you can reload the page on logout.
--   All queries with the same request id are updated with loading state regardless of query initiator. That's probably undesirable, but fixing that would require SSR-friendly hook ids, which leads to API complication is case of code-splitting (see [react-uid](https://www.npmjs.com/package/react-uid)).
+-   All queries with the same request id are updated with loading state regardless of query initiator, which is probably undesirable.
 -   You can't return `undefined` as query data (and probably shouldn't, because empty data can be represented as `null`)
 -   Race conditions handling is not 100% reliable, though no idea how to make it so (is it possible?).
 -   Redux-devtools integration is limited.

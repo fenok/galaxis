@@ -58,6 +58,10 @@ class Client {
         this.isDataRefetchEnabled = true;
     }
 
+    public resetId() {
+        this.idCounter = 1;
+    }
+
     public generateId(): string {
         return String(this.idCounter++);
     }
@@ -132,7 +136,7 @@ class Client {
             !mergedRequest.disableSsr &&
             !mergedRequest.lazy &&
             typeof window === 'undefined' &&
-            !['no-cache', 'cache-only'].includes(mergedRequest.fetchPolicy) &&
+            mergedRequest.fetchPolicy !== 'cache-only' &&
             requestState.data === undefined &&
             requestState.error === undefined
         ) {
