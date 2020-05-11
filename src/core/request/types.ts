@@ -34,6 +34,7 @@ export interface GeneralRequestData<
     body?: B;
     headers?: H;
     lazy?: boolean;
+    refetchQueries?: PartialRequestData[];
     optimisticResponse?: R;
     disableSsr?: boolean;
     disableInitialRenderDataRefetchOptimization?: boolean;

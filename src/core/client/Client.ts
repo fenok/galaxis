@@ -207,6 +207,10 @@ class Client {
                         : undefined,
                 );
 
+                mergedRequest.refetchQueries?.forEach(requestData => {
+                    this.query(requestData, { callerId: 'INTERNAL', forceNetworkRequest: true });
+                });
+
                 return data;
             })
             .catch(error => {

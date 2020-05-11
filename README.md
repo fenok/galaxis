@@ -219,6 +219,7 @@ Requests are represented as `RequestData` objects. Due to flexibility, `RequestD
 -   `body` - body of the request.
 -   `headers` - headers of the request.
 -   `lazy` - boolean, lazy requests are not performed automatically.
+-   `refetchQueries` - array of `PartialRequestData` objects that will be queried after successful mutation with this request.
 -   `optimisticResponse` - optimistic value for `data` field.
 -   `disableSsr` - boolean, if `true`, there will be no network request on server.
 -   `disableInitialRenderDataRefetchOptimization` - boolean, if `true`, the query with this request may refetch itself on initial render even with cached data, depending on `fetchPolicy`.
@@ -391,6 +392,5 @@ const { mutate } = useMutation();
 -   You can't return `undefined` as query data (and probably shouldn't, because empty data can be represented as `null`)
 -   Race conditions handling is not 100% reliable, though no idea how to make it so (is it possible?).
 -   Redux-devtools integration is limited.
--   No `refetchQueries`.
 -   It's probably better to move request functions to separate package.
 -   Tests are really poor.
