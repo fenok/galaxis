@@ -47,7 +47,7 @@ export interface GeneralRequestData<
         partialData: PartialRequestData<C, R, E, P, Q, B, H>,
     ): RequestData<C, R, E, P, Q, B, H>;
     toCache?(sharedData: C, responseData: R, requestInit: RequestData<C, R, E, P, Q, B, H>): C;
-    fromCache?(cache: C, requestInit: RequestData<C, R, E, P, Q, B, H>): R;
+    fromCache?(cache: C, requestInit: RequestData<C, R, E, P, Q, B, H>): R | undefined;
     clearCacheFromOptimisticResponse?(
         sharedData: C,
         optimisticResponse: R,

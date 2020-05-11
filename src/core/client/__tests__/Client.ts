@@ -99,7 +99,8 @@ const requestWithSharedData: PartialRequestData<CacheState, ResponseData, Error,
         };
     },
     fromCache(sharedData, request) {
-        return { data: (sharedData.items || [])[request.pathParams.id] };
+        const dataFromCache = (sharedData.items || [])[request.pathParams.id];
+        return dataFromCache ? { data: dataFromCache } : undefined;
     },
 };
 
