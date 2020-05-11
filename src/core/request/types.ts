@@ -34,9 +34,10 @@ export interface GeneralRequestData<
     body?: B;
     headers?: H;
     lazy?: boolean;
-    disableSsr?: boolean;
     optimisticResponse?: R;
-    rerunLoadingQueriesAfterMutation?: boolean;
+    disableSsr?: boolean;
+    disableInitialRenderDataRefetchOptimization?: boolean;
+    disableLoadingQueriesRefetchOptimization?: boolean;
     getId(requestInit: RequestData<C, R, E, P, Q, B, H>): string;
     getUrl(requestInit: RequestData<C, R, E, P, Q, B, H>): string;
     processResponse(response: Response): Promise<R>;

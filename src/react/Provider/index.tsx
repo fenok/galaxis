@@ -9,6 +9,10 @@ interface ProviderProps {
 }
 
 const Provider: React.FC<ProviderProps> = ({ children, client }) => {
+    React.useEffect(() => {
+        client.enableDataRefetch();
+    }, [client]);
+
     return <ClientContext.Provider value={client}>{children}</ClientContext.Provider>;
 };
 

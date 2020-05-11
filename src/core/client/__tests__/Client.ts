@@ -76,7 +76,6 @@ const client = new Client({
     generalRequestData: {
         root: 'http://test.test',
         fetchPolicy: 'cache-and-network',
-        rerunLoadingQueriesAfterMutation: true,
         getId: getIdUrl,
         getUrl: getUrlDefault,
         merge: mergeShallow,

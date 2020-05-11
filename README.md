@@ -73,8 +73,6 @@ function createClient({ fetch }: Partial<ClientOptions>) {
             root: 'http://localhost:3001',
             // Default fetch policy
             fetchPolicy: 'cache-and-network',
-            // Make it less possible to overwrite mutation result with old query
-            rerunLoadingQueriesAfterMutation: true,
             // Default request id generator
             getId: getIdUrl,
             // Default request URL generator
@@ -221,9 +219,10 @@ Requests are represented as `RequestData` objects. Due to flexibility, `RequestD
 -   `body` - body of the request.
 -   `headers` - headers of the request.
 -   `lazy` - boolean, lazy requests are not performed automatically.
--   `disableSsr` - boolean, if `true`, there will be no network request on server.
 -   `optimisticResponse` - optimistic value for `data` field.
--   `rerunLoadingQueriesAfterMutation` - boolean, if `true` and this `RequestData` object is used in mutation, loading queries will be forced to refetch from network.
+-   `disableSsr` - boolean, if `true`, there will be no network request on server.
+-   `disableInitialRenderDataRefetchOptimization` - boolean, if `true`, the query with this request may refetch itself on initial render even with cached data, depending on `fetchPolicy`.
+-   `disableLoadingQueriesRefetchOptimization` - boolean, if `true`, the mutation with this request will not cause loading queries to refetch.
 -   `getUrl` - function for generating request's URL.
 -   `getId` - function for generating request's id. _Requests with the same id are considered the same_.
 -   `processResponse` - function that returns data or throws an error based on request's `Response` (native).
@@ -333,6 +332,10 @@ Mutations:
 ### Render details
 
 Queries that are about to fetch data from network always start in loading state. That allows simple loading indicator for multiple related queries: `const loading = firstQueryLoading || secondQueryLoading;`.
+
+Queries with cached errors always start in loading state.
+
+On initial render queries are not refetched if there is cached data (e.g. query with cached data and `fetchPolicy: 'cache-and-network'` will initially render in non-loading state).
 
 ### useQuery
 

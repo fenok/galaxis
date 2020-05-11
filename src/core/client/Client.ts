@@ -46,11 +46,16 @@ class Client {
     private readonly generalRequestData: GeneralRequestData;
     private requests: { [requestId: string]: RequestPromiseData | undefined } = {};
     private idCounter = 1;
+    private isDataRefetchEnabled = false;
 
     constructor({ cache, fetch: fetchFn, generalRequestData }: ClientOptions) {
         this.cache = cache;
         this.fetchFn = fetchFn;
         this.generalRequestData = generalRequestData;
+    }
+
+    public enableDataRefetch() {
+        this.isDataRefetchEnabled = true;
     }
 
     public generateId(): string {
@@ -169,7 +174,10 @@ class Client {
 
         return this.getRequestPromise(mergedRequest, { multiAbortSignal, abortSignal: mergedRequest.signal })
             .then(data => {
-                if (mergedRequest.fetchPolicy !== 'no-cache' && mergedRequest.rerunLoadingQueriesAfterMutation) {
+                if (
+                    mergedRequest.fetchPolicy !== 'no-cache' &&
+                    !mergedRequest.disableLoadingQueriesRefetchOptimization
+                ) {
                     Object.values(this.requests).forEach(promiseData => promiseData?.rerunNetworkRequest());
                 }
 
@@ -449,7 +457,10 @@ class Client {
         return (
             (queryOptions.respectLazy && mergedRequest.lazy) ||
             mergedRequest.fetchPolicy === 'cache-only' ||
-            (mergedRequest.fetchPolicy === 'cache-first' && this.isCachedDataSufficient(requestState))
+            (mergedRequest.fetchPolicy === 'cache-first' && this.isCachedDataSufficient(requestState)) ||
+            (!mergedRequest.disableInitialRenderDataRefetchOptimization &&
+                !this.isDataRefetchEnabled &&
+                this.isCachedDataSufficient(requestState))
         );
     }
 
