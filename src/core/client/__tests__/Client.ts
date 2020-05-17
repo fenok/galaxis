@@ -78,6 +78,9 @@ const client = new Client({
         fetchPolicy: 'cache-and-network',
         getId: getIdUrl,
         getUrl: getUrlDefault,
+        getRequestInit(request) {
+            return request as RequestInit;
+        },
         merge: mergeShallow,
         processResponse(response) {
             return response as any;

@@ -448,7 +448,10 @@ class Client {
     private getRequestPromise(mergedRequest: RequestData, signals: Signals = {}) {
         return smartPromise(
             signal =>
-                (this.fetchFn || fetch)(mergedRequest.getUrl(mergedRequest), { ...mergedRequest, signal }).then(
+                (this.fetchFn || fetch)(
+                    mergedRequest.getUrl(mergedRequest),
+                    mergedRequest.getRequestInit({ ...mergedRequest, signal }),
+                ).then(
                     // It's pure function
                     // eslint-disable-next-line @typescript-eslint/unbound-method
                     mergedRequest.processResponse,

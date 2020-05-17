@@ -77,6 +77,12 @@ function createClient({ fetch }: Partial<ClientOptions>) {
             getId: getIdUrl,
             // Default request URL generator
             getUrl: getUrlDefault,
+            // For the sake of simplicity, assume that body should always be serialized as JSON.
+            // In real world, you'll want to check the body type (e.g. not serialize FormData).
+            // You'll also want to set appropriate headers (e.g. 'Content-Type: application/json').
+            getRequestInit({ body, ...request }) {
+                return { ...request, body: body !== undefined ? JSON.stringify(body) : undefined };
+            },
             // Default merger of general request data and concrete request data
             merge: mergeShallow,
             // Default response handler
@@ -209,7 +215,9 @@ I.e. request, returning current time, is a query, even though it returns new dat
 
 Requests are represented as `RequestData` objects. Due to flexibility, `RequestData` isn't a class, but rather a type defining a specific shape.
 
-`RequestData` is native fetch's `RequestInit` with additional fields:
+`RequestData` is a valid native fetch `RequestInit` object, excluding the `body` field. In `RequestData`, it can also be unserialized `object`, which should be converted to `RequestInit`-compatible `string` via `getRequestInit` function.
+
+`RequestData` also has additional fields:
 
 -   `fetchPolicy` - string, defines cache and network usage.
 -   `root` - string, backend host, like `https://my-app.com`. Must be absolute on server, may be relative on client. Will be processed by `getUrl` function.
@@ -225,6 +233,7 @@ Requests are represented as `RequestData` objects. Due to flexibility, `RequestD
 -   `disableInitialRenderDataRefetchOptimization` - boolean, if `true`, the query with this request may refetch itself on initial render even with cached data, depending on `fetchPolicy`.
 -   `disableLoadingQueriesRefetchOptimization` - boolean, if `true`, the mutation with this request will not cause loading queries to refetch.
 -   `getUrl` - function for generating request's URL.
+-   `getRequestInit` - function for generating request's `RequestInit` object (for `fetch`). Can be used to stringify body and add appropriate headers.
 -   `getId` - function for generating request's id. _Requests with the same id are considered the same_.
 -   `processResponse` - function that returns data or throws an error based on request's `Response` (native).
 -   `merge` - function that merges `GeneralRequestData` and `PartialRequestData` into `RequestData`.

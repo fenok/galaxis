@@ -14,7 +14,7 @@ export type PPC = Record<string, string | number | undefined>;
 // Query params constraint
 export type QPC = Record<string, (string | number)[] | string | number | undefined | null>;
 // Body constraint
-export type BC = BodyInit | null;
+export type BC = BodyInit | null | object;
 // Headers constraint
 export type HC = HeadersInit;
 
@@ -26,7 +26,7 @@ export interface GeneralRequestData<
     Q extends QPC = any,
     B extends BC = any,
     H extends HC = any
-> extends RequestInit {
+> extends Omit<RequestInit, 'body'> {
     root: string;
     fetchPolicy: FetchPolicy;
     pathParams?: P;
@@ -41,6 +41,7 @@ export interface GeneralRequestData<
     disableLoadingQueriesRefetchOptimization?: boolean;
     getId(requestInit: RequestData<C, R, E, P, Q, B, H>): string;
     getUrl(requestInit: RequestData<C, R, E, P, Q, B, H>): string;
+    getRequestInit(requestInit: RequestData<C, R, E, P, Q, B, H>): RequestInit;
     processResponse(response: Response): Promise<R>;
     merge(
         generalData: GeneralRequestData<C, R, E, P, Q, B, H>,
