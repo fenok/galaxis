@@ -9,6 +9,7 @@ import {
 } from '../promise';
 import { GeneralRequestData, PartialRequestData, RequestData, BC, PPC, QPC, RC, SDC, EC, HC } from '../request';
 import * as logger from '../logger';
+import { SerializableCacheState } from '../cache/Cache';
 
 interface ClientOptions {
     cache: Cache;
@@ -29,7 +30,7 @@ interface MutateOptions {
     multiAbortSignal?: MultiAbortSignal;
 }
 
-interface RequestPromiseData {
+interface QueryPromiseData {
     promise: Promise<any>;
     callerAwaitStatuses: { [callerId: string]: boolean };
     aborted: boolean;
@@ -45,7 +46,7 @@ class Client {
     private readonly cache: Cache;
     private readonly fetchFn?: typeof fetch;
     private readonly generalRequestData: GeneralRequestData;
-    private requests: { [requestId: string]: RequestPromiseData | undefined } = {};
+    private queries: { [requestId: string]: QueryPromiseData | undefined } = {};
     private idCounter = 1;
     private isDataRefetchEnabled = false;
 
@@ -69,6 +70,13 @@ class Client {
 
     public extract() {
         return this.cache.getSerializableState();
+    }
+
+    public purge(initialSerializableState?: SerializableCacheState) {
+        Object.values(this.queries).forEach(query => query?.abort());
+        this.queries = {};
+
+        this.cache.purge(initialSerializableState);
     }
 
     public getCompleteRequestData<
@@ -183,7 +191,7 @@ class Client {
                     mergedRequest.fetchPolicy !== 'no-cache' &&
                     !mergedRequest.disableLoadingQueriesRefetchOptimization
                 ) {
-                    Object.values(this.requests).forEach(promiseData => promiseData?.rerunNetworkRequest());
+                    Object.values(this.queries).forEach(promiseData => promiseData?.rerunNetworkRequest());
                 }
 
                 // Delay state update to let all planned state updates finish
@@ -328,7 +336,7 @@ class Client {
     private async getDataFromNetwork<T>(mergedRequest: RequestData, options: QueryOptions): Promise<T> {
         const { callerId, multiAbortSignal } = options;
 
-        const requestData = this.initRequestPromiseData(mergedRequest, options);
+        const requestData = this.initQueryPromiseData(mergedRequest, options);
 
         const onAbort = (multi?: boolean) => {
             requestData.callerAwaitStatuses[callerId] = false;
@@ -343,17 +351,17 @@ class Client {
         return await requestData.promise;
     }
 
-    private initRequestPromiseData(
+    private initQueryPromiseData(
         mergedRequest: RequestData,
         { disableNetworkRequestOptimization, callerId }: QueryOptions,
-    ): RequestPromiseData {
+    ): QueryPromiseData {
         const requestId = this.getRequestId(mergedRequest, callerId);
 
-        if (!this.requests[requestId] || this.requests[requestId]?.aborted) {
+        if (!this.queries[requestId] || this.queries[requestId]?.aborted) {
             const multiAbortController = new MultiAbortController();
             const rerunController = new RerunController();
 
-            const requestPromiseData: RequestPromiseData = {
+            const requestPromiseData: QueryPromiseData = {
                 rerunNetworkRequest() {
                     rerunController.rerun();
                 },
@@ -376,8 +384,8 @@ class Client {
                 rerunSignal: rerunController.signal,
             })
                 .then(data => {
-                    if (this.requests[requestId] === requestPromiseData) {
-                        this.requests[requestId] = undefined;
+                    if (this.queries[requestId] === requestPromiseData) {
+                        this.queries[requestId] = undefined;
 
                         let sharedData = this.cache.getState().sharedData;
 
@@ -403,8 +411,8 @@ class Client {
                     return data;
                 })
                 .catch(error => {
-                    if (this.requests[requestId] === requestPromiseData) {
-                        this.requests[requestId] = undefined;
+                    if (this.queries[requestId] === requestPromiseData) {
+                        this.queries[requestId] = undefined;
 
                         if (mergedRequest.optimisticResponse !== undefined) {
                             const sharedData = this.cache.getState().sharedData;
@@ -430,15 +438,15 @@ class Client {
                     throw error;
                 });
 
-            this.requests[requestId] = requestPromiseData;
+            this.queries[requestId] = requestPromiseData;
         } else {
-            this.requests[requestId]!.callerAwaitStatuses[callerId] = true;
+            this.queries[requestId]!.callerAwaitStatuses[callerId] = true;
             if (disableNetworkRequestOptimization) {
-                this.requests[requestId]!.rerunNetworkRequest();
+                this.queries[requestId]!.rerunNetworkRequest();
             }
         }
 
-        return this.requests[requestId] as RequestPromiseData;
+        return this.queries[requestId] as QueryPromiseData;
     }
 
     private getRequestId(mergedRequest: RequestData, callerId: string) {

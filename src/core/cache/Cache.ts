@@ -123,8 +123,8 @@ class Cache {
         };
     }
 
-    public purge() {
-        this.state = Cache.INITIAL_STATE;
+    public purge(initialSerializableState?: SerializableCacheState) {
+        this.state = initialSerializableState ? this.deserializeState(initialSerializableState) : Cache.INITIAL_STATE;
     }
 
     public onQueryStart(id: string) {
