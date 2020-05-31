@@ -18,7 +18,8 @@ interface ClientOptions {
 
 interface QueryOptions {
     callerId: string;
-    forceNetworkRequest?: boolean;
+    forceNetworkRequest?: boolean; // Perform a network request regardless of fetchPolicy and cache state
+    disableNetworkRequestOptimization?: boolean; // Perform new network request instead of reusing the existing one
     respectLazy?: boolean;
     multiAbortSignal?: MultiAbortSignal;
 }
@@ -208,7 +209,11 @@ class Client {
                 );
 
                 mergedRequest.refetchQueries?.forEach(requestData => {
-                    this.query(requestData, { callerId: 'INTERNAL', forceNetworkRequest: true });
+                    this.query(requestData, {
+                        callerId: 'INTERNAL',
+                        forceNetworkRequest: true,
+                        disableNetworkRequestOptimization: true,
+                    });
                 });
 
                 return data;
@@ -340,7 +345,7 @@ class Client {
 
     private initRequestPromiseData(
         mergedRequest: RequestData,
-        { forceNetworkRequest, callerId }: QueryOptions,
+        { disableNetworkRequestOptimization, callerId }: QueryOptions,
     ): RequestPromiseData {
         const requestId = this.getRequestId(mergedRequest, callerId);
 
@@ -427,7 +432,7 @@ class Client {
             this.requests[requestId] = requestPromiseData;
         } else {
             this.requests[requestId]!.callerAwaitStatuses[callerId] = true;
-            if (forceNetworkRequest) {
+            if (disableNetworkRequestOptimization) {
                 this.requests[requestId]!.rerunNetworkRequest();
             }
         }
@@ -466,12 +471,13 @@ class Client {
         queryOptions: QueryOptions,
     ): boolean {
         return (
-            (queryOptions.respectLazy && mergedRequest.lazy) ||
-            mergedRequest.fetchPolicy === 'cache-only' ||
-            (mergedRequest.fetchPolicy === 'cache-first' && this.isCachedDataSufficient(requestState)) ||
-            (!mergedRequest.disableInitialRenderDataRefetchOptimization &&
-                !this.isDataRefetchEnabled &&
-                this.isCachedDataSufficient(requestState))
+            queryOptions.forceNetworkRequest !== true &&
+            ((queryOptions.respectLazy && mergedRequest.lazy) ||
+                mergedRequest.fetchPolicy === 'cache-only' ||
+                (mergedRequest.fetchPolicy === 'cache-first' && this.isCachedDataSufficient(requestState)) ||
+                (!mergedRequest.disableInitialRenderDataRefetchOptimization &&
+                    !this.isDataRefetchEnabled &&
+                    this.isCachedDataSufficient(requestState)))
         );
     }
 

@@ -46,15 +46,16 @@ export function useQuery<
     const multiAbortControllerRef = React.useRef<MultiAbortController>();
 
     const getRequestOptions = React.useCallback(
-        (respectLazy: boolean, forceNetworkRequest: boolean) => {
+        (respectLazy: boolean, forceNetworkRequest: boolean, disableNetworkRequestOptimization: boolean) => {
             if (!multiAbortControllerRef.current || multiAbortControllerRef.current.signal.aborted) {
                 multiAbortControllerRef.current = new MultiAbortController();
             }
 
             return {
-                callerId: callerId,
-                forceNetworkRequest: forceNetworkRequest,
-                respectLazy: respectLazy,
+                callerId,
+                forceNetworkRequest,
+                disableNetworkRequestOptimization,
+                respectLazy,
                 multiAbortSignal: multiAbortControllerRef.current.signal,
             };
         },
@@ -63,8 +64,8 @@ export function useQuery<
     );
 
     const refetch = React.useCallback(
-        (forceNetworkRequest?: boolean) => {
-            return client.query(request, getRequestOptions(false, Boolean(forceNetworkRequest)));
+        (disableNetworkRequestOptimization?: boolean) => {
+            return client.query(request, getRequestOptions(false, true, Boolean(disableNetworkRequestOptimization)));
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [client, requestId],
@@ -80,11 +81,11 @@ export function useQuery<
     const prevRequestId = usePrevious(requestId);
 
     if (prevClient !== client || prevRequestId !== requestId) {
-        client.prepareQueryLoadingState(request, getRequestOptions(true, false));
+        client.prepareQueryLoadingState(request, getRequestOptions(true, false, false));
     }
 
     React.useEffect(() => {
-        client.queryAfterPreparedLoadingState(request, getRequestOptions(true, false)).catch(() => {
+        client.queryAfterPreparedLoadingState(request, getRequestOptions(true, false, false)).catch(() => {
             // Prevent uncaught error message (error will be in state)
         });
 
