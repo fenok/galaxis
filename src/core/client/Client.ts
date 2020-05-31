@@ -359,9 +359,10 @@ class Client {
                 },
                 abort() {
                     multiAbortController.abort();
-                    this.aborted = true;
                 },
-                aborted: false,
+                get aborted() {
+                    return Boolean(multiAbortController.signal.aborted);
+                },
                 callerAwaitStatuses: {
                     [callerId]: true,
                 },
