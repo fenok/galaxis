@@ -310,7 +310,7 @@ class Client {
                 return this.returnOrThrowRequestState(requestState);
             }
 
-            return this.getDataFromNetwork(mergedRequest, requestOptions);
+            return await this.getDataFromNetwork(mergedRequest, requestOptions);
         } catch (error) {
             this.warnAboutDivergedError(error, request, requestOptions);
             throw error;
