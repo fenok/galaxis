@@ -1,3 +1,5 @@
+import { Buffer as BufferExternal } from 'buffer';
+
 export function getIdBase64(request: object) {
-    return Buffer.from(JSON.stringify(request)).toString('base64');
+    return (typeof Buffer !== 'undefined' ? Buffer : BufferExternal).from(JSON.stringify(request)).toString('base64');
 }
