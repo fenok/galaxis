@@ -322,7 +322,7 @@ Client is responsible for performing requests.
 Cache must be accessed via client with the following functions:
 
 -   `extract()` - returns serializable cache object.
--   `purge(serializableCacheState?: SerializableCacheState)` - clears cache and aborts all loading queries. Use it to reset cache after e.g. logout.
+-   `purge(serializableCacheState?: SerializableCacheState)` - clears cache and aborts all loading queries/mutations. Use it to reset cache after e.g. logout.
 
 On retrieving data from cache `fromCache` function is prioritized over `data` field from request state from `requestStates`.
 
@@ -401,7 +401,6 @@ const { mutate } = useMutation();
 ## Known issues
 
 -   Errors in external code may lead to different errors in state and promise rejections (i.e. `query().catch()`). It's likely not going to be fixed, but you should get diverged error warnings in development.
--   Cache reset (`client.purge()`) doesn't abort mutations. As a workaround, you can reload the page instead.
 -   All queries with the same request id are updated with loading state regardless of query initiator, which is probably undesirable.
 -   You can't return `undefined` as query data (and probably shouldn't, because empty data can be represented as `null`)
 -   Race conditions handling is not 100% reliable, though no idea how to make it so (is it possible?).

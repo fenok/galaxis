@@ -38,6 +38,12 @@ interface QueryPromiseData {
     rerunNetworkRequest(): void;
 }
 
+interface MutationPromiseData {
+    promise: Promise<any>;
+    aborted: boolean;
+    abort(): void;
+}
+
 interface GetStateOptions {
     callerId: string;
 }
@@ -47,6 +53,7 @@ class Client {
     private readonly fetchFn?: typeof fetch;
     private readonly generalRequestData: GeneralRequestData;
     private queries: { [requestId: string]: QueryPromiseData | undefined } = {};
+    private mutations: Set<MutationPromiseData> = new Set();
     private idCounter = 1;
     private isDataRefetchEnabled = false;
 
@@ -75,6 +82,9 @@ class Client {
     public purge(initialSerializableState?: SerializableCacheState) {
         Object.values(this.queries).forEach(query => query?.abort());
         this.queries = {};
+
+        this.mutations.forEach(mutation => mutation.abort());
+        this.mutations.clear();
 
         this.cache.purge(initialSerializableState);
     }
@@ -185,9 +195,25 @@ class Client {
             );
         }
 
-        return this.getRequestPromise(mergedRequest, { multiAbortSignal, abortSignal: mergedRequest.signal })
+        const multiAbortController = new MultiAbortController();
+
+        const mutationPromiseData: MutationPromiseData = {
+            promise: Promise.resolve(),
+            abort() {
+                multiAbortController.abort();
+            },
+            get aborted() {
+                return Boolean(multiAbortController.signal.aborted);
+            },
+        };
+
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        wireAbortSignals(mutationPromiseData.abort, multiAbortSignal, mergedRequest.signal);
+
+        const mutationPromise = this.getRequestPromise(mergedRequest, { multiAbortSignal: multiAbortController.signal })
             .then(data => {
                 if (
+                    this.mutations.has(mutationPromiseData) &&
                     mergedRequest.fetchPolicy !== 'no-cache' &&
                     !mergedRequest.disableLoadingQueriesRefetchOptimization
                 ) {
@@ -198,53 +224,74 @@ class Client {
                 return data;
             })
             .then(data => {
-                let sharedData = this.cache.getState().sharedData;
+                if (this.mutations.has(mutationPromiseData)) {
+                    this.mutations.delete(mutationPromiseData);
 
-                if (mergedRequest.optimisticResponse !== undefined && mergedRequest.clearCacheFromOptimisticResponse) {
-                    sharedData = mergedRequest.clearCacheFromOptimisticResponse(
-                        sharedData,
-                        mergedRequest.optimisticResponse,
-                        mergedRequest,
+                    let sharedData = this.cache.getState().sharedData;
+
+                    if (
+                        mergedRequest.optimisticResponse !== undefined &&
+                        mergedRequest.clearCacheFromOptimisticResponse
+                    ) {
+                        sharedData = mergedRequest.clearCacheFromOptimisticResponse(
+                            sharedData,
+                            mergedRequest.optimisticResponse,
+                            mergedRequest,
+                        );
+                    }
+
+                    this.cache.onMutateSuccess(
+                        requestId,
+                        data,
+                        mergedRequest.fetchPolicy !== 'no-cache'
+                            ? mergedRequest.toCache?.(sharedData, data, mergedRequest)
+                            : undefined,
                     );
-                }
 
-                this.cache.onMutateSuccess(
-                    requestId,
-                    data,
-                    mergedRequest.fetchPolicy !== 'no-cache'
-                        ? mergedRequest.toCache?.(sharedData, data, mergedRequest)
-                        : undefined,
-                );
-
-                mergedRequest.refetchQueries?.forEach(requestData => {
-                    this.query(requestData, {
-                        callerId: 'INTERNAL',
-                        forceNetworkRequest: true,
-                        disableNetworkRequestOptimization: true,
+                    mergedRequest.refetchQueries?.forEach(requestData => {
+                        this.query(requestData, {
+                            callerId: 'INTERNAL',
+                            forceNetworkRequest: true,
+                            disableNetworkRequestOptimization: true,
+                        });
                     });
-                });
+                }
 
                 return data;
             })
             .catch(error => {
-                if (mergedRequest.optimisticResponse !== undefined && mergedRequest.clearCacheFromOptimisticResponse) {
-                    const sharedData = this.cache.getState().sharedData;
+                if (this.mutations.has(mutationPromiseData)) {
+                    this.mutations.delete(mutationPromiseData);
 
-                    this.cache.onQueryFailWithOptimisticResponse(
-                        requestId,
-                        error,
-                        null, // Not cached anyway, can be any value
-                        mergedRequest.fetchPolicy !== 'no-cache'
-                            ? mergedRequest.clearCacheFromOptimisticResponse(
-                                  sharedData,
-                                  mergedRequest.optimisticResponse,
-                                  mergedRequest,
-                              )
-                            : undefined,
-                    );
+                    if (
+                        mergedRequest.optimisticResponse !== undefined &&
+                        mergedRequest.clearCacheFromOptimisticResponse
+                    ) {
+                        const sharedData = this.cache.getState().sharedData;
+
+                        this.cache.onQueryFailWithOptimisticResponse(
+                            requestId,
+                            error,
+                            null, // Not cached anyway, can be any value
+                            mergedRequest.fetchPolicy !== 'no-cache'
+                                ? mergedRequest.clearCacheFromOptimisticResponse(
+                                      sharedData,
+                                      mergedRequest.optimisticResponse,
+                                      mergedRequest,
+                                  )
+                                : undefined,
+                        );
+                    }
                 }
+
                 throw error;
             });
+
+        mutationPromiseData.promise = mutationPromise;
+
+        this.mutations.add(mutationPromiseData);
+
+        return mutationPromise;
     }
 
     public async query<
