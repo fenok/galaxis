@@ -295,6 +295,7 @@ Cache consists of two parts: `requestStates` and `sharedData`.
 
 -   `data` - result of successful request from `processResponse` function.
 -   `loading` - boolean.
+-   `loadingRequesterIds` - array of ids of requesters (callers, hooks) that executed the request.
 -   `error` - error thrown from `processResponse` function.
 
 `requestStates` is for internal usage only.
@@ -357,7 +358,7 @@ On initial render queries are not refetched if there is cached data (e.g. query 
 > You should build your own useQuery (using useQuery from the library) with API that is convenient for your app.
 
 ```typescript
-const { data, loading, error, abort, refetch } = useQuery(request, {
+const { data, loading, loadingRequesterIds, requesterId, error, abort, refetch } = useQuery(request, {
     getPartialRequestId: getIdBase64,
     hookId: 'my-hook',
 });
@@ -372,9 +373,23 @@ Return values:
 
 -   `data` - query data (actual or previous). May appear as (and never switches to) `undefined` (which means absence of data).
 -   `loading` - boolean, indicating network request.
+-   `loadingRequesterIds` - array of ids of requesters (callers, hooks) that executed the request.
+-   `requesterId` - requester id of the hook. The value of `hookId` option, if provided. Otherwise, it's generated internally.
 -   `error` - query error. Always swicthes to `undefined` after network request success.
 -   `abort` - function for aborting query.
 -   `refetch` - function for forcing network request.
+
+Loading state:
+
+The `loading` return value corresponds to the request itself. I.e. if hook A and hook B use the same request, and hook A initiates network request, hook B will receive `loading: true` as well. In some cases that's undesirable.
+
+You can get hook-specific loading state like this:
+
+```typescript
+const { loadingRequesterIds, requesterId } = useQuery(/*...*/);
+
+const hookSpecificLoading = loadingRequesterIds.includes(requesterId);
+```
 
 Abort:
 
@@ -400,10 +415,9 @@ const { mutate } = useMutation();
 
 ## Known issues
 
--   Errors in external code may lead to different errors in state and promise rejections (i.e. `query().catch()`). It's likely not going to be fixed, but you should get diverged error warnings in development.
--   All queries with the same request id are updated with loading state regardless of query initiator, which is probably undesirable.
 -   You can't return `undefined` as query data (and probably shouldn't, because empty data can be represented as `null`)
 -   Race conditions handling is not 100% reliable, though no idea how to make it so (is it possible?).
 -   Redux-devtools integration is limited.
 -   It's probably better to move request functions to separate package.
 -   Tests are really poor.
+-   Errors in external code may lead to different errors in state and promise rejections (i.e. `query().catch()`). It's likely not going to be fixed, but you should get diverged error warnings in development.
