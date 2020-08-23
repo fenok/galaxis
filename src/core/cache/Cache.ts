@@ -13,12 +13,14 @@ interface SerializableCacheState<C = any> {
 
 interface RequestState<D extends RC = any, E extends Error = Error> {
     loading: boolean;
+    loadingRequesterIds: string[];
     error?: E | Error; // Regular error can always slip through
     data?: D;
 }
 
 interface SerializableRequestState<D extends RC = any, E extends object = object> {
     loading: boolean;
+    loadingRequesterIds: string[];
     error?: E;
     data?: D;
 }
@@ -127,30 +129,58 @@ class Cache {
         this.state = initialSerializableState ? this.deserializeState(initialSerializableState) : Cache.INITIAL_STATE;
     }
 
-    public onQueryStart(id: string) {
-        this.updateState({ id, state: { loading: true } });
+    public onQueryStart(id: string, requesterId: string) {
+        this.updateState({ id, state: { loading: true, loadingRequesterIds: [requesterId] } });
         this.devtools?.send({ type: 'QUERY_START', id }, this.state);
     }
 
-    public onQueryStartWithOptimisticResponse(id: string, data: any, sharedData?: any) {
-        this.updateState({ id, state: { loading: true, data }, sharedData });
+    public onQueryRequesterAdd(id: string, requesterId: string) {
+        this.updateState({
+            id,
+            state: {
+                loading: true,
+                loadingRequesterIds: [...(this.state.requestStates[id]?.loadingRequesterIds ?? []), requesterId],
+            },
+        });
+        this.devtools?.send({ type: 'QUERY_REQUESTER_ADD', id }, this.state);
+    }
+
+    public onQueryRequesterRemove(id: string, requesterId: string) {
+        const currentState = this.state.requestStates[id];
+
+        this.updateState({
+            id,
+            state: {
+                loading: Boolean(currentState?.loading),
+                loadingRequesterIds: (currentState?.loadingRequesterIds ?? []).filter(id => id !== requesterId),
+            },
+        });
+        this.devtools?.send({ type: 'QUERY_REQUESTER_REMOVE', id }, this.state);
+    }
+
+    public onQueryStartWithOptimisticResponse(id: string, requesterId: string, data: any, sharedData?: any) {
+        this.updateState({ id, state: { loading: true, loadingRequesterIds: [requesterId], data }, sharedData });
         this.devtools?.send({ type: 'QUERY_START_OPTIMISTIC_RESPONSE', id, data }, this.state);
     }
 
     public onQueryFail(id: string, error: Error) {
-        this.updateState({ id, state: { loading: false, error } });
+        this.updateState({ id, state: { loading: false, loadingRequesterIds: [], error } });
         this.devtools?.send({ type: 'QUERY_FAIL', id, error }, this.state);
     }
 
     public onQueryFailWithOptimisticResponse(id: string, error: Error, data: any, sharedData?: any) {
-        this.updateState({ id, state: { loading: false, error, data }, sharedData });
+        this.updateState({ id, state: { loading: false, loadingRequesterIds: [], error, data }, sharedData });
         this.devtools?.send({ type: 'QUERY_FAIL_OPTIMISTIC_RESPONSE', id, error, data }, this.state);
     }
 
     public onQuerySuccess(id: string, data: any, sharedData?: any) {
         const dataToWrite = sharedData === undefined || this.enableDataDuplication ? data : undefined;
 
-        this.updateState({ id, state: { loading: false, data: dataToWrite, error: undefined }, sharedData });
+        this.updateState({
+            id,
+            state: { loading: false, loadingRequesterIds: [], data: dataToWrite, error: undefined },
+            sharedData,
+        });
         this.devtools?.send({ type: 'QUERY_SUCCESS', id, data, sharedData }, this.state);
     }
 

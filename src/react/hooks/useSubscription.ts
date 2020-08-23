@@ -42,6 +42,7 @@ export function useSubscription<D extends RC, E extends EC>({ getCurrentValue, s
 
                 if (
                     prevState.value.loading === value.loading &&
+                    prevState.value.loadingRequesterIds === value.loadingRequesterIds &&
                     prevState.value.error === value.error &&
                     prevState.value.data === value.data
                 ) {

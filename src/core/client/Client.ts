@@ -325,6 +325,7 @@ class Client {
             if (mergedRequest.optimisticResponse !== undefined) {
                 this.cache.onQueryStartWithOptimisticResponse(
                     requestId,
+                    requestOptions.callerId,
                     mergedRequest.optimisticResponse,
                     mergedRequest.fetchPolicy !== 'no-cache'
                         ? mergedRequest.toCache?.(
@@ -335,7 +336,7 @@ class Client {
                         : undefined,
                 );
             } else {
-                this.cache.onQueryStart(requestId);
+                this.cache.onQueryStart(requestId, requestOptions.callerId);
             }
         }
     }
@@ -368,7 +369,7 @@ class Client {
         mergedRequest: RequestData,
         callerId: string,
     ): RequestState<D, E> {
-        const defaultState = { loading: false, data: undefined, error: undefined };
+        const defaultState = { loading: false, loadingRequesterIds: [], data: undefined, error: undefined };
 
         const rawState = this.cache.getState().requestStates[this.getRequestId(mergedRequest, callerId)];
 
@@ -390,6 +391,8 @@ class Client {
 
             if (multi || Object.values(requestData.callerAwaitStatuses).every(status => !status)) {
                 requestData.abort();
+            } else {
+                this.cache.onQueryRequesterRemove(this.getRequestId(mergedRequest, callerId), callerId);
             }
         };
 
@@ -488,6 +491,9 @@ class Client {
             this.queries[requestId] = requestPromiseData;
         } else {
             this.queries[requestId]!.callerAwaitStatuses[callerId] = true;
+
+            this.cache.onQueryRequesterAdd(requestId, callerId);
+
             if (disableNetworkRequestOptimization) {
                 this.queries[requestId]!.rerunNetworkRequest();
             }

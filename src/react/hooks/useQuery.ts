@@ -116,5 +116,5 @@ export function useQuery<
 
     const requestState = useSubscription(subscription);
 
-    return { ...requestState, refetch, abort };
+    return { ...requestState, requesterId: callerId, refetch, abort };
 }
