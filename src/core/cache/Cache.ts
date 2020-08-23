@@ -131,36 +131,44 @@ class Cache {
 
     public onQueryStart(id: string, requesterId: string) {
         this.updateState({ id, state: { loading: true, loadingRequesterIds: [requesterId] } });
-        this.devtools?.send({ type: 'QUERY_START', id }, this.state);
+        this.devtools?.send({ type: 'QUERY_START', id, requesterId }, this.state);
+    }
+
+    public onQueryStartWithOptimisticResponse(id: string, requesterId: string, data: any, sharedData?: any) {
+        this.updateState({ id, state: { loading: true, loadingRequesterIds: [requesterId], data }, sharedData });
+        this.devtools?.send({ type: 'QUERY_START_OPTIMISTIC_RESPONSE', id, requesterId, data }, this.state);
     }
 
     public onQueryRequesterAdd(id: string, requesterId: string) {
-        this.updateState({
-            id,
-            state: {
-                loading: true,
-                loadingRequesterIds: [...(this.state.requestStates[id]?.loadingRequesterIds ?? []), requesterId],
-            },
-        });
-        this.devtools?.send({ type: 'QUERY_REQUESTER_ADD', id }, this.state);
+        const currentRequesterIds = this.state.requestStates[id]?.loadingRequesterIds ?? [];
+
+        if (!currentRequesterIds.includes(requesterId)) {
+            this.updateState({
+                id,
+                state: {
+                    loading: true,
+                    loadingRequesterIds: [...currentRequesterIds, requesterId],
+                },
+            });
+            this.devtools?.send({ type: 'QUERY_REQUESTER_ADD', id, requesterId }, this.state);
+        }
     }
 
     public onQueryRequesterRemove(id: string, requesterId: string) {
         const currentState = this.state.requestStates[id];
 
-        this.updateState({
-            id,
-            state: {
-                loading: Boolean(currentState?.loading),
-                loadingRequesterIds: (currentState?.loadingRequesterIds ?? []).filter(id => id !== requesterId),
-            },
-        });
-        this.devtools?.send({ type: 'QUERY_REQUESTER_REMOVE', id }, this.state);
-    }
+        const currentRequesterIds = currentState?.loadingRequesterIds ?? [];
 
-    public onQueryStartWithOptimisticResponse(id: string, requesterId: string, data: any, sharedData?: any) {
-        this.updateState({ id, state: { loading: true, loadingRequesterIds: [requesterId], data }, sharedData });
-        this.devtools?.send({ type: 'QUERY_START_OPTIMISTIC_RESPONSE', id, data }, this.state);
+        if (currentRequesterIds.includes(requesterId)) {
+            this.updateState({
+                id,
+                state: {
+                    loading: Boolean(currentState?.loading),
+                    loadingRequesterIds: currentRequesterIds.filter(id => id !== requesterId),
+                },
+            });
+            this.devtools?.send({ type: 'QUERY_REQUESTER_REMOVE', id, requesterId }, this.state);
+        }
     }
 
     public onQueryFail(id: string, error: Error) {
