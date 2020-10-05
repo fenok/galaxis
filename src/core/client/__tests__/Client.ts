@@ -108,7 +108,7 @@ it('can query data', async () => {
 
     const response = await client.query(
         { ...request, requestInit: { ...baseRequestInit, pathParams: { id: '1' } } },
-        { callerId: 'test' },
+        { requesterId: 'test' },
     );
 
     expect(response).toEqual({ data: FIRST_ITEM });
@@ -127,7 +127,7 @@ it('can mutate data', async () => {
                 body: JSON.stringify(ALTERED_ITEM),
             },
         },
-        { callerId: 'test' },
+        { requesterId: 'test' },
     );
 
     expect(response).toEqual({ data: ALTERED_ITEM });
@@ -138,11 +138,11 @@ it('caches queried data', async () => {
 
     await client.query(
         { ...request, requestInit: { ...baseRequestInit, pathParams: { id: '1' } } },
-        { callerId: 'test' },
+        { requesterId: 'test' },
     );
     const { data: responseFromCache } = client.getState(
         { ...request, requestInit: { ...baseRequestInit, pathParams: { id: '1' } } },
-        { callerId: 'test' },
+        { requesterId: 'test' },
     );
 
     expect(responseFromCache).toEqual({ data: FIRST_ITEM });
@@ -153,11 +153,11 @@ it('caches queried data for request with custom caching', async () => {
 
     await client.query(
         { ...requestWithSharedData, requestInit: { ...baseRequestInit, pathParams: { id: '1' } } },
-        { callerId: 'test' },
+        { requesterId: 'test' },
     );
     const { data: responseFromCache } = client.getState(
         { ...requestWithSharedData, requestInit: { ...baseRequestInit, pathParams: { id: '1' } } },
-        { callerId: 'test' },
+        { requesterId: 'test' },
     );
 
     expect(responseFromCache).toEqual({ data: FIRST_ITEM });
@@ -168,7 +168,7 @@ it("guarantees that old query data won't overwrite state after mutation", async 
 
     const queryPromise = client.query(
         { ...requestWithSharedData, requestInit: { ...baseRequestInit, pathParams: { id: '1' } } },
-        { callerId: 'test' },
+        { requesterId: 'test' },
     );
     const mutatePromise = client.mutate(
         {
@@ -180,14 +180,14 @@ it("guarantees that old query data won't overwrite state after mutation", async 
                 body: JSON.stringify(ALTERED_ITEM),
             },
         },
-        { callerId: 'test' },
+        { requesterId: 'test' },
     );
 
     await Promise.all([queryPromise, mutatePromise]);
 
     const { data: responseFromCache } = client.getState(
         { ...requestWithSharedData, requestInit: { ...baseRequestInit, pathParams: { id: '1' } } },
-        { callerId: 'test' },
+        { requesterId: 'test' },
     );
 
     expect(responseFromCache).toEqual({ data: ALTERED_ITEM });

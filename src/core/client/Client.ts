@@ -16,7 +16,7 @@ interface ClientOptions {
 }
 
 interface QueryOptions {
-    callerId: string;
+    requesterId: string;
     forceNetworkRequest?: boolean; // Perform a network request regardless of fetchPolicy and cache state
     disableNetworkRequestOptimization?: boolean; // Perform new network request instead of reusing the existing one
     respectLazy?: boolean;
@@ -24,13 +24,13 @@ interface QueryOptions {
 }
 
 interface MutateOptions {
-    callerId: string;
+    requesterId: string;
     multiAbortSignal?: MultiAbortSignal;
 }
 
 interface QueryPromiseData {
     promise: Promise<any>;
-    callerAwaitStatuses: { [callerId: string]: boolean };
+    callerAwaitStatuses: { [requesterId: string]: boolean };
     aborted: boolean;
     abort(): void;
     rerunNetworkRequest(): void;
@@ -43,7 +43,7 @@ interface MutationPromiseData {
 }
 
 interface GetStateOptions {
-    callerId: string;
+    requesterId: string;
 }
 
 class Client {
@@ -85,26 +85,26 @@ class Client {
 
     public subscribe<C extends CC, R extends RC, E extends EC, I>(
         request: YarfRequest<C, R, E, I>,
-        callerId: string,
+        requesterId: string,
         onChange: (state: RequestState<R, E>) => void,
     ) {
         return this.cache.subscribe(() => {
-            onChange(this.getState(request, { callerId }));
+            onChange(this.getState(request, { requesterId }));
         });
     }
 
     public getState<C extends CC, R extends RC, E extends EC, I>(
         request: YarfRequest<C, R, E, I>,
-        { callerId }: GetStateOptions,
+        { requesterId }: GetStateOptions,
     ): RequestState<R, E> {
-        return this.getCompleteRequestState<R, E>(request, callerId);
+        return this.getCompleteRequestState<R, E>(request, requesterId);
     }
 
     public getSsrPromise<C extends CC, R extends RC, E extends EC, I>(
         request: YarfRequest<C, R, E, I>,
-        callerId: string,
+        requesterId: string,
     ): Promise<R | undefined> | undefined {
-        const requestState = this.getState(request, { callerId });
+        const requestState = this.getState(request, { requesterId });
 
         if (
             !request.disableSsr &&
@@ -114,7 +114,7 @@ class Client {
             requestState.data === undefined &&
             requestState.error === undefined
         ) {
-            return this.queryAfterPreparedLoadingState(request, { callerId, forceNetworkRequest: false });
+            return this.queryAfterPreparedLoadingState(request, { requesterId, forceNetworkRequest: false });
         }
 
         return undefined;
@@ -122,7 +122,7 @@ class Client {
 
     public async mutate<C extends CC, R extends RC, E extends EC, I>(
         request: YarfRequest<C, R, E, I>,
-        { multiAbortSignal, callerId }: MutateOptions,
+        { multiAbortSignal, requesterId }: MutateOptions,
     ): Promise<R> {
         const requestId = this.getRequestId(request);
 
@@ -130,7 +130,7 @@ class Client {
             this.cache.onMutateStartWithOptimisticResponse(
                 requestId,
                 request.optimisticResponse,
-                request.toCache?.(this.cache.getState().sharedData, request.optimisticResponse, request, callerId),
+                request.toCache?.(this.cache.getState().sharedData, request.optimisticResponse, request, requesterId),
             );
         } else if (request.optimisticResponse !== undefined) {
             logger.warn(
@@ -176,11 +176,15 @@ class Client {
                         );
                     }
 
-                    this.cache.onMutateSuccess(requestId, data, request.toCache?.(sharedData, data, request, callerId));
+                    this.cache.onMutateSuccess(
+                        requestId,
+                        data,
+                        request.toCache?.(sharedData, data, request, requesterId),
+                    );
 
                     request.refetchQueries?.forEach(requestData => {
                         this.query(requestData, {
-                            callerId: 'INTERNAL',
+                            requesterId: 'INTERNAL',
                             forceNetworkRequest: true,
                             disableNetworkRequestOptimization: true,
                         });
@@ -228,24 +232,24 @@ class Client {
         request: YarfRequest<C, R, E, I>,
         requestOptions: QueryOptions,
     ): void {
-        const requestState = this.getCompleteRequestState<R, E>(request, requestOptions.callerId);
+        const requestState = this.getCompleteRequestState<R, E>(request, requestOptions.requesterId);
         const requestId = this.getRequestId(request);
 
         if (!this.shouldReturnOrThrowFromState(request, requestState, requestOptions) && !requestState.loading) {
             if (request.optimisticResponse !== undefined) {
                 this.cache.onQueryStartWithOptimisticResponse(
                     requestId,
-                    requestOptions.callerId,
+                    requestOptions.requesterId,
                     request.optimisticResponse,
                     request.toCache?.(
                         this.cache.getState().sharedData,
                         request.optimisticResponse,
                         request,
-                        requestOptions.callerId,
+                        requestOptions.requesterId,
                     ),
                 );
             } else {
-                this.cache.onQueryStart(requestId, requestOptions.callerId);
+                this.cache.onQueryStart(requestId, requestOptions.requesterId);
             }
         }
     }
@@ -255,7 +259,7 @@ class Client {
         requestOptions: QueryOptions,
     ): Promise<R | undefined> {
         try {
-            const requestState = this.getCompleteRequestState<R, E>(request, requestOptions.callerId);
+            const requestState = this.getCompleteRequestState<R, E>(request, requestOptions.requesterId);
 
             if (this.shouldReturnOrThrowFromState(request, requestState, requestOptions)) {
                 return this.returnOrThrowRequestState(requestState);
@@ -270,7 +274,7 @@ class Client {
 
     private getCompleteRequestState<D extends RC = any, E extends Error = Error>(
         request: YarfRequest,
-        callerId: string,
+        requesterId: string,
     ): RequestState<D, E> {
         const defaultState = { loading: false, loadingRequesterIds: [], data: undefined, error: undefined };
 
@@ -278,24 +282,24 @@ class Client {
 
         let data = rawState?.data;
         if (request.fromCache) {
-            data = request.fromCache(this.cache.getState().sharedData, request, callerId);
+            data = request.fromCache(this.cache.getState().sharedData, request, requesterId);
         }
 
         return { ...defaultState, ...rawState, data };
     }
 
     private async getDataFromNetwork<T>(request: YarfRequest, options: QueryOptions): Promise<T> {
-        const { callerId, multiAbortSignal } = options;
+        const { requesterId, multiAbortSignal } = options;
 
         const requestData = this.initQueryPromiseData(request, options);
 
         const onAbort = (multi?: boolean) => {
-            requestData.callerAwaitStatuses[callerId] = false;
+            requestData.callerAwaitStatuses[requesterId] = false;
 
             if (multi || Object.values(requestData.callerAwaitStatuses).every(status => !status)) {
                 requestData.abort();
             } else {
-                this.cache.onQueryRequesterRemove(this.getRequestId(request), callerId);
+                this.cache.onQueryRequesterRemove(this.getRequestId(request), requesterId);
             }
         };
 
@@ -306,7 +310,7 @@ class Client {
 
     private initQueryPromiseData(
         request: YarfRequest,
-        { disableNetworkRequestOptimization, callerId }: QueryOptions,
+        { disableNetworkRequestOptimization, requesterId }: QueryOptions,
     ): QueryPromiseData {
         const requestId = this.getRequestId(request);
 
@@ -325,12 +329,12 @@ class Client {
                     return Boolean(multiAbortController.signal.aborted);
                 },
                 callerAwaitStatuses: {
-                    [callerId]: true,
+                    [requesterId]: true,
                 },
                 promise: Promise.resolve(),
             };
 
-            const nonOptimisticData = this.getCompleteRequestState(request, callerId).data;
+            const nonOptimisticData = this.getCompleteRequestState(request, requesterId).data;
 
             requestPromiseData.promise = this.getRequestPromise(request, {
                 multiAbortSignal: multiAbortController.signal,
@@ -353,7 +357,7 @@ class Client {
                         this.cache.onQuerySuccess(
                             requestId,
                             data,
-                            request.toCache?.(sharedData, data, request, callerId),
+                            request.toCache?.(sharedData, data, request, requesterId),
                         );
                     }
                     return data;
@@ -375,7 +379,7 @@ class Client {
                                           request.optimisticResponse,
                                           request,
                                       )
-                                    : request.toCache?.(sharedData, nonOptimisticData, request, callerId),
+                                    : request.toCache?.(sharedData, nonOptimisticData, request, requesterId),
                             );
                         } else {
                             this.cache.onQueryFail(requestId, error);
@@ -386,9 +390,9 @@ class Client {
 
             this.queries[requestId] = requestPromiseData;
         } else {
-            this.queries[requestId]!.callerAwaitStatuses[callerId] = true;
+            this.queries[requestId]!.callerAwaitStatuses[requesterId] = true;
 
-            this.cache.onQueryRequesterAdd(requestId, callerId);
+            this.cache.onQueryRequesterAdd(requestId, requesterId);
 
             if (disableNetworkRequestOptimization) {
                 this.queries[requestId]!.rerunNetworkRequest();

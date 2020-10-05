@@ -10,15 +10,15 @@ import { useSubscription } from './useSubscription';
 import { usePrevious } from './usePrevious';
 
 interface QueryOptions<C extends CC, R extends RC, E extends EC, I> {
-    hookId?: string;
+    requesterId?: string;
     getPartialRequestId?(request: YarfRequest<C, R, E, I>): string | number;
 }
 
 export function useQuery<C extends CC, R extends RC, E extends EC, I>(
     request: YarfRequest<C, R, E, I>,
-    { getPartialRequestId, hookId }: QueryOptions<C, R, E, I> = {},
+    { getPartialRequestId, requesterId: outerRequesterId }: QueryOptions<C, R, E, I> = {},
 ) {
-    const callerId = useId(hookId);
+    const requesterId = useId(outerRequesterId);
 
     const client = React.useContext(ClientContext);
     const ssrPromisesManager = React.useContext(SsrPromisesManagerContext);
@@ -36,7 +36,7 @@ export function useQuery<C extends CC, R extends RC, E extends EC, I>(
             }
 
             return {
-                callerId,
+                requesterId,
                 forceNetworkRequest,
                 disableNetworkRequestOptimization,
                 respectLazy,
@@ -80,7 +80,7 @@ export function useQuery<C extends CC, R extends RC, E extends EC, I>(
     }, [client, requestId]);
 
     if (typeof window === 'undefined' && ssrPromisesManager) {
-        const ssrPromise = client.getSsrPromise(request, callerId);
+        const ssrPromise = client.getSsrPromise(request, requesterId);
         if (ssrPromise) {
             ssrPromisesManager.addPromise(ssrPromise);
         }
@@ -88,9 +88,9 @@ export function useQuery<C extends CC, R extends RC, E extends EC, I>(
 
     const subscription = React.useMemo(
         () => ({
-            getCurrentValue: () => client.getState(request, { callerId }),
+            getCurrentValue: () => client.getState(request, { requesterId }),
             subscribe: (callback: (state: RequestState<R, E>) => void) => {
-                return client.subscribe(request, callerId, callback);
+                return client.subscribe(request, requesterId, callback);
             },
         }),
 
@@ -100,5 +100,5 @@ export function useQuery<C extends CC, R extends RC, E extends EC, I>(
 
     const requestState = useSubscription(subscription);
 
-    return { ...requestState, requesterId: callerId, refetch, abort };
+    return { ...requestState, requesterId: requesterId, refetch, abort };
 }
