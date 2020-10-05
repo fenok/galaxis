@@ -4,19 +4,19 @@ import { MultiAbortController } from '../../core/promise';
 import { ClientContext, SsrPromisesManagerContext } from '../Provider';
 import { RC, CC, EC, YarfRequest } from '../../core/request';
 import { ensureClient } from './ensureClient';
-import { getRequestId } from './getRequestId';
+import { getRequestHash } from './getRequestHash';
 import { useId } from './useId';
 import { useSubscription } from './useSubscription';
 import { usePrevious } from './usePrevious';
 
 interface QueryOptions<C extends CC, R extends RC, E extends EC, I> {
     requesterId?: string;
-    getPartialRequestId?(request: YarfRequest<C, R, E, I>): string | number;
+    getRequestHash?(request: YarfRequest<C, R, E, I>): string | number;
 }
 
 export function useQuery<C extends CC, R extends RC, E extends EC, I>(
     request: YarfRequest<C, R, E, I>,
-    { getPartialRequestId, requesterId: outerRequesterId }: QueryOptions<C, R, E, I> = {},
+    { getRequestHash: getRequestHashOuter, requesterId: outerRequesterId }: QueryOptions<C, R, E, I> = {},
 ) {
     const requesterId = useId(outerRequesterId);
 
@@ -25,7 +25,7 @@ export function useQuery<C extends CC, R extends RC, E extends EC, I>(
 
     ensureClient(client);
 
-    const requestId = getRequestId(request, getPartialRequestId);
+    const requestHash = getRequestHash(request, getRequestHashOuter);
 
     const multiAbortControllerRef = React.useRef<MultiAbortController>();
 
@@ -52,7 +52,7 @@ export function useQuery<C extends CC, R extends RC, E extends EC, I>(
             return client.query(request, getRequestOptions(false, true, Boolean(disableNetworkRequestOptimization)));
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        [client, requestId],
+        [client, requestHash],
     );
 
     const abort = React.useCallback((multi?: boolean) => {
@@ -62,9 +62,9 @@ export function useQuery<C extends CC, R extends RC, E extends EC, I>(
     }, []);
 
     const prevClient = usePrevious(client);
-    const prevRequestId = usePrevious(requestId);
+    const prevRequestId = usePrevious(requestHash);
 
-    if (prevClient !== client || prevRequestId !== requestId) {
+    if (prevClient !== client || prevRequestId !== requestHash) {
         client.prepareQueryLoadingState(request, getRequestOptions(true, false, false));
     }
 
@@ -77,7 +77,7 @@ export function useQuery<C extends CC, R extends RC, E extends EC, I>(
             abort();
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [client, requestId]);
+    }, [client, requestHash]);
 
     if (typeof window === 'undefined' && ssrPromisesManager) {
         const ssrPromise = client.getSsrPromise(request, requesterId);
@@ -95,7 +95,7 @@ export function useQuery<C extends CC, R extends RC, E extends EC, I>(
         }),
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        [client, requestId],
+        [client, requestHash],
     );
 
     const requestState = useSubscription(subscription);
