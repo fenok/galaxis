@@ -215,7 +215,7 @@ class Cache {
                     ? {
                           ...this.state.requestStates,
                           [id]: {
-                              ...(this.state.requestStates[id] || {}),
+                              ...(this.state.requestStates[id] ?? {}),
                               ...state,
                           },
                       }

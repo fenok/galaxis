@@ -130,7 +130,7 @@ class Client {
             this.cache.onMutateStartWithOptimisticResponse(
                 requestId,
                 request.optimisticResponse,
-                request.toCache?.(this.cache.getState().sharedData, request.optimisticResponse, request, requesterId),
+                request.toCache(this.cache.getState().sharedData, request.optimisticResponse, request, requesterId),
             );
         } else if (request.optimisticResponse !== undefined) {
             logger.warn(
@@ -179,7 +179,7 @@ class Client {
                     this.cache.onMutateSuccess(
                         requestId,
                         data,
-                        request.toCache?.(sharedData, data, request, requesterId),
+                        request.toCache(sharedData, data, request, requesterId),
                     );
 
                     request.refetchQueries?.forEach(requestData => {
@@ -241,7 +241,7 @@ class Client {
                     requestId,
                     requestOptions.requesterId,
                     request.optimisticResponse,
-                    request.toCache?.(
+                    request.toCache(
                         this.cache.getState().sharedData,
                         request.optimisticResponse,
                         request,
@@ -280,10 +280,7 @@ class Client {
 
         const rawState = this.cache.getState().requestStates[this.getRequestId(request)];
 
-        let data = rawState?.data;
-        if (request.fromCache) {
-            data = request.fromCache(this.cache.getState().sharedData, request, requesterId);
-        }
+        const data = request.fromCache(this.cache.getState().sharedData, request, requesterId);
 
         return { ...defaultState, ...rawState, data };
     }
@@ -357,7 +354,7 @@ class Client {
                         this.cache.onQuerySuccess(
                             requestId,
                             data,
-                            request.toCache?.(sharedData, data, request, requesterId),
+                            request.toCache(sharedData, data, request, requesterId),
                         );
                     }
                     return data;
@@ -379,7 +376,7 @@ class Client {
                                           request.optimisticResponse,
                                           request,
                                       )
-                                    : request.toCache?.(sharedData, nonOptimisticData, request, requesterId),
+                                    : request.toCache(sharedData, nonOptimisticData, request, requesterId),
                             );
                         } else {
                             this.cache.onQueryFail(requestId, error);

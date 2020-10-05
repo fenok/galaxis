@@ -4,7 +4,7 @@ export function wireAbortSignals(
     callback: (multi?: boolean) => void,
     ...signals: (AbortSignal | MultiAbortSignal | undefined | null)[]
 ) {
-    signals.forEach(signal => signal && wireAbortSignal(signal, callback));
+    signals.forEach(signal => (signal ? wireAbortSignal(signal, callback) : undefined));
 }
 
 function wireAbortSignal(signal: AbortSignal | MultiAbortSignal, callback: (multi?: boolean) => void) {

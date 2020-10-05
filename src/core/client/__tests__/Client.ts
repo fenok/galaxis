@@ -35,7 +35,8 @@ interface FakeBackendState {
 }
 
 interface CacheState {
-    items: { [key: string]: Item };
+    items: { [key: string]: Item | undefined };
+    auto: { [key: string]: any };
 }
 
 interface ResponseData {
@@ -70,14 +71,24 @@ const fetchFn = (url: string, { method, body }: RequestInit): Promise<any> => {
     }
 };
 
-const client = new Client({
-    cache: new Cache({ serializeError, deserializeError }),
-});
-
 const baseRequestInit = {
     root: 'http://test.test',
     path: '/item/:id',
 };
+
+const client = new Client({
+    cache: new Cache({
+        serializeError,
+        deserializeError,
+        initialSerializableState: {
+            requestStates: {},
+            sharedData: {
+                items: {},
+                auto: {},
+            },
+        },
+    }),
+});
 
 const request: YarfRequest<CacheState, ResponseData, Error, FetchRequestInit> = {
     getNetworkRequestFactory: requestInit => () => fetchFn(getUrl(requestInit), { ...requestInit }),
@@ -87,6 +98,17 @@ const request: YarfRequest<CacheState, ResponseData, Error, FetchRequestInit> = 
         ...baseRequestInit,
         pathParams: { id: '1' },
     },
+    disableInitialRenderDataRefetchOptimization: true,
+    toCache(sharedData, responseData, request) {
+        return {
+            ...sharedData,
+            auto: { ...sharedData.auto, [request.getId(request.requestInit)]: responseData },
+        };
+    },
+    fromCache(sharedData, request) {
+        const dataFromCache = sharedData.auto[request.getId(request.requestInit)];
+        return dataFromCache;
+    },
 };
 
 const requestWithSharedData: YarfRequest<CacheState, ResponseData, Error, FetchRequestInit> = {
@@ -94,11 +116,11 @@ const requestWithSharedData: YarfRequest<CacheState, ResponseData, Error, FetchR
     toCache(sharedData, responseData, request) {
         return {
             ...sharedData,
-            items: { ...(sharedData.items || {}), [request.requestInit.pathParams!.id]: responseData.data },
+            items: { ...sharedData.items, [request.requestInit.pathParams!.id]: responseData.data },
         };
     },
     fromCache(sharedData, request) {
-        const dataFromCache = (sharedData.items || [])[request.requestInit.pathParams!.id];
+        const dataFromCache = sharedData.items[request.requestInit.pathParams!.id];
         return dataFromCache ? { data: dataFromCache } : undefined;
     },
 };

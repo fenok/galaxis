@@ -18,9 +18,9 @@ type Action = {
 } & { [key: string]: any };
 
 interface Message {
-    type: 'DISPATCH';
+    type: 'DISPATCH' | 'OTHER';
     payload: {
-        type: 'JUMP_TO_ACTION';
+        type: 'JUMP_TO_ACTION' | 'OTHER';
     };
     state: string;
 }

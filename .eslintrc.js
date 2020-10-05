@@ -22,6 +22,7 @@ module.exports = {
             },
             rules: {
                 '@typescript-eslint/no-use-before-define': ['error', 'nofunc'],
+                '@typescript-eslint/no-unnecessary-condition': 'error',
                 'react-hooks/rules-of-hooks': 'error',
                 'react-hooks/exhaustive-deps': 'error',
             },
