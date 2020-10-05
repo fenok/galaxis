@@ -124,15 +124,13 @@ class Client {
         request: YarfRequest<C, R, E, I>,
         { multiAbortSignal, callerId }: MutateOptions,
     ): Promise<R> {
-        const requestId = this.getRequestId(request, callerId);
+        const requestId = this.getRequestId(request);
 
         if (request.optimisticResponse !== undefined && request.clearCacheFromOptimisticResponse) {
             this.cache.onMutateStartWithOptimisticResponse(
                 requestId,
                 request.optimisticResponse,
-                request.fetchPolicy !== 'no-cache'
-                    ? request.toCache?.(this.cache.getState().sharedData, request.optimisticResponse, request)
-                    : undefined,
+                request.toCache?.(this.cache.getState().sharedData, request.optimisticResponse, request, callerId),
             );
         } else if (request.optimisticResponse !== undefined) {
             logger.warn(
@@ -157,11 +155,7 @@ class Client {
 
         const mutationPromise = this.getRequestPromise(request, { multiAbortSignal: multiAbortController.signal })
             .then(data => {
-                if (
-                    this.mutations.has(mutationPromiseData) &&
-                    request.fetchPolicy !== 'no-cache' &&
-                    !request.disableLoadingQueriesRefetchOptimization
-                ) {
+                if (this.mutations.has(mutationPromiseData) && !request.disableLoadingQueriesRefetchOptimization) {
                     Object.values(this.queries).forEach(promiseData => promiseData?.rerunNetworkRequest());
                 }
 
@@ -182,11 +176,7 @@ class Client {
                         );
                     }
 
-                    this.cache.onMutateSuccess(
-                        requestId,
-                        data,
-                        request.fetchPolicy !== 'no-cache' ? request.toCache?.(sharedData, data, request) : undefined,
-                    );
+                    this.cache.onMutateSuccess(requestId, data, request.toCache?.(sharedData, data, request, callerId));
 
                     request.refetchQueries?.forEach(requestData => {
                         this.query(requestData, {
@@ -210,13 +200,7 @@ class Client {
                             requestId,
                             error,
                             null, // Not cached anyway, can be any value
-                            request.fetchPolicy !== 'no-cache'
-                                ? request.clearCacheFromOptimisticResponse(
-                                      sharedData,
-                                      request.optimisticResponse,
-                                      request,
-                                  )
-                                : undefined,
+                            request.clearCacheFromOptimisticResponse(sharedData, request.optimisticResponse, request),
                         );
                     }
                 }
@@ -245,7 +229,7 @@ class Client {
         requestOptions: QueryOptions,
     ): void {
         const requestState = this.getCompleteRequestState<R, E>(request, requestOptions.callerId);
-        const requestId = this.getRequestId(request, requestOptions.callerId);
+        const requestId = this.getRequestId(request);
 
         if (!this.shouldReturnOrThrowFromState(request, requestState, requestOptions) && !requestState.loading) {
             if (request.optimisticResponse !== undefined) {
@@ -253,9 +237,12 @@ class Client {
                     requestId,
                     requestOptions.callerId,
                     request.optimisticResponse,
-                    request.fetchPolicy !== 'no-cache'
-                        ? request.toCache?.(this.cache.getState().sharedData, request.optimisticResponse, request)
-                        : undefined,
+                    request.toCache?.(
+                        this.cache.getState().sharedData,
+                        request.optimisticResponse,
+                        request,
+                        requestOptions.callerId,
+                    ),
                 );
             } else {
                 this.cache.onQueryStart(requestId, requestOptions.callerId);
@@ -287,11 +274,11 @@ class Client {
     ): RequestState<D, E> {
         const defaultState = { loading: false, loadingRequesterIds: [], data: undefined, error: undefined };
 
-        const rawState = this.cache.getState().requestStates[this.getRequestId(request, callerId)];
+        const rawState = this.cache.getState().requestStates[this.getRequestId(request)];
 
         let data = rawState?.data;
-        if (request.fromCache && request.fetchPolicy !== 'no-cache') {
-            data = request.fromCache(this.cache.getState().sharedData, request);
+        if (request.fromCache) {
+            data = request.fromCache(this.cache.getState().sharedData, request, callerId);
         }
 
         return { ...defaultState, ...rawState, data };
@@ -308,7 +295,7 @@ class Client {
             if (multi || Object.values(requestData.callerAwaitStatuses).every(status => !status)) {
                 requestData.abort();
             } else {
-                this.cache.onQueryRequesterRemove(this.getRequestId(request, callerId), callerId);
+                this.cache.onQueryRequesterRemove(this.getRequestId(request), callerId);
             }
         };
 
@@ -321,7 +308,7 @@ class Client {
         request: YarfRequest,
         { disableNetworkRequestOptimization, callerId }: QueryOptions,
     ): QueryPromiseData {
-        const requestId = this.getRequestId(request, callerId);
+        const requestId = this.getRequestId(request);
 
         if (!this.queries[requestId] || this.queries[requestId]?.aborted) {
             const multiAbortController = new MultiAbortController();
@@ -366,9 +353,7 @@ class Client {
                         this.cache.onQuerySuccess(
                             requestId,
                             data,
-                            request.fetchPolicy !== 'no-cache'
-                                ? request.toCache?.(sharedData, data, request)
-                                : undefined,
+                            request.toCache?.(sharedData, data, request, callerId),
                         );
                     }
                     return data;
@@ -384,15 +369,13 @@ class Client {
                                 requestId,
                                 error,
                                 nonOptimisticData,
-                                request.fetchPolicy !== 'no-cache'
-                                    ? request.clearCacheFromOptimisticResponse
-                                        ? request.clearCacheFromOptimisticResponse(
-                                              sharedData,
-                                              request.optimisticResponse,
-                                              request,
-                                          )
-                                        : request.toCache?.(sharedData, nonOptimisticData, request)
-                                    : undefined,
+                                request.clearCacheFromOptimisticResponse
+                                    ? request.clearCacheFromOptimisticResponse(
+                                          sharedData,
+                                          request.optimisticResponse,
+                                          request,
+                                      )
+                                    : request.toCache?.(sharedData, nonOptimisticData, request, callerId),
                             );
                         } else {
                             this.cache.onQueryFail(requestId, error);
@@ -415,14 +398,8 @@ class Client {
         return this.queries[requestId] as QueryPromiseData;
     }
 
-    private getRequestId(request: YarfRequest, callerId: string) {
-        const pureId = request.getId(request.requestInit);
-
-        if (request.fetchPolicy === 'no-cache') {
-            return `no-cache:${callerId}:${pureId}`;
-        }
-
-        return pureId;
+    private getRequestId(request: YarfRequest) {
+        return request.getId(request.requestInit);
     }
 
     private getRequestPromise(request: YarfRequest, signals: Signals = {}) {

@@ -1,4 +1,4 @@
-export type FetchPolicy = 'cache-only' | 'cache-first' | 'cache-and-network' | 'no-cache';
+export type FetchPolicy = 'cache-only' | 'cache-first' | 'cache-and-network';
 
 // Cache constraint
 export type CC = object;
@@ -18,7 +18,7 @@ export interface YarfRequest<C extends CC = any, R extends RC = any, E extends E
     disableLoadingQueriesRefetchOptimization?: boolean;
     getNetworkRequestFactory(requestInit: I): (abortSignal?: AbortSignal) => Promise<R>;
     getId(requestInit: I): string;
-    toCache?(cache: C, responseData: R, request: YarfRequest<C, R, E, I>): C;
-    fromCache?(cache: C, requestInit: YarfRequest<C, R, E, I>): R | undefined;
+    toCache?(cache: C, responseData: R, request: YarfRequest<C, R, E, I>, requesterId: string): C;
+    fromCache?(cache: C, request: YarfRequest<C, R, E, I>, requesterId: string): R | undefined;
     clearCacheFromOptimisticResponse?(cache: C, optimisticResponse: R, request: YarfRequest<C, R, E, I>): C;
 }
