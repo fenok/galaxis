@@ -1,84 +1,24 @@
 export type FetchPolicy = 'cache-only' | 'cache-first' | 'cache-and-network' | 'no-cache';
 
-// Response part
-// Shared data constraint
-export type SDC = object;
+// Cache constraint
+export type CC = object;
 // Response data constraint
 export type RC = string | number | boolean | symbol | bigint | object | null; // Anything but undefined
 // Response error constraint
 export type EC = Error;
 
-// Request part
-// Path params constraint
-export type PPC = Record<string, string | number | undefined>;
-// Query params constraint
-export type QPC = Record<string, (string | number)[] | string | number | undefined | null>;
-// Body constraint
-export type BC = BodyInit | null | object;
-// Headers constraint
-export type HC = HeadersInit;
-
-export interface GeneralRequestData<
-    C extends SDC = any,
-    R extends RC = any,
-    E extends EC = any,
-    P extends PPC = any,
-    Q extends QPC = any,
-    B extends BC = any,
-    H extends HC = any
-> extends Omit<RequestInit, 'body'> {
-    root: string;
+export interface YarfRequest<C extends CC = any, R extends RC = any, E extends EC = any, I = any> {
+    requestInit: I;
     fetchPolicy: FetchPolicy;
-    pathParams?: P;
-    queryParams?: Q;
-    body?: B;
-    headers?: H;
     lazy?: boolean;
-    refetchQueries?: PartialRequestData[];
+    refetchQueries?: YarfRequest[];
     optimisticResponse?: R;
     disableSsr?: boolean;
     disableInitialRenderDataRefetchOptimization?: boolean;
     disableLoadingQueriesRefetchOptimization?: boolean;
-    getId(requestInit: RequestData<C, R, E, P, Q, B, H>): string;
-    getUrl(requestInit: RequestData<C, R, E, P, Q, B, H>): string;
-    getRequestInit(requestInit: RequestData<C, R, E, P, Q, B, H>): RequestInit;
-    processResponse(response: Response): Promise<R>;
-    merge(
-        generalData: GeneralRequestData<C, R, E, P, Q, B, H>,
-        partialData: PartialRequestData<C, R, E, P, Q, B, H>,
-    ): RequestData<C, R, E, P, Q, B, H>;
-    toCache?(sharedData: C, responseData: R, requestInit: RequestData<C, R, E, P, Q, B, H>): C;
-    fromCache?(cache: C, requestInit: RequestData<C, R, E, P, Q, B, H>): R | undefined;
-    clearCacheFromOptimisticResponse?(
-        sharedData: C,
-        optimisticResponse: R,
-        requestInit: RequestData<C, R, E, P, Q, B, H>,
-    ): C;
+    getNetworkRequestFactory(requestInit: I): (abortSignal?: AbortSignal) => Promise<R>;
+    getId(requestInit: I): string;
+    toCache?(cache: C, responseData: R, request: YarfRequest<C, R, E, I>): C;
+    fromCache?(cache: C, requestInit: YarfRequest<C, R, E, I>): R | undefined;
+    clearCacheFromOptimisticResponse?(cache: C, optimisticResponse: R, request: YarfRequest<C, R, E, I>): C;
 }
-
-export type ConcreteRequestData<P extends PPC = any, Q extends QPC = any, B extends BC = any, H extends HC = any> = {
-    path: string;
-} & (P extends PPC ? { pathParams: P } : {}) &
-    (Q extends QPC ? { queryParams: Q } : {}) &
-    (B extends BC ? { body: B } : {}) &
-    (H extends HC ? { headers: H } : {});
-
-export type RequestData<
-    C extends SDC = any,
-    R extends RC = any,
-    E extends EC = any,
-    P extends PPC = any,
-    Q extends QPC = any,
-    B extends BC = any,
-    H extends HC = any
-> = GeneralRequestData<C, R, E, P, Q, B, H> & ConcreteRequestData<P, Q, B, H>;
-
-export type PartialRequestData<
-    C extends SDC = any,
-    R extends RC = any,
-    E extends EC = any,
-    P extends PPC = any,
-    Q extends QPC = any,
-    B extends BC = any,
-    H extends HC = any
-> = Partial<GeneralRequestData<C, R, E, P, Q, B, H>> & ConcreteRequestData<P, Q, B, H>;

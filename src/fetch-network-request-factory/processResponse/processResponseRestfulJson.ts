@@ -1,4 +1,4 @@
-import { ResponseError } from '../../../errors';
+import { ResponseError } from '../errors';
 
 export async function processResponseRestfulJson(response: Response) {
     if (!response.ok) {

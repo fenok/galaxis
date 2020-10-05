@@ -2,37 +2,21 @@ import * as React from 'react';
 import { RequestState } from '../../core/cache';
 import { MultiAbortController } from '../../core/promise';
 import { ClientContext, SsrPromisesManagerContext } from '../Provider';
-import { PartialRequestData, BC, PPC, QPC, RC, SDC, EC, HC } from '../../core/request';
+import { RC, CC, EC, YarfRequest } from '../../core/request';
 import { ensureClient } from './ensureClient';
 import { getRequestId } from './getRequestId';
 import { useId } from './useId';
 import { useSubscription } from './useSubscription';
 import { usePrevious } from './usePrevious';
 
-interface QueryOptions<
-    C extends SDC,
-    R extends RC,
-    E extends EC,
-    P extends PPC,
-    Q extends QPC,
-    B extends BC,
-    H extends HC
-> {
+interface QueryOptions<C extends CC, R extends RC, E extends EC, I> {
     hookId?: string;
-    getPartialRequestId?(request: PartialRequestData<C, R, E, P, Q, B, H>): string | number;
+    getPartialRequestId?(request: YarfRequest<C, R, E, I>): string | number;
 }
 
-export function useQuery<
-    C extends SDC,
-    R extends RC,
-    E extends EC,
-    P extends PPC,
-    Q extends QPC,
-    B extends BC,
-    H extends HC
->(
-    request: PartialRequestData<C, R, E, P, Q, B, H>,
-    { getPartialRequestId, hookId }: QueryOptions<C, R, E, P, Q, B, H> = {},
+export function useQuery<C extends CC, R extends RC, E extends EC, I>(
+    request: YarfRequest<C, R, E, I>,
+    { getPartialRequestId, hookId }: QueryOptions<C, R, E, I> = {},
 ) {
     const callerId = useId(hookId);
 
@@ -41,7 +25,7 @@ export function useQuery<
 
     ensureClient(client);
 
-    const requestId = getRequestId(request, client, getPartialRequestId);
+    const requestId = getRequestId(request, getPartialRequestId);
 
     const multiAbortControllerRef = React.useRef<MultiAbortController>();
 

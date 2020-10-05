@@ -1,10 +1,10 @@
-import { PartialRequestData } from '../../request';
-import { getIdUrl } from '../../request/functions/getId';
-import { getUrlDefault } from '../../request/functions/getUrl';
-import { mergeShallow } from '../../request/functions/merge';
 import { Client } from '../Client';
 import { Cache } from '../../cache';
 import { serializeError, deserializeError } from 'serialize-error';
+import { YarfRequest } from '../../request';
+import { FetchRequestInit } from '../../../fetch-network-request-factory/types';
+import { getId } from '../../../fetch-network-request-factory/getId';
+import { getUrl } from '../../../fetch-network-request-factory/getUrl';
 
 const FIRST_ITEM = {
     id: 1,
@@ -47,7 +47,7 @@ interface Item {
     title: string;
 }
 
-const fetchFn = (url: string, { method, body }: RequestInit) => {
+const fetchFn = (url: string, { method, body }: RequestInit): Promise<any> => {
     if (url.includes('/item/')) {
         const id = url[url.length - 1];
 
@@ -72,37 +72,33 @@ const fetchFn = (url: string, { method, body }: RequestInit) => {
 
 const client = new Client({
     cache: new Cache({ serializeError, deserializeError }),
-    fetch: fetchFn as typeof fetch,
-    generalRequestData: {
-        root: 'http://test.test',
-        fetchPolicy: 'cache-and-network',
-        getId: getIdUrl,
-        getUrl: getUrlDefault,
-        getRequestInit(request) {
-            return request as RequestInit;
-        },
-        merge: mergeShallow,
-        processResponse(response) {
-            return response as any;
-        },
-    },
 });
 
-const request: PartialRequestData<CacheState, ResponseData, Error, { id: string }> = {
-    pathParams: { id: '1' },
+const baseRequestInit = {
+    root: 'http://test.test',
     path: '/item/:id',
 };
 
-const requestWithSharedData: PartialRequestData<CacheState, ResponseData, Error, { id: string }> = {
+const request: YarfRequest<CacheState, ResponseData, Error, FetchRequestInit> = {
+    getNetworkRequestFactory: requestInit => () => fetchFn(getUrl(requestInit), { ...requestInit }),
+    getId: getId,
+    fetchPolicy: 'cache-and-network',
+    requestInit: {
+        ...baseRequestInit,
+        pathParams: { id: '1' },
+    },
+};
+
+const requestWithSharedData: YarfRequest<CacheState, ResponseData, Error, FetchRequestInit> = {
     ...request,
     toCache(sharedData, responseData, request) {
         return {
             ...sharedData,
-            items: { ...(sharedData.items || {}), [request.pathParams.id]: responseData.data },
+            items: { ...(sharedData.items || {}), [request.requestInit.pathParams!.id]: responseData.data },
         };
     },
     fromCache(sharedData, request) {
-        const dataFromCache = (sharedData.items || [])[request.pathParams.id];
+        const dataFromCache = (sharedData.items || [])[request.requestInit.pathParams!.id];
         return dataFromCache ? { data: dataFromCache } : undefined;
     },
 };
@@ -110,7 +106,10 @@ const requestWithSharedData: PartialRequestData<CacheState, ResponseData, Error,
 it('can query data', async () => {
     fakeBackendState = JSON.parse(JSON.stringify(INITIAL_FAKE_BACKEND_STATE));
 
-    const response = await client.query({ ...request, pathParams: { id: '1' } }, { callerId: 'test' });
+    const response = await client.query(
+        { ...request, requestInit: { ...baseRequestInit, pathParams: { id: '1' } } },
+        { callerId: 'test' },
+    );
 
     expect(response).toEqual({ data: FIRST_ITEM });
 });
@@ -119,7 +118,15 @@ it('can mutate data', async () => {
     fakeBackendState = JSON.parse(JSON.stringify(INITIAL_FAKE_BACKEND_STATE));
 
     const response = await client.mutate(
-        { ...request, pathParams: { id: '1' }, method: 'POST', body: JSON.stringify(ALTERED_ITEM) },
+        {
+            ...request,
+            requestInit: {
+                ...baseRequestInit,
+                pathParams: { id: '1' },
+                method: 'POST',
+                body: JSON.stringify(ALTERED_ITEM),
+            },
+        },
         { callerId: 'test' },
     );
 
@@ -129,8 +136,14 @@ it('can mutate data', async () => {
 it('caches queried data', async () => {
     fakeBackendState = JSON.parse(JSON.stringify(INITIAL_FAKE_BACKEND_STATE));
 
-    await client.query({ ...request, pathParams: { id: '1' } }, { callerId: 'test' });
-    const { data: responseFromCache } = client.getState({ ...request, pathParams: { id: '1' } }, { callerId: 'test' });
+    await client.query(
+        { ...request, requestInit: { ...baseRequestInit, pathParams: { id: '1' } } },
+        { callerId: 'test' },
+    );
+    const { data: responseFromCache } = client.getState(
+        { ...request, requestInit: { ...baseRequestInit, pathParams: { id: '1' } } },
+        { callerId: 'test' },
+    );
 
     expect(responseFromCache).toEqual({ data: FIRST_ITEM });
 });
@@ -138,9 +151,12 @@ it('caches queried data', async () => {
 it('caches queried data for request with custom caching', async () => {
     fakeBackendState = JSON.parse(JSON.stringify(INITIAL_FAKE_BACKEND_STATE));
 
-    await client.query({ ...requestWithSharedData, pathParams: { id: '1' } }, { callerId: 'test' });
+    await client.query(
+        { ...requestWithSharedData, requestInit: { ...baseRequestInit, pathParams: { id: '1' } } },
+        { callerId: 'test' },
+    );
     const { data: responseFromCache } = client.getState(
-        { ...requestWithSharedData, pathParams: { id: '1' } },
+        { ...requestWithSharedData, requestInit: { ...baseRequestInit, pathParams: { id: '1' } } },
         { callerId: 'test' },
     );
 
@@ -150,16 +166,27 @@ it('caches queried data for request with custom caching', async () => {
 it("guarantees that old query data won't overwrite state after mutation", async () => {
     fakeBackendState = JSON.parse(JSON.stringify(INITIAL_FAKE_BACKEND_STATE));
 
-    const queryPromise = client.query({ ...requestWithSharedData, pathParams: { id: '1' } }, { callerId: 'test' });
+    const queryPromise = client.query(
+        { ...requestWithSharedData, requestInit: { ...baseRequestInit, pathParams: { id: '1' } } },
+        { callerId: 'test' },
+    );
     const mutatePromise = client.mutate(
-        { ...requestWithSharedData, pathParams: { id: '1' }, method: 'POST', body: JSON.stringify(ALTERED_ITEM) },
+        {
+            ...requestWithSharedData,
+            requestInit: {
+                ...baseRequestInit,
+                pathParams: { id: '1' },
+                method: 'POST',
+                body: JSON.stringify(ALTERED_ITEM),
+            },
+        },
         { callerId: 'test' },
     );
 
     await Promise.all([queryPromise, mutatePromise]);
 
     const { data: responseFromCache } = client.getState(
-        { ...requestWithSharedData, pathParams: { id: '1' } },
+        { ...requestWithSharedData, requestInit: { ...baseRequestInit, pathParams: { id: '1' } } },
         { callerId: 'test' },
     );
 

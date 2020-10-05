@@ -7,14 +7,12 @@ import {
     Signals,
     wireAbortSignals,
 } from '../promise';
-import { GeneralRequestData, PartialRequestData, RequestData, BC, PPC, QPC, RC, SDC, EC, HC } from '../request';
+import { RC, CC, EC, YarfRequest } from '../request';
 import * as logger from '../logger';
 import { SerializableCacheState } from '../cache/Cache';
 
 interface ClientOptions {
     cache: Cache;
-    generalRequestData: GeneralRequestData;
-    fetch?: typeof fetch;
 }
 
 interface QueryOptions {
@@ -50,17 +48,13 @@ interface GetStateOptions {
 
 class Client {
     private readonly cache: Cache;
-    private readonly fetchFn?: typeof fetch;
-    private readonly generalRequestData: GeneralRequestData;
     private queries: { [requestId: string]: QueryPromiseData | undefined } = {};
     private mutations: Set<MutationPromiseData> = new Set();
     private idCounter = 1;
     private isDataRefetchEnabled = false;
 
-    constructor({ cache, fetch: fetchFn, generalRequestData }: ClientOptions) {
+    constructor({ cache }: ClientOptions) {
         this.cache = cache;
-        this.fetchFn = fetchFn;
-        this.generalRequestData = generalRequestData;
     }
 
     public enableDataRefetch() {
@@ -89,107 +83,58 @@ class Client {
         this.cache.purge(initialSerializableState);
     }
 
-    public getCompleteRequestData<
-        C extends SDC,
-        R extends RC,
-        E extends EC,
-        P extends PPC,
-        Q extends QPC,
-        B extends BC,
-        H extends HC
-    >(request: PartialRequestData<C, R, E, P, Q, B, H>): RequestData<C, R, E, P, Q, B, H> {
-        if (request.merge) {
-            return request.merge(this.generalRequestData, request);
-        }
-
-        return this.generalRequestData.merge(this.generalRequestData, request) as RequestData<C, R, E, P, Q, B, H>;
-    }
-
-    public subscribe<
-        C extends SDC,
-        R extends RC,
-        E extends EC,
-        P extends PPC,
-        Q extends QPC,
-        B extends BC,
-        H extends HC
-    >(
-        request: PartialRequestData<C, R, E, P, Q, B, H>,
+    public subscribe<C extends CC, R extends RC, E extends EC, I>(
+        request: YarfRequest<C, R, E, I>,
         callerId: string,
         onChange: (state: RequestState<R, E>) => void,
     ) {
-        const mergedRequest = this.getCompleteRequestData(request);
-
         return this.cache.subscribe(() => {
-            onChange(this.getState(mergedRequest, { callerId }));
+            onChange(this.getState(request, { callerId }));
         });
     }
 
-    public getState<
-        C extends SDC,
-        R extends RC,
-        E extends EC,
-        P extends PPC,
-        Q extends QPC,
-        B extends BC,
-        H extends HC
-    >(request: PartialRequestData<C, R, E, P, Q, B, H>, { callerId }: GetStateOptions): RequestState<R, E> {
-        const mergedRequest = this.getCompleteRequestData(request);
-        return this.getCompleteRequestState<R, E>(mergedRequest, callerId);
+    public getState<C extends CC, R extends RC, E extends EC, I>(
+        request: YarfRequest<C, R, E, I>,
+        { callerId }: GetStateOptions,
+    ): RequestState<R, E> {
+        return this.getCompleteRequestState<R, E>(request, callerId);
     }
 
-    public getSsrPromise<
-        C extends SDC,
-        R extends RC,
-        E extends EC,
-        P extends PPC,
-        Q extends QPC,
-        B extends BC,
-        H extends HC
-    >(request: PartialRequestData<C, R, E, P, Q, B, H>, callerId: string): Promise<R | undefined> | undefined {
-        const mergedRequest = this.getCompleteRequestData(request);
-
-        const requestState = this.getState(mergedRequest, { callerId });
+    public getSsrPromise<C extends CC, R extends RC, E extends EC, I>(
+        request: YarfRequest<C, R, E, I>,
+        callerId: string,
+    ): Promise<R | undefined> | undefined {
+        const requestState = this.getState(request, { callerId });
 
         if (
-            !mergedRequest.disableSsr &&
-            !mergedRequest.lazy &&
+            !request.disableSsr &&
+            !request.lazy &&
             typeof window === 'undefined' &&
-            mergedRequest.fetchPolicy !== 'cache-only' &&
+            request.fetchPolicy !== 'cache-only' &&
             requestState.data === undefined &&
             requestState.error === undefined
         ) {
-            return this.queryAfterPreparedLoadingState(mergedRequest, { callerId, forceNetworkRequest: false });
+            return this.queryAfterPreparedLoadingState(request, { callerId, forceNetworkRequest: false });
         }
 
         return undefined;
     }
 
-    public async mutate<
-        C extends SDC,
-        R extends RC,
-        E extends EC,
-        P extends PPC,
-        Q extends QPC,
-        B extends BC,
-        H extends HC
-    >(request: PartialRequestData<C, R, E, P, Q, B, H>, { multiAbortSignal, callerId }: MutateOptions): Promise<R> {
-        const mergedRequest = this.getCompleteRequestData(request);
-        const requestId = this.getRequestId(mergedRequest, callerId);
+    public async mutate<C extends CC, R extends RC, E extends EC, I>(
+        request: YarfRequest<C, R, E, I>,
+        { multiAbortSignal, callerId }: MutateOptions,
+    ): Promise<R> {
+        const requestId = this.getRequestId(request, callerId);
 
-        if (mergedRequest.optimisticResponse !== undefined && mergedRequest.clearCacheFromOptimisticResponse) {
+        if (request.optimisticResponse !== undefined && request.clearCacheFromOptimisticResponse) {
             this.cache.onMutateStartWithOptimisticResponse(
                 requestId,
-                mergedRequest.optimisticResponse,
-                mergedRequest.fetchPolicy !== 'no-cache'
-                    ? mergedRequest.toCache?.(
-                          this.cache.getState().sharedData,
-                          mergedRequest.optimisticResponse,
-                          mergedRequest,
-                      )
+                request.optimisticResponse,
+                request.fetchPolicy !== 'no-cache'
+                    ? request.toCache?.(this.cache.getState().sharedData, request.optimisticResponse, request)
                     : undefined,
             );
-        } else if (mergedRequest.optimisticResponse !== undefined) {
+        } else if (request.optimisticResponse !== undefined) {
             logger.warn(
                 "Optimistic response for mutation won't work without clearCacheFromOptimisticResponse function",
             );
@@ -208,14 +153,14 @@ class Client {
         };
 
         // eslint-disable-next-line @typescript-eslint/unbound-method
-        wireAbortSignals(mutationPromiseData.abort, multiAbortSignal, mergedRequest.signal);
+        wireAbortSignals(mutationPromiseData.abort, multiAbortSignal);
 
-        const mutationPromise = this.getRequestPromise(mergedRequest, { multiAbortSignal: multiAbortController.signal })
+        const mutationPromise = this.getRequestPromise(request, { multiAbortSignal: multiAbortController.signal })
             .then(data => {
                 if (
                     this.mutations.has(mutationPromiseData) &&
-                    mergedRequest.fetchPolicy !== 'no-cache' &&
-                    !mergedRequest.disableLoadingQueriesRefetchOptimization
+                    request.fetchPolicy !== 'no-cache' &&
+                    !request.disableLoadingQueriesRefetchOptimization
                 ) {
                     Object.values(this.queries).forEach(promiseData => promiseData?.rerunNetworkRequest());
                 }
@@ -229,26 +174,21 @@ class Client {
 
                     let sharedData = this.cache.getState().sharedData;
 
-                    if (
-                        mergedRequest.optimisticResponse !== undefined &&
-                        mergedRequest.clearCacheFromOptimisticResponse
-                    ) {
-                        sharedData = mergedRequest.clearCacheFromOptimisticResponse(
+                    if (request.optimisticResponse !== undefined && request.clearCacheFromOptimisticResponse) {
+                        sharedData = request.clearCacheFromOptimisticResponse(
                             sharedData,
-                            mergedRequest.optimisticResponse,
-                            mergedRequest,
+                            request.optimisticResponse,
+                            request,
                         );
                     }
 
                     this.cache.onMutateSuccess(
                         requestId,
                         data,
-                        mergedRequest.fetchPolicy !== 'no-cache'
-                            ? mergedRequest.toCache?.(sharedData, data, mergedRequest)
-                            : undefined,
+                        request.fetchPolicy !== 'no-cache' ? request.toCache?.(sharedData, data, request) : undefined,
                     );
 
-                    mergedRequest.refetchQueries?.forEach(requestData => {
+                    request.refetchQueries?.forEach(requestData => {
                         this.query(requestData, {
                             callerId: 'INTERNAL',
                             forceNetworkRequest: true,
@@ -263,21 +203,18 @@ class Client {
                 if (this.mutations.has(mutationPromiseData)) {
                     this.mutations.delete(mutationPromiseData);
 
-                    if (
-                        mergedRequest.optimisticResponse !== undefined &&
-                        mergedRequest.clearCacheFromOptimisticResponse
-                    ) {
+                    if (request.optimisticResponse !== undefined && request.clearCacheFromOptimisticResponse) {
                         const sharedData = this.cache.getState().sharedData;
 
                         this.cache.onQueryFailWithOptimisticResponse(
                             requestId,
                             error,
                             null, // Not cached anyway, can be any value
-                            mergedRequest.fetchPolicy !== 'no-cache'
-                                ? mergedRequest.clearCacheFromOptimisticResponse(
+                            request.fetchPolicy !== 'no-cache'
+                                ? request.clearCacheFromOptimisticResponse(
                                       sharedData,
-                                      mergedRequest.optimisticResponse,
-                                      mergedRequest,
+                                      request.optimisticResponse,
+                                      request,
                                   )
                                 : undefined,
                         );
@@ -294,45 +231,30 @@ class Client {
         return mutationPromise;
     }
 
-    public async query<
-        C extends SDC,
-        R extends RC,
-        E extends EC,
-        P extends PPC,
-        Q extends QPC,
-        B extends BC,
-        H extends HC
-    >(request: PartialRequestData<C, R, E, P, Q, B, H>, requestOptions: QueryOptions): Promise<R | undefined> {
+    public async query<C extends CC, R extends RC, E extends EC, I>(
+        request: YarfRequest<C, R, E, I>,
+        requestOptions: QueryOptions,
+    ): Promise<R | undefined> {
         this.prepareQueryLoadingState(request, requestOptions);
 
         return this.queryAfterPreparedLoadingState(request, requestOptions);
     }
 
-    public prepareQueryLoadingState<
-        C extends SDC,
-        R extends RC,
-        E extends EC,
-        P extends PPC,
-        Q extends QPC,
-        B extends BC,
-        H extends HC
-    >(request: PartialRequestData<C, R, E, P, Q, B, H>, requestOptions: QueryOptions): void {
-        const mergedRequest = this.getCompleteRequestData(request);
-        const requestState = this.getCompleteRequestState<R, E>(mergedRequest, requestOptions.callerId);
-        const requestId = this.getRequestId(mergedRequest, requestOptions.callerId);
+    public prepareQueryLoadingState<C extends CC, R extends RC, E extends EC, I>(
+        request: YarfRequest<C, R, E, I>,
+        requestOptions: QueryOptions,
+    ): void {
+        const requestState = this.getCompleteRequestState<R, E>(request, requestOptions.callerId);
+        const requestId = this.getRequestId(request, requestOptions.callerId);
 
-        if (!this.shouldReturnOrThrowFromState(mergedRequest, requestState, requestOptions) && !requestState.loading) {
-            if (mergedRequest.optimisticResponse !== undefined) {
+        if (!this.shouldReturnOrThrowFromState(request, requestState, requestOptions) && !requestState.loading) {
+            if (request.optimisticResponse !== undefined) {
                 this.cache.onQueryStartWithOptimisticResponse(
                     requestId,
                     requestOptions.callerId,
-                    mergedRequest.optimisticResponse,
-                    mergedRequest.fetchPolicy !== 'no-cache'
-                        ? mergedRequest.toCache?.(
-                              this.cache.getState().sharedData,
-                              mergedRequest.optimisticResponse,
-                              mergedRequest,
-                          )
+                    request.optimisticResponse,
+                    request.fetchPolicy !== 'no-cache'
+                        ? request.toCache?.(this.cache.getState().sharedData, request.optimisticResponse, request)
                         : undefined,
                 );
             } else {
@@ -341,24 +263,18 @@ class Client {
         }
     }
 
-    public async queryAfterPreparedLoadingState<
-        C extends SDC,
-        R extends RC,
-        E extends EC,
-        P extends PPC,
-        Q extends QPC,
-        B extends BC,
-        H extends HC
-    >(request: PartialRequestData<C, R, E, P, Q, B, H>, requestOptions: QueryOptions): Promise<R | undefined> {
+    public async queryAfterPreparedLoadingState<C extends CC, R extends RC, E extends EC, I>(
+        request: YarfRequest<C, R, E, I>,
+        requestOptions: QueryOptions,
+    ): Promise<R | undefined> {
         try {
-            const mergedRequest = this.getCompleteRequestData(request);
-            const requestState = this.getCompleteRequestState<R, E>(mergedRequest, requestOptions.callerId);
+            const requestState = this.getCompleteRequestState<R, E>(request, requestOptions.callerId);
 
-            if (this.shouldReturnOrThrowFromState(mergedRequest, requestState, requestOptions)) {
+            if (this.shouldReturnOrThrowFromState(request, requestState, requestOptions)) {
                 return this.returnOrThrowRequestState(requestState);
             }
 
-            return await this.getDataFromNetwork(mergedRequest, requestOptions);
+            return await this.getDataFromNetwork(request, requestOptions);
         } catch (error) {
             this.warnAboutDivergedError(error, request, requestOptions);
             throw error;
@@ -366,25 +282,25 @@ class Client {
     }
 
     private getCompleteRequestState<D extends RC = any, E extends Error = Error>(
-        mergedRequest: RequestData,
+        request: YarfRequest,
         callerId: string,
     ): RequestState<D, E> {
         const defaultState = { loading: false, loadingRequesterIds: [], data: undefined, error: undefined };
 
-        const rawState = this.cache.getState().requestStates[this.getRequestId(mergedRequest, callerId)];
+        const rawState = this.cache.getState().requestStates[this.getRequestId(request, callerId)];
 
         let data = rawState?.data;
-        if (mergedRequest.fromCache && mergedRequest.fetchPolicy !== 'no-cache') {
-            data = mergedRequest.fromCache(this.cache.getState().sharedData, mergedRequest);
+        if (request.fromCache && request.fetchPolicy !== 'no-cache') {
+            data = request.fromCache(this.cache.getState().sharedData, request);
         }
 
         return { ...defaultState, ...rawState, data };
     }
 
-    private async getDataFromNetwork<T>(mergedRequest: RequestData, options: QueryOptions): Promise<T> {
+    private async getDataFromNetwork<T>(request: YarfRequest, options: QueryOptions): Promise<T> {
         const { callerId, multiAbortSignal } = options;
 
-        const requestData = this.initQueryPromiseData(mergedRequest, options);
+        const requestData = this.initQueryPromiseData(request, options);
 
         const onAbort = (multi?: boolean) => {
             requestData.callerAwaitStatuses[callerId] = false;
@@ -392,20 +308,20 @@ class Client {
             if (multi || Object.values(requestData.callerAwaitStatuses).every(status => !status)) {
                 requestData.abort();
             } else {
-                this.cache.onQueryRequesterRemove(this.getRequestId(mergedRequest, callerId), callerId);
+                this.cache.onQueryRequesterRemove(this.getRequestId(request, callerId), callerId);
             }
         };
 
-        wireAbortSignals(onAbort, mergedRequest.signal, multiAbortSignal);
+        wireAbortSignals(onAbort, multiAbortSignal);
 
         return await requestData.promise;
     }
 
     private initQueryPromiseData(
-        mergedRequest: RequestData,
+        request: YarfRequest,
         { disableNetworkRequestOptimization, callerId }: QueryOptions,
     ): QueryPromiseData {
-        const requestId = this.getRequestId(mergedRequest, callerId);
+        const requestId = this.getRequestId(request, callerId);
 
         if (!this.queries[requestId] || this.queries[requestId]?.aborted) {
             const multiAbortController = new MultiAbortController();
@@ -427,9 +343,9 @@ class Client {
                 promise: Promise.resolve(),
             };
 
-            const nonOptimisticData = this.getCompleteRequestState(mergedRequest, callerId).data;
+            const nonOptimisticData = this.getCompleteRequestState(request, callerId).data;
 
-            requestPromiseData.promise = this.getRequestPromise(mergedRequest, {
+            requestPromiseData.promise = this.getRequestPromise(request, {
                 multiAbortSignal: multiAbortController.signal,
                 rerunSignal: rerunController.signal,
             })
@@ -439,22 +355,19 @@ class Client {
 
                         let sharedData = this.cache.getState().sharedData;
 
-                        if (
-                            mergedRequest.optimisticResponse !== undefined &&
-                            mergedRequest.clearCacheFromOptimisticResponse
-                        ) {
-                            sharedData = mergedRequest.clearCacheFromOptimisticResponse(
+                        if (request.optimisticResponse !== undefined && request.clearCacheFromOptimisticResponse) {
+                            sharedData = request.clearCacheFromOptimisticResponse(
                                 sharedData,
-                                mergedRequest.optimisticResponse,
-                                mergedRequest,
+                                request.optimisticResponse,
+                                request,
                             );
                         }
 
                         this.cache.onQuerySuccess(
                             requestId,
                             data,
-                            mergedRequest.fetchPolicy !== 'no-cache'
-                                ? mergedRequest.toCache?.(sharedData, data, mergedRequest)
+                            request.fetchPolicy !== 'no-cache'
+                                ? request.toCache?.(sharedData, data, request)
                                 : undefined,
                         );
                     }
@@ -464,21 +377,21 @@ class Client {
                     if (this.queries[requestId] === requestPromiseData) {
                         this.queries[requestId] = undefined;
 
-                        if (mergedRequest.optimisticResponse !== undefined) {
+                        if (request.optimisticResponse !== undefined) {
                             const sharedData = this.cache.getState().sharedData;
 
                             this.cache.onQueryFailWithOptimisticResponse(
                                 requestId,
                                 error,
                                 nonOptimisticData,
-                                mergedRequest.fetchPolicy !== 'no-cache'
-                                    ? mergedRequest.clearCacheFromOptimisticResponse
-                                        ? mergedRequest.clearCacheFromOptimisticResponse(
+                                request.fetchPolicy !== 'no-cache'
+                                    ? request.clearCacheFromOptimisticResponse
+                                        ? request.clearCacheFromOptimisticResponse(
                                               sharedData,
-                                              mergedRequest.optimisticResponse,
-                                              mergedRequest,
+                                              request.optimisticResponse,
+                                              request,
                                           )
-                                        : mergedRequest.toCache?.(sharedData, nonOptimisticData, mergedRequest)
+                                        : request.toCache?.(sharedData, nonOptimisticData, request)
                                     : undefined,
                             );
                         } else {
@@ -502,42 +415,31 @@ class Client {
         return this.queries[requestId] as QueryPromiseData;
     }
 
-    private getRequestId(mergedRequest: RequestData, callerId: string) {
-        const pureId = mergedRequest.getId(mergedRequest);
+    private getRequestId(request: YarfRequest, callerId: string) {
+        const pureId = request.getId(request.requestInit);
 
-        if (mergedRequest.fetchPolicy === 'no-cache') {
+        if (request.fetchPolicy === 'no-cache') {
             return `no-cache:${callerId}:${pureId}`;
         }
 
         return pureId;
     }
 
-    private getRequestPromise(mergedRequest: RequestData, signals: Signals = {}) {
-        return smartPromise(
-            signal =>
-                (this.fetchFn || fetch)(
-                    mergedRequest.getUrl(mergedRequest),
-                    mergedRequest.getRequestInit({ ...mergedRequest, signal }),
-                ).then(
-                    // It's pure function
-                    // eslint-disable-next-line @typescript-eslint/unbound-method
-                    mergedRequest.processResponse,
-                ),
-            signals,
-        );
+    private getRequestPromise(request: YarfRequest, signals: Signals = {}) {
+        return smartPromise(request.getNetworkRequestFactory(request.requestInit), signals);
     }
 
     private shouldReturnOrThrowFromState(
-        mergedRequest: RequestData,
+        request: YarfRequest,
         requestState: RequestState,
         queryOptions: QueryOptions,
     ): boolean {
         return (
             queryOptions.forceNetworkRequest !== true &&
-            ((queryOptions.respectLazy && mergedRequest.lazy) ||
-                mergedRequest.fetchPolicy === 'cache-only' ||
-                (mergedRequest.fetchPolicy === 'cache-first' && this.isCachedDataSufficient(requestState)) ||
-                (!mergedRequest.disableInitialRenderDataRefetchOptimization &&
+            ((queryOptions.respectLazy && request.lazy) ||
+                request.fetchPolicy === 'cache-only' ||
+                (request.fetchPolicy === 'cache-first' && this.isCachedDataSufficient(requestState)) ||
+                (!request.disableInitialRenderDataRefetchOptimization &&
                     !this.isDataRefetchEnabled &&
                     this.isCachedDataSufficient(requestState)))
         );
@@ -555,15 +457,11 @@ class Client {
         return requestState.data;
     }
 
-    private warnAboutDivergedError<
-        C extends SDC,
-        R extends RC,
-        E extends EC,
-        P extends PPC,
-        Q extends QPC,
-        B extends BC,
-        H extends HC
-    >(error: Error, request: PartialRequestData<C, R, E, P, Q, B, H>, options: GetStateOptions) {
+    private warnAboutDivergedError<C extends CC, R extends RC, E extends EC, I>(
+        error: Error,
+        request: YarfRequest<C, R, E, I>,
+        options: GetStateOptions,
+    ) {
         if (process.env.NODE_ENV !== 'production') {
             const requestState = this.getState(request, options);
             if (error !== requestState.error) {
