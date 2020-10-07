@@ -1,26 +1,26 @@
 import * as React from 'react';
 import { RequestState } from '../../core/cache';
 import { MultiAbortController } from '../../core/promise';
-import { ClientContext, SsrPromisesManagerContext } from '../Provider';
-import { ResponseData, YarfRequest } from '../../core/request';
+import { SsrPromisesManagerContext, useClient } from '../Provider';
+import { NonUndefined, YarfRequest } from '../../core/request';
 import { ensureClient } from './ensureClient';
 import { getRequestHash } from './getRequestHash';
 import { useId } from './useId';
 import { useSubscription } from './useSubscription';
 import { usePrevious } from './usePrevious';
 
-interface QueryOptions<C, R extends ResponseData, E extends Error, I> {
+interface QueryOptions<C extends NonUndefined, R extends NonUndefined, E extends Error, I> {
     requesterId?: string;
     getRequestHash?(request: YarfRequest<C, R, E, I>): string | number;
 }
 
-export function useQuery<C, R extends ResponseData, E extends Error, I>(
+export function useQuery<C extends NonUndefined, R extends NonUndefined, E extends Error, I>(
     request: YarfRequest<C, R, E, I>,
     { getRequestHash: getRequestHashOuter, requesterId: outerRequesterId }: QueryOptions<C, R, E, I> = {},
 ) {
     const requesterId = useId(outerRequesterId);
 
-    const client = React.useContext(ClientContext);
+    const client = useClient<C>();
     const ssrPromisesManager = React.useContext(SsrPromisesManagerContext);
 
     ensureClient(client);

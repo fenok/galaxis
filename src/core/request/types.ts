@@ -1,13 +1,17 @@
 export type FetchPolicy = 'cache-only' | 'cache-first' | 'cache-and-network';
 
-// Response data constraint
-export type ResponseData = string | number | boolean | symbol | bigint | object | null; // Anything but undefined
+export type NonUndefined = string | number | boolean | symbol | bigint | object | null;
 
-export interface YarfRequest<CD = unknown, D extends ResponseData = null, E extends Error = Error, I = unknown> {
+export interface YarfRequest<
+    CD extends NonUndefined = null,
+    D extends NonUndefined = null,
+    E extends Error = Error,
+    I = unknown
+> {
     requestInit: I;
     fetchPolicy: FetchPolicy;
     lazy?: boolean;
-    refetchQueries?: YarfRequest[];
+    refetchQueries?: YarfRequest<CD>[];
     optimisticResponse?: D;
     disableSsr?: boolean;
     disableInitialRenderDataRefetchOptimization?: boolean;

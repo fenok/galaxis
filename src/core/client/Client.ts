@@ -7,12 +7,12 @@ import {
     Signals,
     wireAbortSignals,
 } from '../promise';
-import { ResponseData, YarfRequest } from '../request';
+import { NonUndefined, YarfRequest } from '../request';
 import * as logger from '../logger';
 import { SerializableCacheState } from '../cache/Cache';
 
-interface ClientOptions {
-    cache: Cache;
+interface ClientOptions<C extends NonUndefined = null> {
+    cache: Cache<C>;
 }
 
 interface QueryOptions {
@@ -46,14 +46,14 @@ interface GetStateOptions {
     requesterId: string;
 }
 
-class Client {
-    private readonly cache: Cache;
+class Client<C extends NonUndefined = null> {
+    private readonly cache: Cache<C>;
     private queries: { [requestId: string]: QueryPromiseData | undefined } = {};
     private mutations: Set<MutationPromiseData> = new Set();
     private idCounter = 1;
     private isDataRefetchEnabled = false;
 
-    constructor({ cache }: ClientOptions) {
+    constructor({ cache }: ClientOptions<C>) {
         this.cache = cache;
     }
 
@@ -73,7 +73,7 @@ class Client {
         return this.cache.getSerializableState();
     }
 
-    public purge(initialSerializableState?: SerializableCacheState) {
+    public purge(initialSerializableState?: SerializableCacheState<C>) {
         Object.values(this.queries).forEach(query => query?.abort());
         this.queries = {};
 
@@ -83,7 +83,7 @@ class Client {
         this.cache.purge(initialSerializableState);
     }
 
-    public subscribe<C, R extends ResponseData, E extends Error, I>(
+    public subscribe<R extends NonUndefined, E extends Error, I>(
         request: YarfRequest<C, R, E, I>,
         requesterId: string,
         onChange: (state: RequestState<R, E>) => void,
@@ -93,14 +93,14 @@ class Client {
         });
     }
 
-    public getState<C, R extends ResponseData, E extends Error, I>(
+    public getState<R extends NonUndefined, E extends Error, I>(
         request: YarfRequest<C, R, E, I>,
         { requesterId }: GetStateOptions,
     ): RequestState<R, E> {
         return this.getCompleteRequestState(request, requesterId);
     }
 
-    public getSsrPromise<C, R extends ResponseData, E extends Error, I>(
+    public getSsrPromise<R extends NonUndefined, E extends Error, I>(
         request: YarfRequest<C, R, E, I>,
         requesterId: string,
     ): Promise<R | undefined> | undefined {
@@ -120,28 +120,24 @@ class Client {
         return undefined;
     }
 
-    public async mutate<C, R extends ResponseData, E extends Error, I>(
+    public async mutate<R extends NonUndefined, E extends Error, I>(
         request: YarfRequest<C, R, E, I>,
         { multiAbortSignal, requesterId }: MutateOptions,
     ): Promise<R> {
         const requestId = this.getRequestId(request);
 
         if (request.optimisticResponse !== undefined && request.clearCacheFromOptimisticResponse) {
-            this.cache.onMutateStartWithOptimisticResponse(
-                requestId,
-                request.optimisticResponse,
-                request.toCache({
-                    cacheData: this.cache.getState().sharedData,
+            this.cache.onMutateStart({
+                cacheData: request.toCache({
+                    cacheData: this.cache.getState().data,
                     responseData: request.optimisticResponse,
                     requestInit: request.requestInit,
                     requestId,
                     requesterId,
                 }),
-            );
+            });
         } else if (request.optimisticResponse !== undefined) {
-            logger.warn(
-                "Optimistic response for mutation won't work without clearCacheFromOptimisticResponse function",
-            );
+            logger.warn("Optimistic response won't work without clearCacheFromOptimisticResponse function");
         }
 
         const multiAbortController = new MultiAbortController();
@@ -172,11 +168,11 @@ class Client {
                 if (this.mutations.has(mutationPromiseData)) {
                     this.mutations.delete(mutationPromiseData);
 
-                    let sharedData = this.cache.getState().sharedData;
+                    let cacheData = this.cache.getState().data;
 
                     if (request.optimisticResponse !== undefined && request.clearCacheFromOptimisticResponse) {
-                        sharedData = request.clearCacheFromOptimisticResponse({
-                            cacheData: sharedData,
+                        cacheData = request.clearCacheFromOptimisticResponse({
+                            cacheData: cacheData,
                             optimisticResponseData: request.optimisticResponse,
                             requestInit: request.requestInit,
                             requestId,
@@ -184,17 +180,7 @@ class Client {
                         });
                     }
 
-                    this.cache.onMutateSuccess(
-                        requestId,
-                        data,
-                        request.toCache({
-                            cacheData: sharedData,
-                            responseData: data,
-                            requestInit: request.requestInit,
-                            requestId,
-                            requesterId,
-                        }),
-                    );
+                    this.cache.onMutateSuccess({ cacheData });
 
                     request.refetchQueries?.forEach(requestData => {
                         this.query(requestData, {
@@ -212,20 +198,17 @@ class Client {
                     this.mutations.delete(mutationPromiseData);
 
                     if (request.optimisticResponse !== undefined && request.clearCacheFromOptimisticResponse) {
-                        const sharedData = this.cache.getState().sharedData;
+                        const cacheData = this.cache.getState().data;
 
-                        this.cache.onQueryFailWithOptimisticResponse(
-                            requestId,
-                            error,
-                            null, // Not cached anyway, can be any value
-                            request.clearCacheFromOptimisticResponse({
-                                cacheData: sharedData,
+                        this.cache.onMutateFail({
+                            cacheData: request.clearCacheFromOptimisticResponse({
+                                cacheData: cacheData,
                                 optimisticResponseData: request.optimisticResponse,
                                 requestInit: request.requestInit,
                                 requestId,
                                 requesterId,
                             }),
-                        );
+                        });
                     }
                 }
 
@@ -239,7 +222,7 @@ class Client {
         return mutationPromise;
     }
 
-    public async query<C, R extends ResponseData, E extends Error, I>(
+    public async query<R extends NonUndefined, E extends Error, I>(
         request: YarfRequest<C, R, E, I>,
         requestOptions: QueryOptions,
     ): Promise<R | undefined> {
@@ -248,34 +231,32 @@ class Client {
         return this.queryAfterPreparedLoadingState(request, requestOptions);
     }
 
-    public prepareQueryLoadingState<C, R extends ResponseData, E extends Error, I>(
+    public prepareQueryLoadingState<R extends NonUndefined, E extends Error, I>(
         request: YarfRequest<C, R, E, I>,
         requestOptions: QueryOptions,
     ): void {
         const requestState = this.getCompleteRequestState(request, requestOptions.requesterId);
         const requestId = this.getRequestId(request);
 
-        if (!this.shouldReturnOrThrowFromState(request, requestState, requestOptions) && !requestState.loading) {
-            if (request.optimisticResponse !== undefined) {
-                this.cache.onQueryStartWithOptimisticResponse(
-                    requestId,
-                    requestOptions.requesterId,
-                    request.optimisticResponse,
-                    request.toCache({
-                        cacheData: this.cache.getState().sharedData,
-                        responseData: request.optimisticResponse,
-                        requestInit: request.requestInit,
-                        requestId,
-                        requesterId: requestOptions.requesterId,
-                    }),
-                );
-            } else {
-                this.cache.onQueryStart(requestId, requestOptions.requesterId);
-            }
+        if (!this.shouldReturnOrThrowFromState(request, requestState, requestOptions) && !requestState.loading.length) {
+            this.cache.onQueryStart({
+                requestId,
+                requesterId: requestOptions.requesterId,
+                cacheData:
+                    request.optimisticResponse && request.clearCacheFromOptimisticResponse
+                        ? request.toCache({
+                              cacheData: this.cache.getState().data,
+                              responseData: request.optimisticResponse,
+                              requestInit: request.requestInit,
+                              requestId,
+                              requesterId: requestOptions.requesterId,
+                          })
+                        : undefined,
+            });
         }
     }
 
-    public async queryAfterPreparedLoadingState<C, R extends ResponseData, E extends Error, I>(
+    public async queryAfterPreparedLoadingState<R extends NonUndefined, E extends Error, I>(
         request: YarfRequest<C, R, E, I>,
         requestOptions: QueryOptions,
     ): Promise<R | undefined> {
@@ -293,25 +274,25 @@ class Client {
         }
     }
 
-    private getCompleteRequestState<C, R extends ResponseData, E extends Error, I>(
+    private getCompleteRequestState<R extends NonUndefined, E extends Error, I>(
         request: YarfRequest<C, R, E, I>,
         requesterId: string,
     ): RequestState<R, E> {
-        const defaultState = { loading: false, loadingRequesterIds: [], data: undefined, error: undefined };
+        const currentState = this.cache.getState();
+        const requestId = this.getRequestId(request);
 
-        const rawState = this.cache.getState().requestStates[this.getRequestId(request)];
-
-        const data = request.fromCache({
-            cacheData: this.cache.getState().sharedData,
-            requestInit: request.requestInit,
-            requestId: this.getRequestId(request),
-            requesterId,
-        });
-
-        return { ...defaultState, ...rawState, data };
+        return {
+            loading: currentState.loading[requestId] ?? [],
+            data: request.fromCache({
+                cacheData: currentState.data,
+                requestInit: request.requestInit,
+                requestId,
+                requesterId,
+            }),
+        };
     }
 
-    private async getDataFromNetwork<C, R extends ResponseData, E extends Error, I>(
+    private async getDataFromNetwork<R extends NonUndefined, E extends Error, I>(
         request: YarfRequest<C, R, E, I>,
         options: QueryOptions,
     ): Promise<R> {
@@ -325,7 +306,7 @@ class Client {
             if (multi || Object.values(requestData.callerAwaitStatuses).every(status => !status)) {
                 requestData.abort();
             } else {
-                this.cache.onQueryRequesterRemove(this.getRequestId(request), requesterId);
+                this.cache.onQueryRequesterRemove({ requestId: this.getRequestId(request), requesterId });
             }
         };
 
@@ -334,7 +315,7 @@ class Client {
         return await requestData.promise;
     }
 
-    private initQueryPromiseData<C, R extends ResponseData, E extends Error, I>(
+    private initQueryPromiseData<R extends NonUndefined, E extends Error, I>(
         request: YarfRequest<C, R, E, I>,
         { disableNetworkRequestOptimization, requesterId }: QueryOptions,
     ): QueryPromiseData {
@@ -360,8 +341,6 @@ class Client {
                 promise: Promise.resolve(),
             };
 
-            const nonOptimisticData = this.getCompleteRequestState(request, requesterId).data;
-
             requestPromiseData.promise = this.getRequestPromise(request, {
                 multiAbortSignal: multiAbortController.signal,
                 rerunSignal: rerunController.signal,
@@ -370,11 +349,11 @@ class Client {
                     if (this.queries[requestId] === requestPromiseData) {
                         this.queries[requestId] = undefined;
 
-                        let sharedData = this.cache.getState().sharedData;
+                        let cacheData = this.cache.getState().data;
 
                         if (request.optimisticResponse !== undefined && request.clearCacheFromOptimisticResponse) {
-                            sharedData = request.clearCacheFromOptimisticResponse({
-                                cacheData: sharedData,
+                            cacheData = request.clearCacheFromOptimisticResponse({
+                                cacheData: cacheData,
                                 optimisticResponseData: request.optimisticResponse,
                                 requestInit: request.requestInit,
                                 requestId,
@@ -382,17 +361,17 @@ class Client {
                             });
                         }
 
-                        this.cache.onQuerySuccess(
+                        this.cache.onQuerySuccess({
                             requestId,
-                            data,
-                            request.toCache({
-                                cacheData: sharedData,
+                            requesterId,
+                            cacheData: request.toCache({
+                                cacheData: cacheData,
                                 responseData: data,
                                 requestInit: request.requestInit,
                                 requestId,
                                 requesterId,
                             }),
-                        );
+                        });
                     }
                     return data;
                 })
@@ -400,33 +379,23 @@ class Client {
                     if (this.queries[requestId] === requestPromiseData) {
                         this.queries[requestId] = undefined;
 
-                        if (request.optimisticResponse !== undefined) {
-                            const sharedData = this.cache.getState().sharedData;
+                        const cacheData = this.cache.getState().data;
 
-                            this.cache.onQueryFailWithOptimisticResponse(
-                                requestId,
-                                error,
-                                nonOptimisticData,
-                                request.clearCacheFromOptimisticResponse
+                        this.cache.onQueryFail({
+                            requestId,
+                            requesterId,
+                            error,
+                            cacheData:
+                                request.optimisticResponse && request.clearCacheFromOptimisticResponse
                                     ? request.clearCacheFromOptimisticResponse({
-                                          cacheData: sharedData,
+                                          cacheData: cacheData,
                                           optimisticResponseData: request.optimisticResponse,
                                           requestInit: request.requestInit,
                                           requestId,
                                           requesterId,
                                       })
-                                    : request.toCache({
-                                          cacheData: sharedData,
-                                          // TODO: Figure out what to do if there is no previous data
-                                          responseData: nonOptimisticData!,
-                                          requestInit: request.requestInit,
-                                          requestId,
-                                          requesterId,
-                                      }),
-                            );
-                        } else {
-                            this.cache.onQueryFail(requestId, error);
-                        }
+                                    : undefined,
+                        });
                     }
                     throw error;
                 });
@@ -435,7 +404,7 @@ class Client {
         } else {
             this.queries[requestId]!.callerAwaitStatuses[requesterId] = true;
 
-            this.cache.onQueryRequesterAdd(requestId, requesterId);
+            this.cache.onQueryRequesterAdd({ requestId, requesterId });
 
             if (disableNetworkRequestOptimization) {
                 this.queries[requestId]!.rerunNetworkRequest();
@@ -445,11 +414,11 @@ class Client {
         return this.queries[requestId] as QueryPromiseData;
     }
 
-    private getRequestId<C, R extends ResponseData, E extends Error, I>(request: YarfRequest<C, R, E, I>) {
+    private getRequestId<R extends NonUndefined, E extends Error, I>(request: YarfRequest<C, R, E, I>) {
         return request.getId(request.requestInit);
     }
 
-    private getRequestPromise<C, R extends ResponseData, E extends Error, I>(
+    private getRequestPromise<R extends NonUndefined, E extends Error, I>(
         request: YarfRequest<C, R, E, I>,
         signals: Signals = {},
     ): Promise<R> {
@@ -466,9 +435,9 @@ class Client {
         });
     }
 
-    private shouldReturnOrThrowFromState<C, R extends ResponseData, E extends Error, I>(
+    private shouldReturnOrThrowFromState<R extends NonUndefined, E extends Error, I>(
         request: YarfRequest<C, R, E, I>,
-        requestState: RequestState,
+        requestState: RequestState<R, E>,
         queryOptions: QueryOptions,
     ): boolean {
         return (
@@ -482,11 +451,11 @@ class Client {
         );
     }
 
-    private isCachedDataSufficient(requestState: RequestState): boolean {
+    private isCachedDataSufficient<R extends NonUndefined, E extends Error>(requestState: RequestState<R, E>): boolean {
         return requestState.data !== undefined;
     }
 
-    private returnOrThrowRequestState(requestState: RequestState) {
+    private returnOrThrowRequestState<R extends NonUndefined, E extends Error>(requestState: RequestState<R, E>) {
         if (requestState.error !== undefined) {
             throw requestState.error;
         }
@@ -494,7 +463,7 @@ class Client {
         return requestState.data;
     }
 
-    private warnAboutDivergedError<C, R extends ResponseData, E extends Error, I>(
+    private warnAboutDivergedError<R extends NonUndefined, E extends Error, I>(
         error: Error,
         request: YarfRequest<C, R, E, I>,
         options: GetStateOptions,

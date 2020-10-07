@@ -81,8 +81,9 @@ const client = new Client({
         serializeError,
         deserializeError,
         initialSerializableState: {
-            requestStates: {},
-            sharedData: {
+            loading: {},
+            error: {},
+            data: {
                 items: {},
                 auto: {},
             },

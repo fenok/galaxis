@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { RequestState } from '../../core/cache';
-import { ResponseData } from '../../core/request';
+import { NonUndefined } from '../../core/request';
 
-interface Options<D extends ResponseData, E extends Error> {
+interface Options<D extends NonUndefined, E extends Error> {
     getCurrentValue(): RequestState<D, E>;
     subscribe(cb: (state: RequestState<D, E>) => void): () => void;
 }
@@ -10,7 +10,7 @@ interface Options<D extends ResponseData, E extends Error> {
 /**
  * https://github.com/facebook/react/tree/master/packages/use-subscription
  */
-export function useSubscription<D extends ResponseData, E extends Error>({
+export function useSubscription<D extends NonUndefined, E extends Error>({
     getCurrentValue,
     subscribe,
 }: Options<D, E>) {
@@ -45,7 +45,6 @@ export function useSubscription<D extends ResponseData, E extends Error>({
 
                 if (
                     prevState.value.loading === value.loading &&
-                    prevState.value.loadingRequesterIds === value.loadingRequesterIds &&
                     prevState.value.error === value.error &&
                     prevState.value.data === value.data
                 ) {

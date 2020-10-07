@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { Client, SsrPromisesManager } from '../../core/client';
+import { NonUndefined } from '../../core/request';
 
 const ClientContext = React.createContext<Client | null>(null);
 const SsrPromisesManagerContext = React.createContext<SsrPromisesManager | null>(null);
@@ -18,4 +19,7 @@ const Provider: React.FC<ProviderProps> = ({ children, client }) => {
     return <ClientContext.Provider value={client}>{children}</ClientContext.Provider>;
 };
 
-export { Provider, ClientContext, SsrPromisesManagerContext };
+const useClient = <T extends NonUndefined>() =>
+    React.useContext((ClientContext as unknown) as React.Context<Client<T>>);
+
+export { Provider, ClientContext, SsrPromisesManagerContext, useClient };
