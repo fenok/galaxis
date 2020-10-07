@@ -2,19 +2,19 @@ import * as React from 'react';
 import { RequestState } from '../../core/cache';
 import { MultiAbortController } from '../../core/promise';
 import { ClientContext, SsrPromisesManagerContext } from '../Provider';
-import { RC, CC, EC, YarfRequest } from '../../core/request';
+import { ResponseData, YarfRequest } from '../../core/request';
 import { ensureClient } from './ensureClient';
 import { getRequestHash } from './getRequestHash';
 import { useId } from './useId';
 import { useSubscription } from './useSubscription';
 import { usePrevious } from './usePrevious';
 
-interface QueryOptions<C extends CC, R extends RC, E extends EC, I> {
+interface QueryOptions<C, R extends ResponseData, E extends Error, I> {
     requesterId?: string;
     getRequestHash?(request: YarfRequest<C, R, E, I>): string | number;
 }
 
-export function useQuery<C extends CC, R extends RC, E extends EC, I>(
+export function useQuery<C, R extends ResponseData, E extends Error, I>(
     request: YarfRequest<C, R, E, I>,
     { getRequestHash: getRequestHashOuter, requesterId: outerRequesterId }: QueryOptions<C, R, E, I> = {},
 ) {

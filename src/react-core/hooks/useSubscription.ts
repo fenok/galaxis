@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { RequestState } from '../../core/cache';
-import { RC, EC } from '../../core/request';
+import { ResponseData } from '../../core/request';
 
-interface Options<D extends RC, E extends EC> {
+interface Options<D extends ResponseData, E extends Error> {
     getCurrentValue(): RequestState<D, E>;
     subscribe(cb: (state: RequestState<D, E>) => void): () => void;
 }
@@ -10,7 +10,10 @@ interface Options<D extends RC, E extends EC> {
 /**
  * https://github.com/facebook/react/tree/master/packages/use-subscription
  */
-export function useSubscription<D extends RC, E extends EC>({ getCurrentValue, subscribe }: Options<D, E>) {
+export function useSubscription<D extends ResponseData, E extends Error>({
+    getCurrentValue,
+    subscribe,
+}: Options<D, E>) {
     const [state, setState] = useState(() => ({ getCurrentValue, subscribe, value: getCurrentValue() }));
 
     let valueToReturn = state.value;

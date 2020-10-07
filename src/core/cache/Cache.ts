@@ -1,5 +1,5 @@
 import { devTools, ReduxDevTools } from './devTools';
-import { RC } from '../request/types';
+import { ResponseData } from '../request/types';
 
 interface CacheState<C = any> {
     requestStates: { [id: string]: RequestState | undefined };
@@ -11,14 +11,14 @@ interface SerializableCacheState<C = any> {
     sharedData: C;
 }
 
-interface RequestState<D extends RC = any, E extends Error = Error> {
+interface RequestState<D extends ResponseData = any, E extends Error = Error> {
     loading: boolean;
     loadingRequesterIds: string[];
     error?: E | Error; // Regular error can always slip through
     data?: D;
 }
 
-interface SerializableRequestState<D extends RC = any, E extends object = object> {
+interface SerializableRequestState<D extends ResponseData = any, E extends object = object> {
     loading: boolean;
     loadingRequesterIds: string[];
     error?: E;

@@ -1,24 +1,26 @@
 export type FetchPolicy = 'cache-only' | 'cache-first' | 'cache-and-network';
 
-// Cache constraint
-export type CC = object;
 // Response data constraint
-export type RC = string | number | boolean | symbol | bigint | object | null; // Anything but undefined
-// Response error constraint
-export type EC = Error;
+export type ResponseData = string | number | boolean | symbol | bigint | object | null; // Anything but undefined
 
-export interface YarfRequest<C extends CC = any, R extends RC = any, E extends EC = any, I = any> {
+export interface YarfRequest<CD = unknown, D extends ResponseData = null, E extends Error = Error, I = unknown> {
     requestInit: I;
     fetchPolicy: FetchPolicy;
     lazy?: boolean;
     refetchQueries?: YarfRequest[];
-    optimisticResponse?: R;
+    optimisticResponse?: D;
     disableSsr?: boolean;
     disableInitialRenderDataRefetchOptimization?: boolean;
     disableLoadingQueriesRefetchOptimization?: boolean;
-    getNetworkRequestFactory(requestInit: I): (abortSignal?: AbortSignal) => Promise<R>;
+    getNetworkRequestFactory(requestInit: I): (abortSignal?: AbortSignal) => Promise<D | E>;
     getId(requestInit: I): string;
-    toCache(cache: C, responseData: R, request: YarfRequest<C, R, E, I>, requesterId: string): C;
-    fromCache(cache: C, request: YarfRequest<C, R, E, I>, requesterId: string): R | undefined;
-    clearCacheFromOptimisticResponse?(cache: C, optimisticResponse: R, request: YarfRequest<C, R, E, I>): C;
+    toCache(opts: { cacheData: CD; responseData: D; requestInit: I; requestId: string; requesterId: string }): CD;
+    fromCache(opts: { cacheData: CD; requestInit: I; requestId: string; requesterId: string }): D | undefined;
+    clearCacheFromOptimisticResponse?(opts: {
+        cacheData: CD;
+        optimisticResponseData: D;
+        requestInit: I;
+        requestId: string;
+        requesterId: string;
+    }): CD;
 }

@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { ClientContext } from '../Provider';
-import { RC, CC, EC, YarfRequest } from '../../core/request';
+import { ResponseData, YarfRequest } from '../../core/request';
 import { ensureClient } from './ensureClient';
 import { useId } from './useId';
 
@@ -11,7 +11,7 @@ export function useMutation() {
     ensureClient(client);
 
     const mutate = React.useCallback(
-        <C extends CC, R extends RC, E extends EC, I>(request: YarfRequest<C, R, E, I>) => {
+        <C, R extends ResponseData, E extends Error, I>(request: YarfRequest<C, R, E, I>) => {
             return client.mutate(request, { requesterId: requesterId });
         },
         [client, requesterId],

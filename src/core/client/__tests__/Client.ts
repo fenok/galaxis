@@ -99,28 +99,28 @@ const request: YarfRequest<CacheState, ResponseData, Error, FetchRequestInit> = 
         pathParams: { id: '1' },
     },
     disableInitialRenderDataRefetchOptimization: true,
-    toCache(sharedData, responseData, request) {
+    toCache({ cacheData, responseData, requestId }) {
         return {
-            ...sharedData,
-            auto: { ...sharedData.auto, [request.getId(request.requestInit)]: responseData },
+            ...cacheData,
+            auto: { ...cacheData.auto, [requestId]: responseData },
         };
     },
-    fromCache(sharedData, request) {
-        const dataFromCache = sharedData.auto[request.getId(request.requestInit)];
+    fromCache({ cacheData, requestId }) {
+        const dataFromCache = cacheData.auto[requestId];
         return dataFromCache;
     },
 };
 
 const requestWithSharedData: YarfRequest<CacheState, ResponseData, Error, FetchRequestInit> = {
     ...request,
-    toCache(sharedData, responseData, request) {
+    toCache({ cacheData, responseData, requestInit }) {
         return {
-            ...sharedData,
-            items: { ...sharedData.items, [request.requestInit.pathParams!.id]: responseData.data },
+            ...cacheData,
+            items: { ...cacheData.items, [requestInit.pathParams!.id]: responseData.data },
         };
     },
-    fromCache(sharedData, request) {
-        const dataFromCache = sharedData.items[request.requestInit.pathParams!.id];
+    fromCache({ cacheData, requestInit }) {
+        const dataFromCache = cacheData.items[requestInit.pathParams!.id];
         return dataFromCache ? { data: dataFromCache } : undefined;
     },
 };
