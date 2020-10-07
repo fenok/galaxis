@@ -1,4 +1,4 @@
-import { Cache, RequestState } from '../cache';
+import { Cache } from '../cache';
 import {
     MultiAbortController,
     MultiAbortSignal,
@@ -9,7 +9,6 @@ import {
 } from '../promise';
 import { NonUndefined, YarfRequest } from '../request';
 import * as logger from '../logger';
-import { SerializableCacheState } from '../cache/Cache';
 
 interface ClientOptions<C extends NonUndefined = null> {
     cache: Cache<C>;
@@ -46,7 +45,13 @@ interface GetStateOptions {
     requesterId: string;
 }
 
-class Client<C extends NonUndefined = null> {
+interface RequestState<D extends NonUndefined = null, E extends Error = Error> {
+    loading: string[];
+    error?: E | Error; // Regular error can always slip through
+    data?: D;
+}
+
+class Client<C extends NonUndefined> {
     private readonly cache: Cache<C>;
     private queries: { [requestId: string]: QueryPromiseData | undefined } = {};
     private mutations: Set<MutationPromiseData> = new Set();
@@ -70,17 +75,17 @@ class Client<C extends NonUndefined = null> {
     }
 
     public extract() {
-        return this.cache.getSerializableState();
+        return this.cache.extract();
     }
 
-    public purge(initialSerializableState?: SerializableCacheState<C>) {
+    public purge() {
         Object.values(this.queries).forEach(query => query?.abort());
         this.queries = {};
 
         this.mutations.forEach(mutation => mutation.abort());
         this.mutations.clear();
 
-        this.cache.purge(initialSerializableState);
+        this.cache.purge();
     }
 
     public subscribe<R extends NonUndefined, E extends Error, I>(
@@ -127,9 +132,9 @@ class Client<C extends NonUndefined = null> {
         const requestId = this.getRequestId(request);
 
         if (request.optimisticResponse !== undefined && request.clearCacheFromOptimisticResponse) {
-            this.cache.onMutateStart({
+            this.cache.updateState({
                 cacheData: request.toCache({
-                    cacheData: this.cache.getState().data,
+                    cacheData: this.cache.getData(),
                     responseData: request.optimisticResponse,
                     requestInit: request.requestInit,
                     requestId,
@@ -168,7 +173,7 @@ class Client<C extends NonUndefined = null> {
                 if (this.mutations.has(mutationPromiseData)) {
                     this.mutations.delete(mutationPromiseData);
 
-                    let cacheData = this.cache.getState().data;
+                    let cacheData = this.cache.getData();
 
                     if (request.optimisticResponse !== undefined && request.clearCacheFromOptimisticResponse) {
                         cacheData = request.clearCacheFromOptimisticResponse({
@@ -180,7 +185,7 @@ class Client<C extends NonUndefined = null> {
                         });
                     }
 
-                    this.cache.onMutateSuccess({ cacheData });
+                    this.cache.updateState({ cacheData });
 
                     request.refetchQueries?.forEach(requestData => {
                         this.query(requestData, {
@@ -198,9 +203,9 @@ class Client<C extends NonUndefined = null> {
                     this.mutations.delete(mutationPromiseData);
 
                     if (request.optimisticResponse !== undefined && request.clearCacheFromOptimisticResponse) {
-                        const cacheData = this.cache.getState().data;
+                        const cacheData = this.cache.getData();
 
-                        this.cache.onMutateFail({
+                        this.cache.updateState({
                             cacheData: request.clearCacheFromOptimisticResponse({
                                 cacheData: cacheData,
                                 optimisticResponseData: request.optimisticResponse,
@@ -239,13 +244,17 @@ class Client<C extends NonUndefined = null> {
         const requestId = this.getRequestId(request);
 
         if (!this.shouldReturnOrThrowFromState(request, requestState, requestOptions) && !requestState.loading.length) {
-            this.cache.onQueryStart({
-                requestId,
-                requesterId: requestOptions.requesterId,
+            this.cache.updateState({
+                requestStates: {
+                    [requestId]: {
+                        loading: [requestOptions.requesterId],
+                        error: this.cache.getError(requestId),
+                    },
+                },
                 cacheData:
                     request.optimisticResponse && request.clearCacheFromOptimisticResponse
                         ? request.toCache({
-                              cacheData: this.cache.getState().data,
+                              cacheData: this.cache.getData(),
                               responseData: request.optimisticResponse,
                               requestInit: request.requestInit,
                               requestId,
@@ -278,13 +287,13 @@ class Client<C extends NonUndefined = null> {
         request: YarfRequest<C, R, E, I>,
         requesterId: string,
     ): RequestState<R, E> {
-        const currentState = this.cache.getState();
         const requestId = this.getRequestId(request);
 
         return {
-            loading: currentState.loading[requestId] ?? [],
+            loading: this.cache.getLoading(requestId),
+            error: this.cache.getError(requestId),
             data: request.fromCache({
-                cacheData: currentState.data,
+                cacheData: this.cache.getData(),
                 requestInit: request.requestInit,
                 requestId,
                 requesterId,
@@ -306,7 +315,19 @@ class Client<C extends NonUndefined = null> {
             if (multi || Object.values(requestData.callerAwaitStatuses).every(status => !status)) {
                 requestData.abort();
             } else {
-                this.cache.onQueryRequesterRemove({ requestId: this.getRequestId(request), requesterId });
+                const requestId = this.getRequestId(request);
+                const loadingState = this.cache.getLoading(requestId);
+
+                this.cache.updateState({
+                    requestStates: {
+                        [requestId]: {
+                            loading: loadingState.includes(requesterId)
+                                ? loadingState.filter(id => id !== requesterId)
+                                : loadingState,
+                            error: this.cache.getError(requestId),
+                        },
+                    },
+                });
             }
         };
 
@@ -349,7 +370,7 @@ class Client<C extends NonUndefined = null> {
                     if (this.queries[requestId] === requestPromiseData) {
                         this.queries[requestId] = undefined;
 
-                        let cacheData = this.cache.getState().data;
+                        let cacheData = this.cache.getData();
 
                         if (request.optimisticResponse !== undefined && request.clearCacheFromOptimisticResponse) {
                             cacheData = request.clearCacheFromOptimisticResponse({
@@ -361,9 +382,13 @@ class Client<C extends NonUndefined = null> {
                             });
                         }
 
-                        this.cache.onQuerySuccess({
-                            requestId,
-                            requesterId,
+                        this.cache.updateState({
+                            requestStates: {
+                                [requestId]: {
+                                    error: undefined,
+                                    loading: [],
+                                },
+                            },
                             cacheData: request.toCache({
                                 cacheData: cacheData,
                                 responseData: data,
@@ -379,12 +404,15 @@ class Client<C extends NonUndefined = null> {
                     if (this.queries[requestId] === requestPromiseData) {
                         this.queries[requestId] = undefined;
 
-                        const cacheData = this.cache.getState().data;
+                        const cacheData = this.cache.getData();
 
-                        this.cache.onQueryFail({
-                            requestId,
-                            requesterId,
-                            error,
+                        this.cache.updateState({
+                            requestStates: {
+                                [requestId]: {
+                                    loading: [],
+                                    error,
+                                },
+                            },
                             cacheData:
                                 request.optimisticResponse && request.clearCacheFromOptimisticResponse
                                     ? request.clearCacheFromOptimisticResponse({
@@ -404,7 +432,15 @@ class Client<C extends NonUndefined = null> {
         } else {
             this.queries[requestId]!.callerAwaitStatuses[requesterId] = true;
 
-            this.cache.onQueryRequesterAdd({ requestId, requesterId });
+            const loadingState = this.cache.getLoading(requestId);
+            this.cache.updateState({
+                requestStates: {
+                    [requestId]: {
+                        error: this.cache.getError(requestId),
+                        loading: loadingState.includes(requesterId) ? loadingState : [...loadingState, requesterId],
+                    },
+                },
+            });
 
             if (disableNetworkRequestOptimization) {
                 this.queries[requestId]!.rerunNetworkRequest();
@@ -481,4 +517,4 @@ class Client<C extends NonUndefined = null> {
     }
 }
 
-export { Client, ClientOptions };
+export { Client, ClientOptions, RequestState };

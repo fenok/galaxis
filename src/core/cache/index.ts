@@ -1,1 +1,1 @@
-export { Cache, RequestState, CacheState } from './Cache';
+export { Cache, UpdateStateOpts } from './types';

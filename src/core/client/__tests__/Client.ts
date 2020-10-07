@@ -1,5 +1,5 @@
 import { Client } from '../Client';
-import { Cache } from '../../cache';
+import { InMemoryCache } from '../../../in-memory-cache';
 import { serializeError, deserializeError } from 'serialize-error';
 import { YarfRequest } from '../../request';
 import { FetchRequestInit } from '../../../fetch-network-request-factory/types';
@@ -77,7 +77,7 @@ const baseRequestInit = {
 };
 
 const client = new Client({
-    cache: new Cache({
+    cache: new InMemoryCache({
         serializeError,
         deserializeError,
         initialSerializableState: {

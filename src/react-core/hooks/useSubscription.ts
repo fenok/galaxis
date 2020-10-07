@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { RequestState } from '../../core/cache';
 import { NonUndefined } from '../../core/request';
+import { RequestState } from '../../core/client/Client';
 
 interface Options<D extends NonUndefined, E extends Error> {
     getCurrentValue(): RequestState<D, E>;
