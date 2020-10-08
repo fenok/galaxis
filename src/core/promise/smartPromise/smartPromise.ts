@@ -1,16 +1,23 @@
 import { MultiAbortSignal, RerunSignal } from '../controllers';
 import { wireAbortSignals } from '../helpers';
 import * as logger from '../../logger';
+import { EnableSignal } from '../controllers/EnableController';
 
 export interface Signals {
     abortSignal?: AbortSignal | null;
     multiAbortSignal?: MultiAbortSignal | null;
     rerunSignal?: RerunSignal | null;
+    enableSignal?: EnableSignal | null;
+}
+
+export interface SmartPromiseOptions {
+    disabled?: boolean;
 }
 
 export function smartPromise<T>(
     promiseFactory: (abortSignal?: AbortSignal) => Promise<T>,
-    { multiAbortSignal, rerunSignal, abortSignal }: Signals = {},
+    { multiAbortSignal, rerunSignal, abortSignal, enableSignal }: Signals = {},
+    { disabled }: SmartPromiseOptions = {},
 ): Promise<T> {
     return new Promise((resolve, reject) => {
         const abortController = typeof AbortController !== 'undefined' ? new AbortController() : null;
@@ -32,13 +39,32 @@ export function smartPromise<T>(
         const onRerun = () => {
             rerunSignal?.removeEventListener('rerun', onRerun);
             onAbort();
-            resolve(smartPromise(promiseFactory, { multiAbortSignal, rerunSignal, abortSignal }));
+            resolve(
+                smartPromise(
+                    promiseFactory,
+                    { multiAbortSignal, rerunSignal, abortSignal, enableSignal },
+                    { disabled },
+                ),
+            );
         };
 
         rerunSignal?.addEventListener('rerun', onRerun);
 
-        promiseFactory(abortController?.signal)
-            .then(resolve)
-            .catch(reject);
+        const onEnable = () => {
+            enableSignal?.removeEventListener('enable', onEnable);
+            resolve(smartPromise(promiseFactory, { multiAbortSignal, rerunSignal, abortSignal }, { disabled: false }));
+        };
+
+        if (enableSignal?.enabled) {
+            onEnable();
+        }
+
+        enableSignal?.addEventListener('enable', onEnable);
+
+        if (!disabled) {
+            promiseFactory(abortController?.signal)
+                .then(resolve)
+                .catch(reject);
+        }
     });
 }

@@ -72,7 +72,7 @@ export class MutationProcessor<C extends NonUndefined> {
         wireAbortSignals(mutationPromiseData.abort, multiAbortSignal);
 
         const mutationPromise = this.networkRequestQueue
-            .getRequestPromise(request, { multiAbortSignal: multiAbortController.signal })
+            .getPromise(request, { multiAbortSignal: multiAbortController.signal }, 'mutation')
             .then(data => {
                 // Delay state update to let all planned state updates finish
                 return data;
@@ -93,7 +93,15 @@ export class MutationProcessor<C extends NonUndefined> {
                         });
                     }
 
-                    this.cache.updateState({ cacheData });
+                    this.cache.updateState({
+                        cacheData: request.toCache({
+                            cacheData,
+                            responseData: data,
+                            requestInit: request.requestInit,
+                            requestId,
+                            requesterId,
+                        }),
+                    });
                 }
 
                 return data;

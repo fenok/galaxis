@@ -206,10 +206,14 @@ export class QueryProcessor<C extends NonUndefined> {
             };
 
             requestPromiseData.promise = this.networkRequestQueue
-                .getRequestPromise(request, {
-                    multiAbortSignal: multiAbortController.signal,
-                    rerunSignal: rerunController.signal,
-                })
+                .getPromise(
+                    request,
+                    {
+                        multiAbortSignal: multiAbortController.signal,
+                        rerunSignal: rerunController.signal,
+                    },
+                    'query',
+                )
                 .then(data => {
                     if (this.queries[requestId] === requestPromiseData) {
                         this.queries[requestId] = undefined;
