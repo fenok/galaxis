@@ -1,1 +1,1 @@
-export { Cache, UpdateStateOpts } from './types';
+export * from './types';

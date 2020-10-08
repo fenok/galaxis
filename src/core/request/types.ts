@@ -15,7 +15,6 @@ export interface YarfRequest<
     optimisticResponse?: D;
     disableSsr?: boolean;
     disableInitialRenderDataRefetchOptimization?: boolean;
-    disableLoadingQueriesRefetchOptimization?: boolean;
     getNetworkRequestFactory(requestInit: I): (abortSignal?: AbortSignal) => Promise<D | E>;
     getId(requestInit: I): string;
     toCache(opts: { cacheData: CD; responseData: D; requestInit: I; requestId: string; requesterId: string }): CD;
