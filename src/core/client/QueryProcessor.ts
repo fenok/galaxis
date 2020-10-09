@@ -9,7 +9,7 @@ import { NetworkRequestQueue } from './NetworkRequestQueue';
 export interface QueryOptions {
     requesterId: string;
     forceNetworkRequest?: boolean; // Perform a network request regardless of fetchPolicy and cache state
-    disableNetworkRequestOptimization?: boolean; // Perform new network request instead of reusing the existing one
+    disableNetworkRequestReuse?: boolean; // Perform new network request instead of reusing the existing one
     respectLazy?: boolean;
     multiAbortSignal?: MultiAbortSignal;
     ssr?: boolean;
@@ -121,7 +121,7 @@ export class QueryProcessor<C extends NonUndefined> {
 
     private initQueryPromiseData<R extends NonUndefined, E extends Error, I>(
         request: YarfRequest<C, R, E, I>,
-        { disableNetworkRequestOptimization, requesterId, ssr }: QueryOptions,
+        { disableNetworkRequestReuse, requesterId, ssr }: QueryOptions,
     ): QueryPromiseData {
         const requestId = request.getId(request.requestInit);
 
@@ -240,7 +240,7 @@ export class QueryProcessor<C extends NonUndefined> {
                 },
             });
 
-            if (disableNetworkRequestOptimization) {
+            if (disableNetworkRequestReuse) {
                 this.queries[requestId]!.rerunNetworkRequest();
             }
         }

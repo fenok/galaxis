@@ -86,7 +86,7 @@ class Client<C extends NonUndefined> {
                 this.queryProcessor.query(requestData, {
                     requesterId: 'INTERNAL',
                     forceNetworkRequest: true,
-                    disableNetworkRequestOptimization: true,
+                    disableNetworkRequestReuse: true,
                 });
             });
 
