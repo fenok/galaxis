@@ -30,7 +30,12 @@ export function useQuery<C extends NonUndefined, R extends NonUndefined, E exten
     const multiAbortControllerRef = React.useRef<MultiAbortController>();
 
     const getRequestOptions = React.useCallback(
-        (respectLazy: boolean, forceNetworkRequest: boolean, disableNetworkRequestOptimization: boolean) => {
+        (
+            ssr: boolean,
+            respectLazy: boolean,
+            forceNetworkRequest: boolean,
+            disableNetworkRequestOptimization: boolean,
+        ) => {
             if (!multiAbortControllerRef.current || multiAbortControllerRef.current.signal.aborted) {
                 multiAbortControllerRef.current = new MultiAbortController();
             }
@@ -40,6 +45,7 @@ export function useQuery<C extends NonUndefined, R extends NonUndefined, E exten
                 forceNetworkRequest,
                 disableNetworkRequestOptimization,
                 respectLazy,
+                ssr,
                 multiAbortSignal: multiAbortControllerRef.current.signal,
             };
         },
@@ -49,7 +55,10 @@ export function useQuery<C extends NonUndefined, R extends NonUndefined, E exten
 
     const refetch = React.useCallback(
         (disableNetworkRequestOptimization?: boolean) => {
-            return client.query(request, getRequestOptions(false, true, Boolean(disableNetworkRequestOptimization)));
+            return client.query(
+                request,
+                getRequestOptions(false, false, true, Boolean(disableNetworkRequestOptimization)),
+            );
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [client, requestHash],
@@ -65,24 +74,15 @@ export function useQuery<C extends NonUndefined, R extends NonUndefined, E exten
     const prevRequestId = usePrevious(requestHash);
 
     if (prevClient !== client || prevRequestId !== requestHash) {
-        client.prepareQueryLoadingState(request, getRequestOptions(true, false, false));
-    }
+        abort();
+        const queryPromise = client
+            .query(request, getRequestOptions(typeof window === 'undefined', true, false, false))
+            .fromNetwork?.catch(() => {
+                // Prevent uncaught error message (error will be in state)
+            });
 
-    React.useEffect(() => {
-        client.queryAfterPreparedLoadingState(request, getRequestOptions(true, false, false)).catch(() => {
-            // Prevent uncaught error message (error will be in state)
-        });
-
-        return () => {
-            abort();
-        };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [client, requestHash]);
-
-    if (typeof window === 'undefined' && ssrPromisesManager) {
-        const ssrPromise = client.getSsrPromise(request, requesterId);
-        if (ssrPromise) {
-            ssrPromisesManager.addPromise(ssrPromise);
+        if (typeof window === 'undefined' && ssrPromisesManager && queryPromise) {
+            ssrPromisesManager.addPromise(queryPromise);
         }
     }
 

@@ -132,7 +132,7 @@ it('can query data', async () => {
     const response = await client.query(
         { ...request, requestInit: { ...baseRequestInit, pathParams: { id: '1' } } },
         { requesterId: 'test' },
-    );
+    ).fromNetwork;
 
     expect(response).toEqual({ data: FIRST_ITEM });
 });
@@ -162,7 +162,7 @@ it('caches queried data', async () => {
     await client.query(
         { ...request, requestInit: { ...baseRequestInit, pathParams: { id: '1' } } },
         { requesterId: 'test' },
-    );
+    ).fromNetwork;
     const { data: responseFromCache } = client.getState(
         { ...request, requestInit: { ...baseRequestInit, pathParams: { id: '1' } } },
         { requesterId: 'test' },
@@ -177,7 +177,7 @@ it('caches queried data for request with custom caching', async () => {
     await client.query(
         { ...requestWithSharedData, requestInit: { ...baseRequestInit, pathParams: { id: '1' } } },
         { requesterId: 'test' },
-    );
+    ).fromNetwork;
     const { data: responseFromCache } = client.getState(
         { ...requestWithSharedData, requestInit: { ...baseRequestInit, pathParams: { id: '1' } } },
         { requesterId: 'test' },

@@ -1,6 +1,6 @@
 import { Cache } from '../cache';
 import { NonUndefined, YarfRequest } from '../request';
-import { QueryProcessor, QueryOptions } from './QueryProcessor';
+import { QueryProcessor, QueryOptions, QueryResult } from './QueryProcessor';
 import { MutationProcessor, MutateOptions } from './MutationProcessor';
 import { NetworkRequestQueue } from './NetworkRequestQueue';
 
@@ -70,32 +70,11 @@ class Client<C extends NonUndefined> {
         return this.queryProcessor.getCompleteRequestState(request, requesterId);
     }
 
-    public getSsrPromise<R extends NonUndefined, E extends Error, I>(
-        request: YarfRequest<C, R, E, I>,
-        requesterId: string,
-    ): Promise<R | undefined> | undefined {
-        return this.queryProcessor.getSsrPromise(request, requesterId);
-    }
-
-    public async query<R extends NonUndefined, E extends Error, I>(
+    public query<R extends NonUndefined, E extends Error, I>(
         request: YarfRequest<C, R, E, I>,
         requestOptions: QueryOptions,
-    ): Promise<R | undefined> {
+    ): QueryResult<R, E> {
         return this.queryProcessor.query(request, requestOptions);
-    }
-
-    public prepareQueryLoadingState<R extends NonUndefined, E extends Error, I>(
-        request: YarfRequest<C, R, E, I>,
-        requestOptions: QueryOptions,
-    ): void {
-        return this.queryProcessor.prepareQueryLoadingState(request, requestOptions);
-    }
-
-    public async queryAfterPreparedLoadingState<R extends NonUndefined, E extends Error, I>(
-        request: YarfRequest<C, R, E, I>,
-        requestOptions: QueryOptions,
-    ): Promise<R | undefined> {
-        return this.queryProcessor.queryAfterPreparedLoadingState(request, requestOptions);
     }
 
     public async mutate<R extends NonUndefined, E extends Error, I>(
