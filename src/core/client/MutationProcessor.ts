@@ -1,5 +1,4 @@
 import { NonUndefined, YarfRequest } from '../request';
-import * as logger from '../logger';
 import { MultiAbortController, MultiAbortSignal } from '../promise/controllers';
 import { wireAbortSignals } from '../promise/helpers';
 import { Cache } from '../cache';
@@ -42,19 +41,17 @@ export class MutationProcessor<C extends NonUndefined> {
     ): Promise<R> {
         const requestId = request.getId(request.requestInit);
 
-        if (request.optimisticResponse !== undefined && request.clearCacheFromOptimisticResponse) {
+        if (request.optimisticResponse) {
             this.cache.updateState({
                 updateCacheData: cacheData =>
                     request.toCache({
                         cacheData,
-                        responseData: request.optimisticResponse!,
+                        data: request.optimisticResponse!.optimisticData,
                         requestInit: request.requestInit,
                         requestId,
                         requesterId,
                     }),
             });
-        } else if (request.optimisticResponse !== undefined) {
-            logger.warn("Optimistic response won't work without clearCacheFromOptimisticResponse function");
         }
 
         const multiAbortController = new MultiAbortController();
@@ -85,17 +82,16 @@ export class MutationProcessor<C extends NonUndefined> {
                     this.cache.updateState({
                         updateCacheData: cacheData =>
                             request.toCache({
-                                cacheData:
-                                    request.optimisticResponse !== undefined && request.clearCacheFromOptimisticResponse
-                                        ? request.clearCacheFromOptimisticResponse({
-                                              cacheData: cacheData,
-                                              optimisticResponseData: request.optimisticResponse,
-                                              requestInit: request.requestInit,
-                                              requestId,
-                                              requesterId,
-                                          })
-                                        : cacheData,
-                                responseData: data,
+                                cacheData: request.optimisticResponse
+                                    ? request.optimisticResponse.removeOptimisticData({
+                                          cacheData: cacheData,
+                                          optimisticData: request.optimisticResponse.optimisticData,
+                                          requestInit: request.requestInit,
+                                          requestId,
+                                          requesterId,
+                                      })
+                                    : cacheData,
+                                data,
                                 requestInit: request.requestInit,
                                 requestId,
                                 requesterId,
@@ -109,12 +105,12 @@ export class MutationProcessor<C extends NonUndefined> {
                 if (this.mutations.has(mutationPromiseData)) {
                     this.mutations.delete(mutationPromiseData);
 
-                    if (request.optimisticResponse !== undefined && request.clearCacheFromOptimisticResponse) {
+                    if (request.optimisticResponse) {
                         this.cache.updateState({
                             updateCacheData: cacheData =>
-                                request.clearCacheFromOptimisticResponse!({
+                                request.optimisticResponse!.removeOptimisticData({
                                     cacheData,
-                                    optimisticResponseData: request.optimisticResponse!,
+                                    optimisticData: request.optimisticResponse!.optimisticData,
                                     requestInit: request.requestInit,
                                     requestId,
                                     requesterId,

@@ -112,10 +112,10 @@ export class QueryProcessor<C extends NonUndefined> {
                     },
                 },
                 updateCacheData: cacheData =>
-                    request.optimisticResponse && request.clearCacheFromOptimisticResponse
+                    request.optimisticResponse
                         ? request.toCache({
                               cacheData,
-                              responseData: request.optimisticResponse,
+                              data: request.optimisticResponse.optimisticData,
                               requestInit: request.requestInit,
                               requestId,
                               requesterId: requestOptions.requesterId,
@@ -224,18 +224,16 @@ export class QueryProcessor<C extends NonUndefined> {
                             },
                             updateCacheData: cacheData =>
                                 request.toCache({
-                                    cacheData:
-                                        request.optimisticResponse !== undefined &&
-                                        request.clearCacheFromOptimisticResponse
-                                            ? request.clearCacheFromOptimisticResponse({
-                                                  cacheData: cacheData,
-                                                  optimisticResponseData: request.optimisticResponse,
-                                                  requestInit: request.requestInit,
-                                                  requestId,
-                                                  requesterId,
-                                              })
-                                            : cacheData,
-                                    responseData: data,
+                                    cacheData: request.optimisticResponse
+                                        ? request.optimisticResponse.removeOptimisticData({
+                                              cacheData: cacheData,
+                                              optimisticData: request.optimisticResponse.optimisticData,
+                                              requestInit: request.requestInit,
+                                              requestId,
+                                              requesterId,
+                                          })
+                                        : cacheData,
+                                    data,
                                     requestInit: request.requestInit,
                                     requestId,
                                     requesterId,
@@ -256,10 +254,10 @@ export class QueryProcessor<C extends NonUndefined> {
                                 },
                             },
                             updateCacheData: cacheData =>
-                                request.optimisticResponse && request.clearCacheFromOptimisticResponse
-                                    ? request.clearCacheFromOptimisticResponse({
+                                request.optimisticResponse
+                                    ? request.optimisticResponse.removeOptimisticData({
                                           cacheData: cacheData,
-                                          optimisticResponseData: request.optimisticResponse,
+                                          optimisticData: request.optimisticResponse.optimisticData,
                                           requestInit: request.requestInit,
                                           requestId,
                                           requesterId,

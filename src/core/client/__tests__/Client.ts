@@ -100,10 +100,10 @@ const request: YarfRequest<CacheState, ResponseData, Error, FetchRequestInit> = 
         pathParams: { id: '1' },
     },
     disableInitialRenderDataRefetchOptimization: true,
-    toCache({ cacheData, responseData, requestId }) {
+    toCache({ cacheData, data, requestId }) {
         return {
             ...cacheData,
-            auto: { ...cacheData.auto, [requestId]: responseData },
+            auto: { ...cacheData.auto, [requestId]: data },
         };
     },
     fromCache({ cacheData, requestId }) {
@@ -114,10 +114,10 @@ const request: YarfRequest<CacheState, ResponseData, Error, FetchRequestInit> = 
 
 const requestWithSharedData: YarfRequest<CacheState, ResponseData, Error, FetchRequestInit> = {
     ...request,
-    toCache({ cacheData, responseData, requestInit }) {
+    toCache({ cacheData, data, requestInit }) {
         return {
             ...cacheData,
-            items: { ...cacheData.items, [requestInit.pathParams!.id]: responseData.data },
+            items: { ...cacheData.items, [requestInit.pathParams!.id]: data.data },
         };
     },
     fromCache({ cacheData, requestInit }) {
