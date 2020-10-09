@@ -109,19 +109,18 @@ export class QueryProcessor<C extends NonUndefined> {
                 requestStates: {
                     [requestId]: {
                         loading: [requestOptions.requesterId],
-                        error: this.cache.getError(requestId),
                     },
                 },
-                cacheData:
+                updateCacheData: cacheData =>
                     request.optimisticResponse && request.clearCacheFromOptimisticResponse
                         ? request.toCache({
-                              cacheData: this.cache.getData(),
+                              cacheData,
                               responseData: request.optimisticResponse,
                               requestInit: request.requestInit,
                               requestId,
                               requesterId: requestOptions.requesterId,
                           })
-                        : undefined,
+                        : cacheData,
             });
         }
     }
@@ -159,15 +158,13 @@ export class QueryProcessor<C extends NonUndefined> {
                 requestData.abort();
             } else {
                 const requestId = request.getId(request.requestInit);
-                const loadingState = this.cache.getLoading(requestId);
 
                 this.cache.updateState({
                     requestStates: {
                         [requestId]: {
-                            loading: loadingState.includes(requesterId)
-                                ? loadingState.filter(id => id !== requesterId)
-                                : loadingState,
-                            error: this.cache.getError(requestId),
+                            loading: Object.entries(requestData.callerAwaitStatuses)
+                                .filter(([, isLoading]) => isLoading)
+                                .map(([requesterId]) => requesterId),
                         },
                     },
                 });
@@ -218,18 +215,6 @@ export class QueryProcessor<C extends NonUndefined> {
                     if (this.queries[requestId] === requestPromiseData) {
                         this.queries[requestId] = undefined;
 
-                        let cacheData = this.cache.getData();
-
-                        if (request.optimisticResponse !== undefined && request.clearCacheFromOptimisticResponse) {
-                            cacheData = request.clearCacheFromOptimisticResponse({
-                                cacheData: cacheData,
-                                optimisticResponseData: request.optimisticResponse,
-                                requestInit: request.requestInit,
-                                requestId,
-                                requesterId,
-                            });
-                        }
-
                         this.cache.updateState({
                             requestStates: {
                                 [requestId]: {
@@ -237,13 +222,24 @@ export class QueryProcessor<C extends NonUndefined> {
                                     loading: [],
                                 },
                             },
-                            cacheData: request.toCache({
-                                cacheData: cacheData,
-                                responseData: data,
-                                requestInit: request.requestInit,
-                                requestId,
-                                requesterId,
-                            }),
+                            updateCacheData: cacheData =>
+                                request.toCache({
+                                    cacheData:
+                                        request.optimisticResponse !== undefined &&
+                                        request.clearCacheFromOptimisticResponse
+                                            ? request.clearCacheFromOptimisticResponse({
+                                                  cacheData: cacheData,
+                                                  optimisticResponseData: request.optimisticResponse,
+                                                  requestInit: request.requestInit,
+                                                  requestId,
+                                                  requesterId,
+                                              })
+                                            : cacheData,
+                                    responseData: data,
+                                    requestInit: request.requestInit,
+                                    requestId,
+                                    requesterId,
+                                }),
                         });
                     }
                     return data;
@@ -252,8 +248,6 @@ export class QueryProcessor<C extends NonUndefined> {
                     if (this.queries[requestId] === requestPromiseData) {
                         this.queries[requestId] = undefined;
 
-                        const cacheData = this.cache.getData();
-
                         this.cache.updateState({
                             requestStates: {
                                 [requestId]: {
@@ -261,7 +255,7 @@ export class QueryProcessor<C extends NonUndefined> {
                                     error,
                                 },
                             },
-                            cacheData:
+                            updateCacheData: cacheData =>
                                 request.optimisticResponse && request.clearCacheFromOptimisticResponse
                                     ? request.clearCacheFromOptimisticResponse({
                                           cacheData: cacheData,
@@ -270,7 +264,7 @@ export class QueryProcessor<C extends NonUndefined> {
                                           requestId,
                                           requesterId,
                                       })
-                                    : undefined,
+                                    : cacheData,
                         });
                     }
                     throw error;
@@ -280,12 +274,12 @@ export class QueryProcessor<C extends NonUndefined> {
         } else {
             this.queries[requestId]!.callerAwaitStatuses[requesterId] = true;
 
-            const loadingState = this.cache.getLoading(requestId);
             this.cache.updateState({
                 requestStates: {
                     [requestId]: {
-                        error: this.cache.getError(requestId),
-                        loading: loadingState.includes(requesterId) ? loadingState : [...loadingState, requesterId],
+                        loading: Object.entries(this.queries[requestId]!.callerAwaitStatuses)
+                            .filter(([, isLoading]) => isLoading)
+                            .map(([requesterId]) => requesterId),
                     },
                 },
             });

@@ -44,13 +44,14 @@ export class MutationProcessor<C extends NonUndefined> {
 
         if (request.optimisticResponse !== undefined && request.clearCacheFromOptimisticResponse) {
             this.cache.updateState({
-                cacheData: request.toCache({
-                    cacheData: this.cache.getData(),
-                    responseData: request.optimisticResponse,
-                    requestInit: request.requestInit,
-                    requestId,
-                    requesterId,
-                }),
+                updateCacheData: cacheData =>
+                    request.toCache({
+                        cacheData,
+                        responseData: request.optimisticResponse!,
+                        requestInit: request.requestInit,
+                        requestId,
+                        requesterId,
+                    }),
             });
         } else if (request.optimisticResponse !== undefined) {
             logger.warn("Optimistic response won't work without clearCacheFromOptimisticResponse function");
@@ -81,26 +82,24 @@ export class MutationProcessor<C extends NonUndefined> {
                 if (this.mutations.has(mutationPromiseData)) {
                     this.mutations.delete(mutationPromiseData);
 
-                    let cacheData = this.cache.getData();
-
-                    if (request.optimisticResponse !== undefined && request.clearCacheFromOptimisticResponse) {
-                        cacheData = request.clearCacheFromOptimisticResponse({
-                            cacheData: cacheData,
-                            optimisticResponseData: request.optimisticResponse,
-                            requestInit: request.requestInit,
-                            requestId,
-                            requesterId,
-                        });
-                    }
-
                     this.cache.updateState({
-                        cacheData: request.toCache({
-                            cacheData,
-                            responseData: data,
-                            requestInit: request.requestInit,
-                            requestId,
-                            requesterId,
-                        }),
+                        updateCacheData: cacheData =>
+                            request.toCache({
+                                cacheData:
+                                    request.optimisticResponse !== undefined && request.clearCacheFromOptimisticResponse
+                                        ? request.clearCacheFromOptimisticResponse({
+                                              cacheData: cacheData,
+                                              optimisticResponseData: request.optimisticResponse,
+                                              requestInit: request.requestInit,
+                                              requestId,
+                                              requesterId,
+                                          })
+                                        : cacheData,
+                                responseData: data,
+                                requestInit: request.requestInit,
+                                requestId,
+                                requesterId,
+                            }),
                     });
                 }
 
@@ -111,16 +110,15 @@ export class MutationProcessor<C extends NonUndefined> {
                     this.mutations.delete(mutationPromiseData);
 
                     if (request.optimisticResponse !== undefined && request.clearCacheFromOptimisticResponse) {
-                        const cacheData = this.cache.getData();
-
                         this.cache.updateState({
-                            cacheData: request.clearCacheFromOptimisticResponse({
-                                cacheData: cacheData,
-                                optimisticResponseData: request.optimisticResponse,
-                                requestInit: request.requestInit,
-                                requestId,
-                                requesterId,
-                            }),
+                            updateCacheData: cacheData =>
+                                request.clearCacheFromOptimisticResponse!({
+                                    cacheData,
+                                    optimisticResponseData: request.optimisticResponse!,
+                                    requestInit: request.requestInit,
+                                    requestId,
+                                    requesterId,
+                                }),
                         });
                     }
                 }

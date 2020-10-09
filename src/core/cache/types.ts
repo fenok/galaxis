@@ -1,12 +1,12 @@
 import { NonUndefined } from '../request';
 
 export interface UpdateStateOpts<D extends NonUndefined> {
-    cacheData?: D;
+    updateCacheData?(prevCacheData: D): D;
     requestStates?: Record<
         string,
         {
             loading: string[];
-            error: Error | undefined;
+            error?: Error | undefined;
         }
     >;
 }

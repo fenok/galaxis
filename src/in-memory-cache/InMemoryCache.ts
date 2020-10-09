@@ -116,7 +116,7 @@ class InMemoryCache<D extends NonUndefined = null> implements Cache<D> {
         this.devtools?.send({ type: 'UPDATE', ...opts }, this.state);
     }
 
-    private updateStateInner({ cacheData, requestStates }: UpdateStateOpts<D>) {
+    private updateStateInner({ updateCacheData, requestStates }: UpdateStateOpts<D>) {
         const { loadingStates, errorStates } = Object.entries(requestStates ?? {}).reduce(
             (stateGroup, [key, requestState]) => ({
                 loadingStates: {
@@ -125,7 +125,7 @@ class InMemoryCache<D extends NonUndefined = null> implements Cache<D> {
                 },
                 errorStates: {
                     ...stateGroup.errorStates,
-                    [key]: requestState.error,
+                    [key]: 'error' in requestState ? requestState.error : this.state.error[key],
                 },
             }),
             { loadingStates: {}, errorStates: {} } as {
@@ -137,7 +137,7 @@ class InMemoryCache<D extends NonUndefined = null> implements Cache<D> {
         this.state = {
             loading: { ...this.state.loading, ...loadingStates },
             error: { ...this.state.error, ...errorStates },
-            data: cacheData !== undefined ? cacheData : this.state.data,
+            data: updateCacheData ? updateCacheData(this.state.data) : this.state.data,
         };
     }
 
