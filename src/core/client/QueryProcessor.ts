@@ -1,11 +1,10 @@
-import { NonUndefined, YarfRequest } from '../request';
 import { MultiAbortSignal, MultiAbortController, RerunController } from '../promise/controllers';
-import { wireAbortSignals } from '../promise/helpers';
+import { wireAbortSignals } from '../promise';
 import { RequestState } from './Client';
 import * as logger from '../logger';
-import { Cache } from '../cache';
 import { NetworkRequestQueue } from './NetworkRequestQueue';
 import { NetworkRequestHelper } from './NetworkRequestHelper';
+import { NonUndefined, YarfRequest, Cache } from '../types';
 
 export interface QueryOptions {
     requesterId: string;
@@ -145,7 +144,7 @@ export class QueryProcessor<C extends NonUndefined> {
 
             if (!ssr || this.shouldMakeNetworkRequestOnSsr(request, requesterId)) {
                 requestPromiseData.promise = this.networkRequestQueue
-                    .addPromiseToQueue(
+                    .addPromise(
                         NetworkRequestHelper.getPromiseFactory(request, {
                             multiAbortSignal: multiAbortController.signal,
                             rerunSignal: rerunController.signal,

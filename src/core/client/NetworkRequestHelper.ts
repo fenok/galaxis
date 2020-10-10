@@ -1,7 +1,7 @@
-import { NonUndefined, YarfRequest } from '../request';
 import { Signals, smartPromise } from '../promise/smartPromise';
-import { EnableSignal } from '../promise/controllers/EnableController';
+import { EnableSignal } from '../promise';
 import * as logger from '../logger';
+import { NonUndefined, YarfRequest } from '../types';
 
 export class NetworkRequestHelper {
     public static getPromiseFactory<C extends NonUndefined, R extends NonUndefined, E extends Error, I>(

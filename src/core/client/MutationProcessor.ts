@@ -1,9 +1,8 @@
-import { NonUndefined, YarfRequest } from '../request';
 import { MultiAbortController, MultiAbortSignal } from '../promise/controllers';
-import { wireAbortSignals } from '../promise/helpers';
-import { Cache } from '../cache';
+import { wireAbortSignals } from '../promise';
 import { NetworkRequestQueue } from './NetworkRequestQueue';
 import { NetworkRequestHelper } from './NetworkRequestHelper';
+import { NonUndefined, Cache, YarfRequest } from '../types';
 
 export interface MutateOptions {
     requesterId: string;
@@ -71,7 +70,7 @@ export class MutationProcessor<C extends NonUndefined> {
         wireAbortSignals(mutationPromiseData.abort, multiAbortSignal);
 
         const mutationPromise = this.networkRequestQueue
-            .addPromiseToQueue(
+            .addPromise(
                 NetworkRequestHelper.getPromiseFactory(request, { multiAbortSignal: multiAbortController.signal }),
                 'mutation',
             )

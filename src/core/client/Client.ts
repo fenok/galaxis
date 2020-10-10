@@ -1,9 +1,8 @@
-import { Cache } from '../cache';
-import { NonUndefined, YarfRequest } from '../request';
 import { QueryProcessor, QueryOptions, QueryResult } from './QueryProcessor';
 import { MutationProcessor, MutateOptions } from './MutationProcessor';
 import { NetworkRequestQueue } from './NetworkRequestQueue';
 import { RequesterIdGenerator } from './RequesterIdGenerator';
+import { NonUndefined, Cache, YarfRequest } from '../types';
 
 interface ClientOptions<C extends NonUndefined = null> {
     cache: Cache<C>;

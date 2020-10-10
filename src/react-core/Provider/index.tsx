@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Client, SsrPromisesManager } from '../../core/client';
-import { NonUndefined } from '../../core/request';
+import { NonUndefined } from '../../core/types';
 
 const ClientContext = React.createContext<Client<any> | null>(null);
 const SsrPromisesManagerContext = React.createContext<SsrPromisesManager | null>(null);

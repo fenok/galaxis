@@ -1,7 +1,6 @@
-import { MultiAbortSignal, RerunSignal } from '../controllers';
-import { wireAbortSignals } from '../helpers';
+import { MultiAbortSignal, RerunSignal, EnableSignal } from '../controllers';
+import { wireAbortSignals } from '../controller-helpers';
 import * as logger from '../../logger';
-import { EnableSignal } from '../controllers/EnableController';
 
 export interface Signals {
     abortSignal?: AbortSignal | null;

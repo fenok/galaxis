@@ -1,8 +1,8 @@
 import * as React from 'react';
 import { useClient } from '../Provider';
-import { NonUndefined, YarfRequest } from '../../core/request';
 import { ensureClient } from './ensureClient';
 import { useId } from './useId';
+import { NonUndefined, YarfRequest } from '../../core';
 
 export function useMutation() {
     const requesterId = useId();

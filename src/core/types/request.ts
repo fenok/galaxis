@@ -1,6 +1,6 @@
-export type FetchPolicy = 'cache-only' | 'cache-first' | 'cache-and-network';
+import { NonUndefined } from './helpers';
 
-export type NonUndefined = string | number | boolean | symbol | bigint | object | null;
+export type FetchPolicy = 'cache-only' | 'cache-first' | 'cache-and-network';
 
 export interface CommonCacheOptions<CD extends NonUndefined = null, I = unknown> {
     cacheData: CD;

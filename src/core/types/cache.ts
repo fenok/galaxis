@@ -1,4 +1,4 @@
-import { NonUndefined } from '../request';
+import { NonUndefined } from './helpers';
 
 export interface UpdateStateOpts<D extends NonUndefined> {
     updateCacheData?(prevCacheData: D): D;

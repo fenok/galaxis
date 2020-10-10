@@ -1,61 +1,53 @@
-import { NonUndefined } from '../request';
-import { EnableController, EnableSignal } from '../promise/controllers/EnableController';
+import { EnableController, EnableSignal, onResolve } from '../promise';
+import { NonUndefined } from '../types';
 
-export interface PromiseData {
+export interface QueueSection {
     promise: Promise<unknown>;
     type: 'query' | 'mutation';
     enableController: EnableController;
 }
 
 export class NetworkRequestQueue {
-    private queue: (PromiseData | undefined)[] = [];
+    private queue: (QueueSection | undefined)[] = [];
 
-    public addPromiseToQueue<R extends NonUndefined>(
+    public addPromise<R extends NonUndefined>(
         promiseFactory: (enableSignal: EnableSignal) => Promise<R>,
         type: 'query' | 'mutation',
     ): Promise<R> {
-        const lastQueuePromise = this.queue[this.queue.length - 1];
+        const lastQueueSection = this.queue[this.queue.length - 1];
 
-        const isAdding = lastQueuePromise?.type !== 'query' || type === 'mutation';
+        const noMerge = lastQueueSection?.type === 'mutation' || type === 'mutation';
 
-        const enableController = isAdding
-            ? new EnableController()
-            : lastQueuePromise?.enableController ?? new EnableController();
+        const enableController =
+            noMerge || !lastQueueSection ? new EnableController() : lastQueueSection.enableController;
 
         const promise = promiseFactory(enableController.signal);
 
-        const promiseGroupData = {
-            promise: Promise.resolve(),
+        const newQueueSection = {
+            promise: onResolve(
+                noMerge || !lastQueueSection ? promise : onResolve(lastQueueSection.promise, () => promise),
+                () => {
+                    if (newQueueSection === this.queue[0]) {
+                        this.queue.shift();
+                        /* eslint-disable @typescript-eslint/no-unnecessary-condition */
+                        this.queue[0]?.enableController.enable();
+                    }
+                },
+            ),
             enableController,
             type,
         };
 
-        promiseGroupData.promise = this.onResolve(
-            isAdding ? promise : this.onResolve(Promise.resolve(lastQueuePromise?.promise), () => promise),
-            () => {
-                if (promiseGroupData === this.queue[0]) {
-                    this.queue.shift();
-                    /* eslint-disable @typescript-eslint/no-unnecessary-condition */
-                    this.queue[0]?.enableController.enable();
-                }
-            },
-        );
-
-        if (isAdding) {
-            this.queue.push(promiseGroupData);
+        if (noMerge || !lastQueueSection) {
+            this.queue.push(newQueueSection);
+            if (!lastQueueSection) {
+                newQueueSection.enableController.enable();
+            }
         } else {
             this.queue.pop();
-            this.queue.push(promiseGroupData);
-        }
-
-        if (isAdding && !lastQueuePromise) {
-            this.queue[0]?.enableController.enable();
+            this.queue.push(newQueueSection);
         }
 
         return promise;
-    }
-
-    private onResolve(promise: Promise<any>, cb: () => any) {
-        return promise.then(cb, cb);
     }
 }

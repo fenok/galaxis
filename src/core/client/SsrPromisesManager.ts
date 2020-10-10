@@ -1,3 +1,5 @@
+import { allSettled } from '../promise';
+
 class SsrPromisesManager {
     private promises: Promise<any>[] = [];
 
@@ -6,33 +8,13 @@ class SsrPromisesManager {
     }
 
     public awaitPromises(): Promise<any> {
-        return this.allSettled().then(() => {
+        return allSettled(this.promises).then(() => {
             this.promises = [];
         });
     }
 
     public hasPromises() {
         return Boolean(this.promises.length);
-    }
-
-    private allSettled() {
-        return new Promise(resolve => {
-            let unsettledCount = this.promises.length;
-
-            if (!unsettledCount) {
-                resolve();
-            }
-
-            const onSettle = () => {
-                if (--unsettledCount <= 0) {
-                    resolve();
-                }
-            };
-
-            this.promises.forEach(promise => {
-                promise.then(onSettle, onSettle);
-            });
-        });
     }
 }
 

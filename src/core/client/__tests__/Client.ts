@@ -1,10 +1,10 @@
 import { Client } from '../Client';
 import { InMemoryCache } from '../../../in-memory-cache';
 import { serializeError, deserializeError } from 'serialize-error';
-import { YarfRequest } from '../../request';
 import { FetchRequestInit } from '../../../fetch-network-request-factory/types';
 import { getId } from '../../../fetch-network-request-factory/getId';
 import { getUrl } from '../../../fetch-network-request-factory/getUrl';
+import { YarfRequest } from '../../types';
 
 const FIRST_ITEM = {
     id: 1,

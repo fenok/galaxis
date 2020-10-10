@@ -1,13 +1,12 @@
 import * as React from 'react';
 import { MultiAbortController } from '../../core/promise';
 import { SsrPromisesManagerContext, useClient } from '../Provider';
-import { NonUndefined, YarfRequest } from '../../core/request';
 import { ensureClient } from './ensureClient';
 import { getRequestHash } from './getRequestHash';
 import { useId } from './useId';
 import { useSubscription } from './useSubscription';
 import { usePrevious } from './usePrevious';
-import { RequestState } from '../../core/client/Client';
+import { NonUndefined, YarfRequest, RequestState } from '../../core';
 
 interface QueryOptions<C extends NonUndefined, R extends NonUndefined, E extends Error, I> {
     requesterId?: string;
