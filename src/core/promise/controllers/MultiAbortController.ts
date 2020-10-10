@@ -1,6 +1,9 @@
 import { EventListenerManager, EventTarget } from './EventTarget';
 
-export type MultiAbortSignal = EventListenerManager<'abort', boolean> & { aborted?: boolean; multi?: boolean };
+export type MultiAbortSignal = Omit<EventListenerManager<'abort', boolean>, 'listeners'> & {
+    aborted?: boolean;
+    multi?: boolean;
+};
 
 export class MultiAbortController {
     private readonly _signal: EventTarget<'abort', boolean> & {

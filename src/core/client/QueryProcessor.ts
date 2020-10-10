@@ -315,11 +315,17 @@ export class QueryProcessor<C extends NonUndefined> {
         if (process.env.NODE_ENV !== 'production') {
             const requestState = this.getCompleteRequestState(request, requesterId);
             if (error !== requestState.error) {
-                logger.error(
-                    "Error from state diverged from actual error. This likely indicates illegal exception in request's function. This can also indicate error in the library itself, so file an issue if request's functions are definitely correct.",
+                logger.warn(
+                    `Error from promise diverged from error in state. This can happen for various reasons:
+- Query was started, aborted, and then immediately started again (ignore)
+- Cache is updated asynchronously (ignore)
+- Some request function threw unexpected exception (fix that function)
+- Something's wrong in the library itself (file an issue)
+
+State error: ${requestState.error}
+
+Actual error: ${error}`,
                 );
-                logger.error('State error:', requestState.error);
-                logger.error('Actual error:', error);
             }
         }
     }

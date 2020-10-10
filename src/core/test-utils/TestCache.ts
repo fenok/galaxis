@@ -10,11 +10,11 @@ export class TestCache<D extends NonUndefined> implements Cache<D> {
     private subscribers: (() => void)[] = [];
     private emptyData: D;
 
-    constructor(initialData: D, emptyData: D) {
-        this.emptyData = emptyData;
+    constructor(opts: { initialData: D; emptyData: D }) {
+        this.emptyData = opts.emptyData;
 
         this._state = {
-            data: initialData,
+            data: opts.initialData,
             requestStates: {},
         };
     }
@@ -34,10 +34,6 @@ export class TestCache<D extends NonUndefined> implements Cache<D> {
 
     public getRequestState(requestId: string): CacheRequestState {
         return this.state.requestStates[requestId] ?? { error: undefined, loading: [] };
-    }
-
-    public extract() {
-        throw new Error('TestCache is non-extractable');
     }
 
     public subscribe(callback: () => void) {
