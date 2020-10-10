@@ -14,7 +14,7 @@ const Provider: React.FC<ProviderProps> = ({ children, client }) => {
         client.enableDataRefetch();
     }, [client]);
 
-    client.resetId();
+    client.resetRequesterIdGenerator();
 
     return <ClientContext.Provider value={client}>{children}</ClientContext.Provider>;
 };

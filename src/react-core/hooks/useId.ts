@@ -8,7 +8,7 @@ export function useId(outerId?: string) {
 
     ensureClient(client);
 
-    const [id] = React.useState(() => (outerId !== undefined ? outerId : client.generateId()));
+    const [id] = React.useState(() => (outerId !== undefined ? outerId : client.generateRequesterId()));
 
     return id;
 }
