@@ -1,5 +1,5 @@
 import { devTools, ReduxDevTools } from './devTools';
-import { Cache, NonUndefined, UpdateStateOpts } from '../core';
+import { Cache, NonUndefined, UpdateStateOpts, CacheRequestState } from '../core';
 
 interface CacheState<D extends NonUndefined = null, E = Error> {
     data: D;
@@ -60,16 +60,15 @@ class InMemoryCache<D extends NonUndefined = null> implements Cache<D> {
         return this._state;
     }
 
-    public getData() {
+    public getCacheData() {
         return this.state.data;
     }
 
-    public getLoading(requestId: string) {
-        return this.state.loading[requestId] ?? [];
-    }
-
-    public getError(requestId: string) {
-        return this.state.error[requestId];
+    public getRequestState(requestId: string): CacheRequestState {
+        return {
+            loading: this.state.loading[requestId] ?? [],
+            error: this.state.error[requestId],
+        };
     }
 
     public extract(): SerializableCacheState<D> {
@@ -116,27 +115,18 @@ class InMemoryCache<D extends NonUndefined = null> implements Cache<D> {
         this.devtools?.send({ type: 'UPDATE', ...opts }, this.state);
     }
 
-    private updateStateInner({ updateCacheData, requestStates }: UpdateStateOpts<D>) {
-        const { loadingStates, errorStates } = Object.entries(requestStates ?? {}).reduce(
-            (stateGroup, [key, requestState]) => ({
-                loadingStates: {
-                    ...stateGroup.loadingStates,
-                    [key]: requestState.loading,
-                },
-                errorStates: {
-                    ...stateGroup.errorStates,
-                    [key]: 'error' in requestState ? requestState.error : this.state.error[key],
-                },
-            }),
-            { loadingStates: {}, errorStates: {} } as {
-                loadingStates: Record<string, string[]>;
-                errorStates: Record<string, Error | undefined>;
-            },
-        );
+    private updateStateInner({ updateCacheData, updateRequestState }: UpdateStateOpts<D>) {
+        const newRequestState = updateRequestState?.update(this.getRequestState(updateRequestState.requestId));
 
         this.state = {
-            loading: { ...this.state.loading, ...loadingStates },
-            error: { ...this.state.error, ...errorStates },
+            loading:
+                newRequestState && updateRequestState?.requestId
+                    ? { ...this.state.loading, [updateRequestState.requestId]: newRequestState.loading }
+                    : this.state.loading,
+            error:
+                newRequestState && updateRequestState?.requestId
+                    ? { ...this.state.error, [updateRequestState.requestId]: newRequestState.error }
+                    : this.state.error,
             data: updateCacheData ? updateCacheData(this.state.data) : this.state.data,
         };
     }

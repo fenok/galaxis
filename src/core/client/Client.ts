@@ -56,10 +56,6 @@ class Client<C extends NonUndefined> {
         });
     }
 
-    public extract() {
-        return this.cache.extract();
-    }
-
     public enableDataRefetch() {
         this.queryProcessor.enableDataRefetch();
     }

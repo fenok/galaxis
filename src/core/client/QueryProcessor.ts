@@ -58,12 +58,13 @@ export class QueryProcessor<C extends NonUndefined> {
         requesterId: string,
     ): RequestState<R, E> {
         const requestId = request.getId(request.requestInit);
+        const cacheRequestState = this.cache.getRequestState(requestId);
 
         return {
-            loading: this.cache.getLoading(requestId),
-            error: this.cache.getError(requestId),
+            loading: cacheRequestState.loading,
+            error: cacheRequestState.error,
             data: request.fromCache({
-                cacheData: this.cache.getData(),
+                cacheData: this.cache.getCacheData(),
                 requestInit: request.requestInit,
                 requestId,
                 requesterId,
@@ -105,10 +106,12 @@ export class QueryProcessor<C extends NonUndefined> {
                 const requestId = request.getId(request.requestInit);
 
                 this.cache.updateState({
-                    requestStates: {
-                        [requestId]: {
+                    updateRequestState: {
+                        requestId,
+                        update: ({ error }) => ({
+                            error,
                             loading: [...requestData.loading],
-                        },
+                        }),
                     },
                 });
             }
@@ -156,11 +159,12 @@ export class QueryProcessor<C extends NonUndefined> {
                             this.queries[requestId] = undefined;
 
                             this.cache.updateState({
-                                requestStates: {
-                                    [requestId]: {
+                                updateRequestState: {
+                                    requestId,
+                                    update: () => ({
                                         error: undefined,
                                         loading: [],
-                                    },
+                                    }),
                                 },
                                 updateCacheData: cacheData =>
                                     request.toCache({
@@ -187,11 +191,12 @@ export class QueryProcessor<C extends NonUndefined> {
                             this.queries[requestId] = undefined;
 
                             this.cache.updateState({
-                                requestStates: {
-                                    [requestId]: {
+                                updateRequestState: {
+                                    requestId,
+                                    update: () => ({
                                         loading: [],
                                         error,
-                                    },
+                                    }),
                                 },
                                 updateCacheData: cacheData =>
                                     request.optimisticResponse
@@ -212,10 +217,12 @@ export class QueryProcessor<C extends NonUndefined> {
             this.queries[requestId] = requestPromiseData;
 
             this.cache.updateState({
-                requestStates: {
-                    [requestId]: {
+                updateRequestState: {
+                    requestId,
+                    update: ({ error }) => ({
+                        error,
                         loading: [requesterId],
-                    },
+                    }),
                 },
                 updateCacheData: cacheData =>
                     request.optimisticResponse
@@ -232,10 +239,12 @@ export class QueryProcessor<C extends NonUndefined> {
             this.queries[requestId]!.loading.add(requesterId);
 
             this.cache.updateState({
-                requestStates: {
-                    [requestId]: {
+                updateRequestState: {
+                    requestId,
+                    update: ({ error }) => ({
+                        error,
                         loading: [...this.queries[requestId]!.loading],
-                    },
+                    }),
                 },
             });
 
@@ -290,7 +299,7 @@ export class QueryProcessor<C extends NonUndefined> {
             (!request.optimisticResponse ||
                 !request.optimisticResponse.isOptimisticData({
                     data: requestState.data,
-                    cacheData: this.cache.getData(),
+                    cacheData: this.cache.getCacheData(),
                     requestInit: request.requestInit,
                     requestId: request.getId(request.requestInit),
                     requesterId: queryOptions.requesterId,
