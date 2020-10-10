@@ -1,5 +1,4 @@
-import { Signals, smartPromise } from '../promise/smartPromise';
-import { EnableSignal } from '../promise';
+import { EnableSignal, Signals, smartPromise } from '../promise';
 import * as logger from '../logger';
 import { NonUndefined, YarfRequest } from '../types';
 
