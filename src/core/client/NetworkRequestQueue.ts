@@ -1,6 +1,4 @@
-import { NonUndefined, YarfRequest } from '../request';
-import { Signals, smartPromise } from '../promise/smartPromise';
-import * as logger from '../logger';
+import { NonUndefined } from '../request';
 import { EnableController, EnableSignal } from '../promise/controllers/EnableController';
 
 export interface PromiseData {
@@ -9,38 +7,10 @@ export interface PromiseData {
     enableController: EnableController;
 }
 
-export class NetworkRequestQueue<C extends NonUndefined> {
+export class NetworkRequestQueue {
     private queue: (PromiseData | undefined)[] = [];
 
-    public getPromise<R extends NonUndefined, E extends Error, I>(
-        request: YarfRequest<C, R, E, I>,
-        signals: Signals = {},
-        type: 'query' | 'mutation',
-    ): Promise<R> {
-        const promise = (enableSignal?: EnableSignal) =>
-            smartPromise(
-                request.getNetworkRequestFactory(request.requestInit),
-                {
-                    ...signals,
-                    enableSignal,
-                },
-                { disabled: true },
-            ).then(dataOrError => {
-                if (dataOrError instanceof Error) {
-                    logger.warn(
-                        'Network request promise was resolved with error. You should reject the promise instead. Error: ',
-                        dataOrError,
-                    );
-                    throw dataOrError;
-                } else {
-                    return dataOrError;
-                }
-            });
-
-        return this.addPromiseToQueue(promise, type);
-    }
-
-    private addPromiseToQueue<R extends NonUndefined>(
+    public addPromiseToQueue<R extends NonUndefined>(
         promiseFactory: (enableSignal: EnableSignal) => Promise<R>,
         type: 'query' | 'mutation',
     ): Promise<R> {

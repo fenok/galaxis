@@ -26,7 +26,7 @@ class Client<C extends NonUndefined> {
     private mutationProcessor: MutationProcessor<C>;
 
     constructor({ cache }: ClientOptions<C>) {
-        const networkRequestQueue = new NetworkRequestQueue<C>();
+        const networkRequestQueue = new NetworkRequestQueue();
         this.requesterIdGenerator = new RequesterIdGenerator();
         this.cache = cache;
         this.queryProcessor = new QueryProcessor({ cache, networkRequestQueue });

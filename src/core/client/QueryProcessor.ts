@@ -5,6 +5,7 @@ import { RequestState } from './Client';
 import * as logger from '../logger';
 import { Cache } from '../cache';
 import { NetworkRequestQueue } from './NetworkRequestQueue';
+import { NetworkRequestHelper } from './NetworkRequestHelper';
 
 export interface QueryOptions {
     requesterId: string;
@@ -30,14 +31,14 @@ export interface QueryPromiseData {
 
 export interface QueryProcessorOptions<C extends NonUndefined> {
     cache: Cache<C>;
-    networkRequestQueue: NetworkRequestQueue<C>;
+    networkRequestQueue: NetworkRequestQueue;
 }
 
 export class QueryProcessor<C extends NonUndefined> {
     private queries: { [requestId: string]: QueryPromiseData | undefined } = {};
     private isDataRefetchEnabled = false;
     private readonly cache: Cache<C>;
-    private networkRequestQueue: NetworkRequestQueue<C>;
+    private networkRequestQueue: NetworkRequestQueue;
 
     constructor({ cache, networkRequestQueue }: QueryProcessorOptions<C>) {
         this.cache = cache;
@@ -144,12 +145,11 @@ export class QueryProcessor<C extends NonUndefined> {
 
             if (!ssr || this.shouldMakeNetworkRequestOnSsr(request, requesterId)) {
                 requestPromiseData.promise = this.networkRequestQueue
-                    .getPromise(
-                        request,
-                        {
+                    .addPromiseToQueue(
+                        NetworkRequestHelper.getPromiseFactory(request, {
                             multiAbortSignal: multiAbortController.signal,
                             rerunSignal: rerunController.signal,
-                        },
+                        }),
                         'query',
                     )
                     .then(data => {

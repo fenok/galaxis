@@ -3,6 +3,7 @@ import { MultiAbortController, MultiAbortSignal } from '../promise/controllers';
 import { wireAbortSignals } from '../promise/helpers';
 import { Cache } from '../cache';
 import { NetworkRequestQueue } from './NetworkRequestQueue';
+import { NetworkRequestHelper } from './NetworkRequestHelper';
 
 export interface MutateOptions {
     requesterId: string;
@@ -17,13 +18,13 @@ export interface MutationPromiseData {
 
 export interface MutationProcessorOptions<C extends NonUndefined> {
     cache: Cache<C>;
-    networkRequestQueue: NetworkRequestQueue<C>;
+    networkRequestQueue: NetworkRequestQueue;
 }
 
 export class MutationProcessor<C extends NonUndefined> {
     private mutations: Set<MutationPromiseData> = new Set();
     private readonly cache: Cache<C>;
-    private networkRequestQueue: NetworkRequestQueue<C>;
+    private networkRequestQueue: NetworkRequestQueue;
 
     constructor({ cache, networkRequestQueue }: MutationProcessorOptions<C>) {
         this.cache = cache;
@@ -35,7 +36,7 @@ export class MutationProcessor<C extends NonUndefined> {
         this.mutations.clear();
     }
 
-    public async mutate<R extends NonUndefined, E extends Error, I>(
+    public mutate<R extends NonUndefined, E extends Error, I>(
         request: YarfRequest<C, R, E, I>,
         { multiAbortSignal, requesterId }: MutateOptions,
     ): Promise<R> {
@@ -70,7 +71,10 @@ export class MutationProcessor<C extends NonUndefined> {
         wireAbortSignals(mutationPromiseData.abort, multiAbortSignal);
 
         const mutationPromise = this.networkRequestQueue
-            .getPromise(request, { multiAbortSignal: multiAbortController.signal }, 'mutation')
+            .addPromiseToQueue(
+                NetworkRequestHelper.getPromiseFactory(request, { multiAbortSignal: multiAbortController.signal }),
+                'mutation',
+            )
             .then(data => {
                 // Delay state update to let all planned state updates finish
                 return data;
