@@ -76,15 +76,35 @@ export class QueryProcessor<C extends NonUndefined> {
     ): QueryResult<R, E> {
         const requestState = this.getCompleteRequestState(request, requestOptions.requesterId);
 
+        const isFromCache = this.shouldReturnOrThrowFromState(request, requestState, requestOptions);
+
+        if (isFromCache) {
+            this.ensureNonLoadingState(request.getId(request.requestInit));
+        }
+
         return {
             fromCache: requestState,
-            fromNetwork: !this.shouldReturnOrThrowFromState(request, requestState, requestOptions)
+            fromNetwork: !isFromCache
                 ? this.getDataFromNetwork(request, requestOptions)?.catch(error => {
                       this.warnAboutDivergedError(error, request, requestOptions.requesterId);
                       throw error;
                   })
                 : undefined,
         };
+    }
+
+    private ensureNonLoadingState(requestId: string) {
+        if (!this.queries[requestId]) {
+            this.cache.updateState({
+                updateRequestState: {
+                    requestId,
+                    update: ({ error }) => ({
+                        error,
+                        loading: [],
+                    }),
+                },
+            });
+        }
     }
 
     private getDataFromNetwork<R extends NonUndefined, E extends Error, I>(

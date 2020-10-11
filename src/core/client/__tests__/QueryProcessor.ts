@@ -491,7 +491,7 @@ it('supports optimistic responses', async () => {
     expect(dataFromCache).toEqual({ data: FIRST_ITEM, loading: [], error: undefined });
 });
 
-it('does not consider persisted optimistic data', async () => {
+it('does not consider persisted optimistic data / resets persisted loading state', async () => {
     const queryProcessor = getQueryProcessor();
 
     const firstItemRequest = getFirstItemRequestWithOptimisticResponse();
@@ -523,4 +523,30 @@ it('does not consider persisted optimistic data', async () => {
 
     const dataFromCache = queryProcessor.getCompleteRequestState(firstItemRequest, 'test2');
     expect(dataFromCache).toEqual({ data: FIRST_ITEM, loading: [], error: undefined });
+});
+
+it('resets persisted loading state if there is no network request', async () => {
+    const queryProcessor = getQueryProcessor();
+
+    const firstItemRequest = getFirstItemRequest();
+
+    const queryResult = queryProcessor.query(firstItemRequest, { requesterId: 'test' });
+
+    queryProcessor.purge();
+
+    await expect(queryResult.fromNetwork).rejects.toEqual(getAbortError());
+
+    const loadingDataFromCache = queryProcessor.getCompleteRequestState(firstItemRequest, 'test');
+    expect(loadingDataFromCache).toEqual({ data: undefined, loading: ['test'], error: undefined });
+
+    const cacheOnlyQueryResult = queryProcessor.query(
+        { ...firstItemRequest, fetchPolicy: 'cache-only' },
+        { requesterId: 'test2' },
+    );
+
+    expect(cacheOnlyQueryResult.fromNetwork).toEqual(undefined);
+    expect(cacheOnlyQueryResult.fromCache).toEqual({ data: undefined, loading: ['test'], error: undefined });
+
+    const dataFromCache = queryProcessor.getCompleteRequestState(firstItemRequest, 'test2');
+    expect(dataFromCache).toEqual({ data: undefined, loading: [], error: undefined });
 });
