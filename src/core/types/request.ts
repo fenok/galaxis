@@ -17,7 +17,6 @@ export interface YarfRequest<
 > {
     requestInit: I;
     fetchPolicy: FetchPolicy;
-    lazy?: boolean;
     refetchQueries?: YarfRequest<CD>[];
     disableSsr?: boolean;
     enableInitialRenderDataRefetchOptimization?: boolean;

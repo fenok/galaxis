@@ -10,7 +10,6 @@ export interface QueryOptions {
     requesterId: string;
     forceNetworkRequest?: boolean; // Perform a network request regardless of fetchPolicy and cache state
     disableNetworkRequestReuse?: boolean; // Perform new network request instead of reusing the existing one
-    respectLazy?: boolean;
     multiAbortSignal?: MultiAbortSignal;
     ssr?: boolean;
 }
@@ -264,7 +263,6 @@ export class QueryProcessor<C extends NonUndefined> {
 
         return (
             !request.disableSsr &&
-            !request.lazy &&
             typeof window === 'undefined' &&
             request.fetchPolicy !== 'cache-only' &&
             requestState.data === undefined &&
@@ -279,8 +277,7 @@ export class QueryProcessor<C extends NonUndefined> {
     ): boolean {
         return (
             queryOptions.forceNetworkRequest !== true &&
-            ((queryOptions.respectLazy && request.lazy) ||
-                request.fetchPolicy === 'cache-only' ||
+            (request.fetchPolicy === 'cache-only' ||
                 (request.fetchPolicy === 'cache-first' &&
                     this.isCachedDataSufficient(request, requestState, queryOptions)) ||
                 (Boolean(request.enableInitialRenderDataRefetchOptimization) &&
