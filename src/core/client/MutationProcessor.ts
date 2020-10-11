@@ -1,5 +1,4 @@
-import { MultiAbortController } from '../promise/controllers';
-import { wireAbortSignals } from '../promise';
+import { MultiAbortController, wireAbortSignals } from '../promise';
 import { NetworkRequestQueue } from './NetworkRequestQueue';
 import { NetworkRequestHelper } from './NetworkRequestHelper';
 import { NonUndefined, Cache, MutationInit } from '../types';
