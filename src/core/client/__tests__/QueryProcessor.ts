@@ -206,7 +206,7 @@ it('can reuse network requests', async () => {
     const secondDataFromCache = queryProcessor.getCompleteRequestState(firstItemRequest, 'test2');
 
     expect(networkResponse[0]).toEqual(FIRST_ITEM);
-    expect(networkResponse[1]).toEqual(FIRST_ITEM);
+    expect(networkResponse[1]).toBe(networkResponse[0]);
     expect(firstDataFromCache).toEqual({ data: FIRST_ITEM, loading: [], error: undefined });
     expect(secondDataFromCache).toEqual({ data: FIRST_ITEM, loading: [], error: undefined });
 });
@@ -244,7 +244,7 @@ it('can opt-out from network request reuse', async () => {
     const secondDataFromCache = queryProcessor.getCompleteRequestState(firstItemRequest, 'test2');
 
     expect(networkResponse[0]).toEqual({ ...FIRST_ITEM, freshness: 2 });
-    expect(networkResponse[1]).toEqual({ ...FIRST_ITEM, freshness: 2 });
+    expect(networkResponse[1]).toBe(networkResponse[0]);
     expect(firstDataFromCache).toEqual({ data: { ...FIRST_ITEM, freshness: 2 }, loading: [], error: undefined });
     expect(secondDataFromCache).toEqual({ data: { ...FIRST_ITEM, freshness: 2 }, loading: [], error: undefined });
 });
