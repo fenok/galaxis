@@ -176,6 +176,28 @@ it('respects fetch policies', async () => {
     expect(dataFromCache).toEqual({ data: FIRST_ITEM, loading: [], error: undefined });
 });
 
+it('can opt-in to performing network request regardless of cache state and fetch policy', async () => {
+    const queryProcessor = getQueryProcessor();
+
+    const firstItemRequest = getFirstItemRequest();
+
+    const queryResult = queryProcessor.query(firstItemRequest, { requesterId: 'test' });
+
+    const networkResponse = await queryResult.fromNetwork;
+
+    const dataFromCache = queryProcessor.getCompleteRequestState(firstItemRequest, 'test');
+
+    expect(networkResponse).toEqual(FIRST_ITEM);
+    expect(dataFromCache).toEqual({ data: FIRST_ITEM, loading: [], error: undefined });
+
+    const cacheOnlyQueryResult = queryProcessor.query(
+        { ...firstItemRequest, fetchPolicy: 'cache-only' },
+        { requesterId: 'test', forceNetworkRequest: true },
+    );
+
+    await expect(cacheOnlyQueryResult.fromNetwork).resolves.toEqual(FIRST_ITEM);
+});
+
 it('can reuse network requests', async () => {
     const queryProcessor = getQueryProcessor();
 
@@ -393,4 +415,24 @@ it('correctly aborts previous request when the next one is executed immediately 
     );
 
     expect(dataFromCache).toEqual({ data: SECOND_ITEM, loading: [], error: undefined });
+});
+
+it('on purge all requests are aborted and do not affect cache anymore', async () => {
+    const queryProcessor = getQueryProcessor();
+
+    const firstItemRequest = getFirstItemRequest();
+
+    const queryResult = queryProcessor.query(firstItemRequest, { requesterId: 'test' });
+
+    const dataFromCache = queryProcessor.getCompleteRequestState(firstItemRequest, 'test');
+
+    expect(dataFromCache.loading).toEqual(['test']);
+
+    queryProcessor.purge();
+
+    await expect(queryResult.fromNetwork).rejects.toEqual(getAbortError());
+
+    const dataFromCacheAfterPurge = queryProcessor.getCompleteRequestState(firstItemRequest, 'test');
+
+    expect(dataFromCacheAfterPurge).toEqual({ data: undefined, loading: ['test'], error: undefined });
 });
