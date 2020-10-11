@@ -74,14 +74,18 @@ export const INITIAL_CACHE_DATA: TestCacheData = {
     items: {},
 };
 
-export const BASE_REQUEST: Pick<CommonRequest<TestCacheData>, 'getRequestId' | 'requesterId'> = {
+export const BASE_REQUEST: Pick<
+    CommonRequest<TestCacheData, ItemEntity, Error, TestRequestInit>,
+    'getRequestId' | 'requesterId'
+> = {
     requesterId: 'test',
     getRequestId(requestInit: unknown): string {
         return Buffer.from(JSON.stringify(requestInit)).toString('base64');
     },
 };
 
-export const BASE_QUERY: typeof BASE_REQUEST & Pick<QueryInit, 'fetchPolicy'> = {
+export const BASE_QUERY: typeof BASE_REQUEST &
+    Pick<QueryInit<TestCacheData, ItemEntity, Error, TestRequestInit>, 'fetchPolicy'> = {
     ...BASE_REQUEST,
     fetchPolicy: 'cache-and-network',
 };

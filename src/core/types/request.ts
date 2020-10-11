@@ -10,12 +10,7 @@ export interface CommonCacheOptions<CD extends NonUndefined = null, I = unknown>
     requesterId: string;
 }
 
-export interface CommonRequest<
-    CD extends NonUndefined = null,
-    D extends NonUndefined = null,
-    E extends Error = Error,
-    I = unknown
-> {
+export interface CommonRequest<CD extends NonUndefined, D extends NonUndefined, E extends Error, I> {
     requesterId: string;
     requestInit: I;
     abortSignal?: MultiAbortSignal | AbortSignal;
@@ -30,12 +25,8 @@ export interface CommonRequest<
     };
 }
 
-export interface QueryInit<
-    CD extends NonUndefined = null,
-    D extends NonUndefined = null,
-    E extends Error = Error,
-    I = unknown
-> extends CommonRequest<CD, D, E, I> {
+export interface QueryInit<CD extends NonUndefined, D extends NonUndefined, E extends Error, I>
+    extends CommonRequest<CD, D, E, I> {
     fetchPolicy: FetchPolicy;
     disableSsr?: boolean;
     enableInitialRenderDataRefetchOptimization?: boolean;
@@ -43,11 +34,7 @@ export interface QueryInit<
     fromCache(opts: CommonCacheOptions<CD, I>): D | undefined;
 }
 
-export interface MutationInit<
-    CD extends NonUndefined = null,
-    D extends NonUndefined = null,
-    E extends Error = Error,
-    I = unknown
-> extends CommonRequest<CD, D, E, I> {
-    refetchQueries?: QueryInit<CD>[];
+export interface MutationInit<CD extends NonUndefined, D extends NonUndefined, E extends Error, I>
+    extends CommonRequest<CD, D, E, I> {
+    refetchQueries?: QueryInit<CD, any, any, any>[];
 }
