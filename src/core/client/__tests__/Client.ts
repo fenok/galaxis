@@ -4,7 +4,7 @@ import { serializeError, deserializeError } from 'serialize-error';
 import { FetchRequestInit } from '../../../fetch-network-request-factory/types';
 import { getId } from '../../../fetch-network-request-factory/getId';
 import { getUrl } from '../../../fetch-network-request-factory/getUrl';
-import { YarfRequest } from '../../types';
+import { QueryInit } from '../../types';
 
 const FIRST_ITEM = {
     id: 1,
@@ -91,9 +91,10 @@ const client = new Client({
     }),
 });
 
-const request: YarfRequest<CacheState, ResponseData, Error, FetchRequestInit> = {
+const request: QueryInit<CacheState, ResponseData, Error, FetchRequestInit> = {
+    requesterId: 'test',
     getNetworkRequestFactory: requestInit => () => fetchFn(getUrl(requestInit), { ...requestInit }),
-    getId: getId,
+    getRequestId: getId,
     fetchPolicy: 'cache-and-network',
     requestInit: {
         ...baseRequestInit,
@@ -111,7 +112,7 @@ const request: YarfRequest<CacheState, ResponseData, Error, FetchRequestInit> = 
     },
 };
 
-const requestWithSharedData: YarfRequest<CacheState, ResponseData, Error, FetchRequestInit> = {
+const requestWithSharedData: QueryInit<CacheState, ResponseData, Error, FetchRequestInit> = {
     ...request,
     toCache({ cacheData, data, requestInit }) {
         return {
@@ -128,10 +129,8 @@ const requestWithSharedData: YarfRequest<CacheState, ResponseData, Error, FetchR
 it('can query data', async () => {
     fakeBackendState = JSON.parse(JSON.stringify(INITIAL_FAKE_BACKEND_STATE));
 
-    const response = await client.query(
-        { ...request, requestInit: { ...baseRequestInit, pathParams: { id: '1' } } },
-        { requesterId: 'test' },
-    ).fromNetwork;
+    const response = await client.query({ ...request, requestInit: { ...baseRequestInit, pathParams: { id: '1' } } })
+        .fromNetwork;
 
     expect(response).toEqual({ data: FIRST_ITEM });
 });
@@ -139,18 +138,15 @@ it('can query data', async () => {
 it('can mutate data', async () => {
     fakeBackendState = JSON.parse(JSON.stringify(INITIAL_FAKE_BACKEND_STATE));
 
-    const response = await client.mutate(
-        {
-            ...request,
-            requestInit: {
-                ...baseRequestInit,
-                pathParams: { id: '1' },
-                method: 'POST',
-                body: JSON.stringify(ALTERED_ITEM),
-            },
+    const response = await client.mutate({
+        ...request,
+        requestInit: {
+            ...baseRequestInit,
+            pathParams: { id: '1' },
+            method: 'POST',
+            body: JSON.stringify(ALTERED_ITEM),
         },
-        { requesterId: 'test' },
-    );
+    });
 
     expect(response).toEqual({ data: ALTERED_ITEM });
 });
@@ -158,14 +154,11 @@ it('can mutate data', async () => {
 it('caches queried data', async () => {
     fakeBackendState = JSON.parse(JSON.stringify(INITIAL_FAKE_BACKEND_STATE));
 
-    await client.query(
-        { ...request, requestInit: { ...baseRequestInit, pathParams: { id: '1' } } },
-        { requesterId: 'test' },
-    ).fromNetwork;
-    const { data: responseFromCache } = client.getState(
-        { ...request, requestInit: { ...baseRequestInit, pathParams: { id: '1' } } },
-        { requesterId: 'test' },
-    );
+    await client.query({ ...request, requestInit: { ...baseRequestInit, pathParams: { id: '1' } } }).fromNetwork;
+    const { data: responseFromCache } = client.getState({
+        ...request,
+        requestInit: { ...baseRequestInit, pathParams: { id: '1' } },
+    });
 
     expect(responseFromCache).toEqual({ data: FIRST_ITEM });
 });
@@ -173,14 +166,12 @@ it('caches queried data', async () => {
 it('caches queried data for request with custom caching', async () => {
     fakeBackendState = JSON.parse(JSON.stringify(INITIAL_FAKE_BACKEND_STATE));
 
-    await client.query(
-        { ...requestWithSharedData, requestInit: { ...baseRequestInit, pathParams: { id: '1' } } },
-        { requesterId: 'test' },
-    ).fromNetwork;
-    const { data: responseFromCache } = client.getState(
-        { ...requestWithSharedData, requestInit: { ...baseRequestInit, pathParams: { id: '1' } } },
-        { requesterId: 'test' },
-    );
+    await client.query({ ...requestWithSharedData, requestInit: { ...baseRequestInit, pathParams: { id: '1' } } })
+        .fromNetwork;
+    const { data: responseFromCache } = client.getState({
+        ...requestWithSharedData,
+        requestInit: { ...baseRequestInit, pathParams: { id: '1' } },
+    });
 
     expect(responseFromCache).toEqual({ data: FIRST_ITEM });
 });
@@ -188,29 +179,26 @@ it('caches queried data for request with custom caching', async () => {
 it("guarantees that old query data won't overwrite state after mutation", async () => {
     fakeBackendState = JSON.parse(JSON.stringify(INITIAL_FAKE_BACKEND_STATE));
 
-    const queryPromise = client.query(
-        { ...requestWithSharedData, requestInit: { ...baseRequestInit, pathParams: { id: '1' } } },
-        { requesterId: 'test' },
-    );
-    const mutatePromise = client.mutate(
-        {
-            ...requestWithSharedData,
-            requestInit: {
-                ...baseRequestInit,
-                pathParams: { id: '1' },
-                method: 'POST',
-                body: JSON.stringify(ALTERED_ITEM),
-            },
+    const queryPromise = client.query({
+        ...requestWithSharedData,
+        requestInit: { ...baseRequestInit, pathParams: { id: '1' } },
+    });
+    const mutatePromise = client.mutate({
+        ...requestWithSharedData,
+        requestInit: {
+            ...baseRequestInit,
+            pathParams: { id: '1' },
+            method: 'POST',
+            body: JSON.stringify(ALTERED_ITEM),
         },
-        { requesterId: 'test' },
-    );
+    });
 
     await Promise.all([queryPromise, mutatePromise]);
 
-    const { data: responseFromCache } = client.getState(
-        { ...requestWithSharedData, requestInit: { ...baseRequestInit, pathParams: { id: '1' } } },
-        { requesterId: 'test' },
-    );
+    const { data: responseFromCache } = client.getState({
+        ...requestWithSharedData,
+        requestInit: { ...baseRequestInit, pathParams: { id: '1' } },
+    });
 
     expect(responseFromCache).toEqual({ data: ALTERED_ITEM });
 });

@@ -15,21 +15,21 @@ it('does not return promise if there is error in cache', async () => {
 
     const firstItemRequest = getFailingFirstItemRequest();
 
-    const queryResult = queryProcessor.query(firstItemRequest, { requesterId: 'test' });
+    const queryResult = queryProcessor.query(firstItemRequest);
 
     await expect(queryResult.fromNetwork).rejects.toEqual(getNetworkError());
 
-    const dataFromCache = queryProcessor.getCompleteRequestState(firstItemRequest, 'test');
+    const dataFromCache = queryProcessor.getCompleteRequestState(firstItemRequest);
     expect(dataFromCache).toEqual({ data: undefined, loading: [], error: getNetworkError() });
 
-    const nextQueryResult = queryProcessor.query(firstItemRequest, { requesterId: 'test' });
+    const nextQueryResult = queryProcessor.query(firstItemRequest);
 
-    const postQueryDataFromCache = queryProcessor.getCompleteRequestState(firstItemRequest, 'test');
+    const postQueryDataFromCache = queryProcessor.getCompleteRequestState(firstItemRequest);
     expect(postQueryDataFromCache).toEqual({ data: undefined, loading: ['test'], error: getNetworkError() });
 
     expect(nextQueryResult.fromNetwork).toEqual(undefined);
 
-    const nextDataFromCache = queryProcessor.getCompleteRequestState(firstItemRequest, 'test');
+    const nextDataFromCache = queryProcessor.getCompleteRequestState(firstItemRequest);
 
     expect(nextDataFromCache).toEqual({ data: undefined, loading: ['test'], error: getNetworkError() });
 });
@@ -39,19 +39,19 @@ it('does not return promise if there is data in cache', async () => {
 
     const firstItemRequest = getFirstItemRequest();
 
-    const queryResult = queryProcessor.query(firstItemRequest, { requesterId: 'test' });
+    const queryResult = queryProcessor.query(firstItemRequest);
 
     await expect(queryResult.fromNetwork).resolves.toEqual(FIRST_ITEM);
 
-    const dataFromCache = queryProcessor.getCompleteRequestState(firstItemRequest, 'test');
+    const dataFromCache = queryProcessor.getCompleteRequestState(firstItemRequest);
 
     expect(dataFromCache).toEqual({ data: FIRST_ITEM, loading: [], error: undefined });
 
-    const nextQueryResult = queryProcessor.query(firstItemRequest, { requesterId: 'test' });
+    const nextQueryResult = queryProcessor.query(firstItemRequest);
 
     expect(nextQueryResult.fromNetwork).toEqual(undefined);
 
-    const nextDataFromCache = queryProcessor.getCompleteRequestState(firstItemRequest, 'test');
+    const nextDataFromCache = queryProcessor.getCompleteRequestState(firstItemRequest);
 
     expect(nextDataFromCache).toEqual({ data: FIRST_ITEM, loading: ['test'], error: undefined });
 });
@@ -61,9 +61,9 @@ it('can opt-out from returning the promise', () => {
 
     const firstItemRequest = getFirstItemRequest();
 
-    const queryResult = queryProcessor.query({ ...firstItemRequest, disableSsr: true }, { requesterId: 'test' });
+    const queryResult = queryProcessor.query({ ...firstItemRequest, disableSsr: true });
     expect(queryResult.fromNetwork).toEqual(undefined);
 
-    const dataFromCache = queryProcessor.getCompleteRequestState(firstItemRequest, 'test');
+    const dataFromCache = queryProcessor.getCompleteRequestState(firstItemRequest);
     expect(dataFromCache).toEqual({ data: undefined, loading: ['test'], error: undefined });
 });

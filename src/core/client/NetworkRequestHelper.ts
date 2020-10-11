@@ -1,10 +1,10 @@
 import { EnableSignal, Signals, smartPromise } from '../promise';
 import * as logger from '../logger';
-import { NonUndefined, YarfRequest } from '../types';
+import { NonUndefined, CommonRequest } from '../types';
 
 export class NetworkRequestHelper {
     public static getPromiseFactory<C extends NonUndefined, R extends NonUndefined, E extends Error, I>(
-        request: YarfRequest<C, R, E, I>,
+        request: CommonRequest<C, R, E, I>,
         signals: Signals = {},
     ): (enableSignal?: EnableSignal) => Promise<R> {
         return (enableSignal?: EnableSignal) =>

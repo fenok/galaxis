@@ -1,13 +1,8 @@
-import { MultiAbortController, MultiAbortSignal } from '../promise/controllers';
+import { MultiAbortController } from '../promise/controllers';
 import { wireAbortSignals } from '../promise';
 import { NetworkRequestQueue } from './NetworkRequestQueue';
 import { NetworkRequestHelper } from './NetworkRequestHelper';
-import { NonUndefined, Cache, YarfRequest } from '../types';
-
-export interface MutateOptions {
-    requesterId: string;
-    multiAbortSignal?: MultiAbortSignal;
-}
+import { NonUndefined, Cache, MutationInit } from '../types';
 
 export interface MutationPromiseData {
     promise: Promise<any>;
@@ -35,11 +30,9 @@ export class MutationProcessor<C extends NonUndefined> {
         this.mutations.clear();
     }
 
-    public mutate<R extends NonUndefined, E extends Error, I>(
-        request: YarfRequest<C, R, E, I>,
-        { multiAbortSignal, requesterId }: MutateOptions,
-    ): Promise<R> {
-        const requestId = request.getId(request.requestInit);
+    public mutate<R extends NonUndefined, E extends Error, I>(request: MutationInit<C, R, E, I>): Promise<R> {
+        const requestId = request.getRequestId(request.requestInit);
+        const { abortSignal, requesterId } = request;
 
         if (request.optimisticResponse) {
             this.cache.updateState({
@@ -67,7 +60,7 @@ export class MutationProcessor<C extends NonUndefined> {
         };
 
         // eslint-disable-next-line @typescript-eslint/unbound-method
-        wireAbortSignals(mutationPromiseData.abort, multiAbortSignal);
+        wireAbortSignals(mutationPromiseData.abort, abortSignal);
 
         const mutationPromise = this.networkRequestQueue
             .addPromise(

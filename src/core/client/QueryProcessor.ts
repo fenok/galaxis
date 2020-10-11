@@ -1,17 +1,10 @@
-import { MultiAbortSignal, MultiAbortController, RerunController } from '../promise/controllers';
+import { MultiAbortController, RerunController } from '../promise/controllers';
 import { wireAbortSignals } from '../promise';
 import { RequestState } from './Client';
 import * as logger from '../logger';
 import { NetworkRequestQueue } from './NetworkRequestQueue';
 import { NetworkRequestHelper } from './NetworkRequestHelper';
-import { NonUndefined, YarfRequest, Cache } from '../types';
-
-export interface QueryOptions {
-    requesterId: string;
-    forceNetworkRequest?: boolean; // Perform a network request regardless of fetchPolicy and cache state
-    disableNetworkRequestReuse?: boolean; // Perform new network request instead of reusing the existing one
-    abortSignal?: MultiAbortSignal | AbortSignal;
-}
+import { NonUndefined, QueryInit, Cache } from '../types';
 
 export interface QueryResult<R extends NonUndefined, E extends Error> {
     fromCache: RequestState<R, E>;
@@ -52,10 +45,9 @@ export class QueryProcessor<C extends NonUndefined> {
     }
 
     public getCompleteRequestState<R extends NonUndefined, E extends Error, I>(
-        request: YarfRequest<C, R, E, I>,
-        requesterId: string,
+        request: QueryInit<C, R, E, I>,
     ): RequestState<R, E> {
-        const requestId = request.getId(request.requestInit);
+        const requestId = request.getRequestId(request.requestInit);
         const cacheRequestState = this.cache.getRequestState(requestId);
 
         return {
@@ -65,28 +57,25 @@ export class QueryProcessor<C extends NonUndefined> {
                 cacheData: this.cache.getCacheData(),
                 requestInit: request.requestInit,
                 requestId,
-                requesterId,
+                requesterId: request.requesterId,
             }),
         };
     }
 
-    public query<R extends NonUndefined, E extends Error, I>(
-        request: YarfRequest<C, R, E, I>,
-        requestOptions: QueryOptions,
-    ): QueryResult<R, E> {
-        const requestState = this.getCompleteRequestState(request, requestOptions.requesterId);
+    public query<R extends NonUndefined, E extends Error, I>(request: QueryInit<C, R, E, I>): QueryResult<R, E> {
+        const requestState = this.getCompleteRequestState(request);
 
-        const isFromCache = this.shouldReturnOrThrowFromState(request, requestState, requestOptions);
+        const isFromCache = this.shouldReturnOrThrowFromState(request, requestState);
 
         if (isFromCache) {
-            this.ensureNonLoadingState(request.getId(request.requestInit));
+            this.ensureNonLoadingState(request.getRequestId(request.requestInit));
         }
 
         return {
             fromCache: requestState,
             fromNetwork: !isFromCache
-                ? this.getDataFromNetwork(request, requestOptions)?.catch(error => {
-                      this.warnAboutDivergedError(error, request, requestOptions.requesterId);
+                ? this.getDataFromNetwork(request)?.catch(error => {
+                      this.warnAboutDivergedError(error, request);
                       throw error;
                   })
                 : undefined,
@@ -108,12 +97,11 @@ export class QueryProcessor<C extends NonUndefined> {
     }
 
     private getDataFromNetwork<R extends NonUndefined, E extends Error, I>(
-        request: YarfRequest<C, R, E, I>,
-        options: QueryOptions,
+        request: QueryInit<C, R, E, I>,
     ): Promise<R> | undefined {
-        const { requesterId, abortSignal } = options;
+        const { requesterId, abortSignal } = request;
 
-        const requestData = this.initQueryPromiseData(request, options);
+        const requestData = this.initQueryPromiseData(request);
 
         const onAbort = (multi?: boolean) => {
             requestData.loading.delete(requesterId);
@@ -121,7 +109,7 @@ export class QueryProcessor<C extends NonUndefined> {
             if (multi || requestData.loading.size === 0) {
                 requestData.abort();
             } else {
-                const requestId = request.getId(request.requestInit);
+                const requestId = request.getRequestId(request.requestInit);
 
                 this.cache.updateState({
                     updateRequestState: {
@@ -141,10 +129,10 @@ export class QueryProcessor<C extends NonUndefined> {
     }
 
     private initQueryPromiseData<R extends NonUndefined, E extends Error, I>(
-        request: YarfRequest<C, R, E, I>,
-        { disableNetworkRequestReuse, requesterId }: QueryOptions,
+        request: QueryInit<C, R, E, I>,
     ): QueryPromiseData {
-        const requestId = request.getId(request.requestInit);
+        const requestId = request.getRequestId(request.requestInit);
+        const { requesterId, rerunExistingNetworkRequest } = request;
 
         if (!this.queries[requestId] || this.queries[requestId]?.aborted) {
             const multiAbortController = new MultiAbortController();
@@ -163,7 +151,7 @@ export class QueryProcessor<C extends NonUndefined> {
                 loading: new Set([requesterId]),
             };
 
-            if (typeof window !== 'undefined' || this.shouldMakeNetworkRequestOnSsr(request, requesterId)) {
+            if (typeof window !== 'undefined' || this.shouldMakeNetworkRequestOnSsr(request)) {
                 requestPromiseData.promise = this.networkRequestQueue
                     .addPromise(
                         NetworkRequestHelper.getPromiseFactory(request, {
@@ -266,7 +254,7 @@ export class QueryProcessor<C extends NonUndefined> {
                 },
             });
 
-            if (disableNetworkRequestReuse) {
+            if (rerunExistingNetworkRequest) {
                 this.queries[requestId]!.rerunNetworkRequest();
             }
         }
@@ -275,10 +263,9 @@ export class QueryProcessor<C extends NonUndefined> {
     }
 
     private shouldMakeNetworkRequestOnSsr<R extends NonUndefined, E extends Error, I>(
-        request: YarfRequest<C, R, E, I>,
-        requesterId: string,
+        request: QueryInit<C, R, E, I>,
     ): boolean {
-        const requestState = this.getCompleteRequestState(request, requesterId);
+        const requestState = this.getCompleteRequestState(request);
 
         return (
             !request.disableSsr &&
@@ -289,25 +276,22 @@ export class QueryProcessor<C extends NonUndefined> {
     }
 
     private shouldReturnOrThrowFromState<R extends NonUndefined, E extends Error, I>(
-        request: YarfRequest<C, R, E, I>,
+        request: QueryInit<C, R, E, I>,
         requestState: RequestState<R, E>,
-        queryOptions: QueryOptions,
     ): boolean {
         return (
-            queryOptions.forceNetworkRequest !== true &&
+            request.forceNetworkRequest !== true &&
             (request.fetchPolicy === 'cache-only' ||
-                (request.fetchPolicy === 'cache-first' &&
-                    this.isCachedDataSufficient(request, requestState, queryOptions)) ||
+                (request.fetchPolicy === 'cache-first' && this.isCachedDataSufficient(request, requestState)) ||
                 (Boolean(request.enableInitialRenderDataRefetchOptimization) &&
                     !this.isDataRefetchEnabled &&
-                    this.isCachedDataSufficient(request, requestState, queryOptions)))
+                    this.isCachedDataSufficient(request, requestState)))
         );
     }
 
     private isCachedDataSufficient<R extends NonUndefined, E extends Error, I>(
-        request: YarfRequest<C, R, E, I>,
+        request: QueryInit<C, R, E, I>,
         requestState: RequestState<R, E>,
-        queryOptions: QueryOptions,
     ): boolean {
         return (
             requestState.data !== undefined &&
@@ -316,19 +300,18 @@ export class QueryProcessor<C extends NonUndefined> {
                     data: requestState.data,
                     cacheData: this.cache.getCacheData(),
                     requestInit: request.requestInit,
-                    requestId: request.getId(request.requestInit),
-                    requesterId: queryOptions.requesterId,
+                    requestId: request.getRequestId(request.requestInit),
+                    requesterId: request.requesterId,
                 }))
         );
     }
 
     private warnAboutDivergedError<R extends NonUndefined, E extends Error, I>(
         error: Error,
-        request: YarfRequest<C, R, E, I>,
-        requesterId: string,
+        request: QueryInit<C, R, E, I>,
     ) {
         if (process.env.NODE_ENV !== 'production') {
-            const requestState = this.getCompleteRequestState(request, requesterId);
+            const requestState = this.getCompleteRequestState(request);
             if (error !== requestState.error) {
                 logger.warn(
                     `Error from promise diverged from error in state. This can happen for various reasons:

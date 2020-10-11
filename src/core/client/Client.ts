@@ -1,15 +1,11 @@
-import { QueryProcessor, QueryOptions, QueryResult } from './QueryProcessor';
-import { MutationProcessor, MutateOptions } from './MutationProcessor';
+import { QueryProcessor, QueryResult } from './QueryProcessor';
+import { MutationProcessor } from './MutationProcessor';
 import { NetworkRequestQueue } from './NetworkRequestQueue';
 import { RequesterIdGenerator } from './RequesterIdGenerator';
-import { NonUndefined, Cache, YarfRequest } from '../types';
+import { NonUndefined, Cache, QueryInit, MutationInit } from '../types';
 
 interface ClientOptions<C extends NonUndefined = null> {
     cache: Cache<C>;
-}
-
-interface GetStateOptions {
-    requesterId: string;
 }
 
 interface RequestState<D extends NonUndefined = null, E extends Error = Error> {
@@ -47,12 +43,11 @@ class Client<C extends NonUndefined> {
     }
 
     public subscribe<R extends NonUndefined, E extends Error, I>(
-        request: YarfRequest<C, R, E, I>,
-        requesterId: string,
+        request: QueryInit<C, R, E, I>,
         onChange: (state: RequestState<R, E>) => void,
     ) {
         return this.cache.subscribe(() => {
-            onChange(this.getState(request, { requesterId }));
+            onChange(this.getState(request));
         });
     }
 
@@ -60,31 +55,18 @@ class Client<C extends NonUndefined> {
         this.queryProcessor.enableDataRefetch();
     }
 
-    public getState<R extends NonUndefined, E extends Error, I>(
-        request: YarfRequest<C, R, E, I>,
-        { requesterId }: GetStateOptions,
-    ): RequestState<R, E> {
-        return this.queryProcessor.getCompleteRequestState(request, requesterId);
+    public getState<R extends NonUndefined, E extends Error, I>(request: QueryInit<C, R, E, I>): RequestState<R, E> {
+        return this.queryProcessor.getCompleteRequestState(request);
     }
 
-    public query<R extends NonUndefined, E extends Error, I>(
-        request: YarfRequest<C, R, E, I>,
-        requestOptions: QueryOptions,
-    ): QueryResult<R, E> {
-        return this.queryProcessor.query(request, requestOptions);
+    public query<R extends NonUndefined, E extends Error, I>(request: QueryInit<C, R, E, I>): QueryResult<R, E> {
+        return this.queryProcessor.query(request);
     }
 
-    public async mutate<R extends NonUndefined, E extends Error, I>(
-        request: YarfRequest<C, R, E, I>,
-        mutateOptions: MutateOptions,
-    ): Promise<R> {
-        return this.mutationProcessor.mutate(request, mutateOptions).then(result => {
+    public async mutate<R extends NonUndefined, E extends Error, I>(request: MutationInit<C, R, E, I>): Promise<R> {
+        return this.mutationProcessor.mutate(request).then(result => {
             request.refetchQueries?.forEach(requestData => {
-                this.queryProcessor.query(requestData, {
-                    requesterId: 'INTERNAL',
-                    forceNetworkRequest: true,
-                    disableNetworkRequestReuse: true,
-                });
+                this.queryProcessor.query(requestData);
             });
 
             return result;

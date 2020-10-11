@@ -1,5 +1,5 @@
 import { NetworkRequestQueue } from '../client/NetworkRequestQueue';
-import { YarfRequest } from '../types';
+import { QueryInit, CommonRequest } from '../types';
 import { QueryProcessor } from '../client/QueryProcessor';
 import { TestCache } from './TestCache';
 import { wait } from '../promise/helpers';
@@ -74,18 +74,23 @@ export const INITIAL_CACHE_DATA: TestCacheData = {
     items: {},
 };
 
-export const BASE_REQUEST: Pick<YarfRequest<TestCacheData>, 'fetchPolicy' | 'getId'> = {
-    fetchPolicy: 'cache-and-network',
-    getId(requestInit: unknown): string {
+export const BASE_REQUEST: Pick<CommonRequest<TestCacheData>, 'getRequestId' | 'requesterId'> = {
+    requesterId: 'test',
+    getRequestId(requestInit: unknown): string {
         return Buffer.from(JSON.stringify(requestInit)).toString('base64');
     },
 };
 
+export const BASE_QUERY: typeof BASE_REQUEST & Pick<QueryInit, 'fetchPolicy'> = {
+    ...BASE_REQUEST,
+    fetchPolicy: 'cache-and-network',
+};
+
 export const ITEM_REQUEST: Omit<
-    YarfRequest<TestCacheData, ItemEntity, Error, TestRequestInit>,
+    QueryInit<TestCacheData, ItemEntity, Error, TestRequestInit>,
     'requestInit' | 'getNetworkRequestFactory'
 > = {
-    ...BASE_REQUEST,
+    ...BASE_QUERY,
     toCache({ cacheData, data }) {
         return { ...cacheData, items: { ...cacheData.items, [data.id]: data } };
     },
@@ -94,7 +99,7 @@ export const ITEM_REQUEST: Omit<
     },
 };
 
-export function getFirstItemRequest(): YarfRequest<TestCacheData, ItemEntity, Error, TestRequestInit> {
+export function getFirstItemRequest(): QueryInit<TestCacheData, ItemEntity, Error, TestRequestInit> {
     return {
         ...ITEM_REQUEST,
         getNetworkRequestFactory,
@@ -102,7 +107,7 @@ export function getFirstItemRequest(): YarfRequest<TestCacheData, ItemEntity, Er
     };
 }
 
-export function getFailingFirstItemRequest(): YarfRequest<TestCacheData, ItemEntity, Error, TestRequestInit> {
+export function getFailingFirstItemRequest(): QueryInit<TestCacheData, ItemEntity, Error, TestRequestInit> {
     return {
         ...ITEM_REQUEST,
         getNetworkRequestFactory: () => () => Promise.reject(getNetworkError()),
@@ -110,7 +115,7 @@ export function getFailingFirstItemRequest(): YarfRequest<TestCacheData, ItemEnt
     };
 }
 
-export function getFirstItemRequestWithOptimisticResponse(): YarfRequest<
+export function getFirstItemRequestWithOptimisticResponse(): QueryInit<
     TestCacheData,
     ItemEntity,
     Error,
@@ -141,7 +146,7 @@ export function getFirstItemRequestWithOptimisticResponse(): YarfRequest<
     };
 }
 
-export function getSecondItemRequest(): YarfRequest<TestCacheData, ItemEntity, Error, TestRequestInit> {
+export function getSecondItemRequest(): QueryInit<TestCacheData, ItemEntity, Error, TestRequestInit> {
     return {
         ...ITEM_REQUEST,
         getNetworkRequestFactory,
