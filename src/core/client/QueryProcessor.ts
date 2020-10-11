@@ -280,12 +280,11 @@ export class QueryProcessor<C extends NonUndefined> {
         requestState: RequestState<R, E>,
     ): boolean {
         return (
-            request.forceNetworkRequest !== true &&
-            (request.fetchPolicy === 'cache-only' ||
-                (request.fetchPolicy === 'cache-first' && this.isCachedDataSufficient(request, requestState)) ||
-                (Boolean(request.enableInitialRenderDataRefetchOptimization) &&
-                    !this.isDataRefetchEnabled &&
-                    this.isCachedDataSufficient(request, requestState)))
+            request.fetchPolicy === 'cache-only' ||
+            (request.fetchPolicy === 'cache-first' && this.isCachedDataSufficient(request, requestState)) ||
+            (Boolean(request.enableInitialRenderDataRefetchOptimization) &&
+                !this.isDataRefetchEnabled &&
+                this.isCachedDataSufficient(request, requestState))
         );
     }
 

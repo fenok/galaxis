@@ -86,29 +86,6 @@ it('respects fetch policies', async () => {
     expect(dataFromCache).toEqual({ data: FIRST_ITEM, loading: [], error: undefined });
 });
 
-it('can opt-in to performing network request regardless of cache state and fetch policy', async () => {
-    const queryProcessor = getQueryProcessor();
-
-    const firstItemRequest = getFirstItemRequest();
-
-    const queryResult = queryProcessor.query(firstItemRequest);
-
-    const networkResponse = await queryResult.fromNetwork;
-
-    const dataFromCache = queryProcessor.getCompleteRequestState(firstItemRequest);
-
-    expect(networkResponse).toEqual(FIRST_ITEM);
-    expect(dataFromCache).toEqual({ data: FIRST_ITEM, loading: [], error: undefined });
-
-    const cacheOnlyQueryResult = queryProcessor.query({
-        ...firstItemRequest,
-        fetchPolicy: 'cache-only',
-        forceNetworkRequest: true,
-    });
-
-    await expect(cacheOnlyQueryResult.fromNetwork).resolves.toEqual(FIRST_ITEM);
-});
-
 it('can reuse network requests', async () => {
     const queryProcessor = getQueryProcessor();
 

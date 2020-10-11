@@ -39,7 +39,6 @@ export interface QueryInit<
     fetchPolicy: FetchPolicy;
     disableSsr?: boolean;
     enableInitialRenderDataRefetchOptimization?: boolean;
-    forceNetworkRequest?: boolean; // TODO: Remove? The same can be achieved by using cache-and-network fetch policy
     rerunExistingNetworkRequest?: boolean;
     fromCache(opts: CommonCacheOptions<CD, I>): D | undefined;
 }

@@ -41,7 +41,7 @@ export function useQuery<C extends NonUndefined, R extends NonUndefined, E exten
             return client.query({
                 ...request,
                 abortSignal: getAbortSignal(),
-                forceNetworkRequest: true,
+                fetchPolicy: 'cache-and-network',
                 rerunExistingNetworkRequest: disableNetworkRequestReuse,
             });
         },
