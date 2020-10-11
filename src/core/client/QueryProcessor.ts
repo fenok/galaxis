@@ -283,7 +283,6 @@ export class QueryProcessor<C extends NonUndefined> {
         return (
             !request.disableSsr &&
             typeof window === 'undefined' &&
-            request.fetchPolicy !== 'cache-only' &&
             requestState.data === undefined &&
             requestState.error === undefined
         );
