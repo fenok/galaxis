@@ -9,12 +9,20 @@ interface ItemEntity {
     id: string;
     value: string;
     freshness: number;
+    optimistic?: true;
 }
 
 const FIRST_ITEM: ItemEntity = {
     id: '1',
     value: 'first',
     freshness: 1,
+};
+
+const OPTIMISTIC_FIRST_ITEM: ItemEntity = {
+    id: '1',
+    value: 'first',
+    freshness: 1,
+    optimistic: true,
 };
 
 const SECOND_ITEM: ItemEntity = {
@@ -88,6 +96,32 @@ function getFirstItemRequest(): YarfRequest<TestCacheData, ItemEntity, Error, Te
         ...ITEM_REQUEST,
         getNetworkRequestFactory,
         requestInit: { id: '1' },
+    };
+}
+
+function getFirstItemRequestWithOptimisticResponse(): YarfRequest<TestCacheData, ItemEntity, Error, TestRequestInit> {
+    return {
+        ...ITEM_REQUEST,
+        getNetworkRequestFactory,
+        requestInit: { id: '1' },
+        optimisticResponse: {
+            optimisticData: OPTIMISTIC_FIRST_ITEM,
+            isOptimisticData({ data }): boolean {
+                return Boolean(data.optimistic);
+            },
+            removeOptimisticData({ cacheData, optimisticData }) {
+                const newItems = Object.fromEntries(
+                    Object.entries(cacheData.items).filter(
+                        ([, { optimistic, id }]) => !(optimistic && optimisticData.id === id),
+                    ),
+                );
+
+                return {
+                    ...cacheData,
+                    items: newItems,
+                };
+            },
+        },
     };
 }
 
@@ -435,4 +469,58 @@ it('on purge all requests are aborted and do not affect cache anymore', async ()
     const dataFromCacheAfterPurge = queryProcessor.getCompleteRequestState(firstItemRequest, 'test');
 
     expect(dataFromCacheAfterPurge).toEqual({ data: undefined, loading: ['test'], error: undefined });
+});
+
+it('supports optimistic responses', async () => {
+    const queryProcessor = getQueryProcessor();
+
+    const firstItemRequest = getFirstItemRequestWithOptimisticResponse();
+
+    const queryResult = queryProcessor.query(firstItemRequest, { requesterId: 'test' });
+
+    expect(queryResult.fromCache).toEqual({ data: undefined, loading: [], error: undefined });
+
+    const optimisticDataFromCache = queryProcessor.getCompleteRequestState(firstItemRequest, 'test');
+
+    expect(optimisticDataFromCache).toEqual({ data: OPTIMISTIC_FIRST_ITEM, loading: ['test'], error: undefined });
+
+    await expect(queryResult.fromNetwork).resolves.toEqual(FIRST_ITEM);
+
+    const dataFromCache = queryProcessor.getCompleteRequestState(firstItemRequest, 'test');
+
+    expect(dataFromCache).toEqual({ data: FIRST_ITEM, loading: [], error: undefined });
+});
+
+it('does not consider persisted optimistic data', async () => {
+    const queryProcessor = getQueryProcessor();
+
+    const firstItemRequest = getFirstItemRequestWithOptimisticResponse();
+
+    const queryResult = queryProcessor.query(firstItemRequest, {
+        requesterId: 'test',
+    });
+
+    expect(queryResult.fromCache).toEqual({ data: undefined, loading: [], error: undefined });
+
+    queryProcessor.purge();
+
+    await expect(queryResult.fromNetwork).rejects.toEqual(getAbortError());
+
+    const optimisticDataFromCache = queryProcessor.getCompleteRequestState(firstItemRequest, 'test');
+    expect(optimisticDataFromCache).toEqual({ data: OPTIMISTIC_FIRST_ITEM, loading: ['test'], error: undefined });
+
+    const cacheFirstQueryResult = queryProcessor.query(
+        { ...firstItemRequest, fetchPolicy: 'cache-first' },
+        {
+            requesterId: 'test2',
+        },
+    );
+
+    const loadingDataFromCache = queryProcessor.getCompleteRequestState(firstItemRequest, 'test2');
+    expect(loadingDataFromCache).toEqual({ data: OPTIMISTIC_FIRST_ITEM, loading: ['test2'], error: undefined });
+
+    await expect(cacheFirstQueryResult.fromNetwork).resolves.toEqual(FIRST_ITEM);
+
+    const dataFromCache = queryProcessor.getCompleteRequestState(firstItemRequest, 'test2');
+    expect(dataFromCache).toEqual({ data: FIRST_ITEM, loading: [], error: undefined });
 });
