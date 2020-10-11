@@ -36,8 +36,8 @@ export function smartPromise<T>(
         wireAbortSignals(onAbort, multiAbortSignal, abortSignal);
 
         const onRerun = () => {
-            rerunSignal?.removeEventListener('rerun', onRerun);
             onAbort();
+            removeEventListeners();
             resolve(
                 smartPromise(
                     promiseFactory,
@@ -50,7 +50,7 @@ export function smartPromise<T>(
         rerunSignal?.addEventListener('rerun', onRerun);
 
         const onEnable = () => {
-            enableSignal?.removeEventListener('enable', onEnable);
+            removeEventListeners();
             resolve(smartPromise(promiseFactory, { multiAbortSignal, rerunSignal, abortSignal }, { disabled: false }));
         };
 
@@ -59,6 +59,11 @@ export function smartPromise<T>(
         }
 
         enableSignal?.addEventListener('enable', onEnable);
+
+        function removeEventListeners() {
+            rerunSignal?.removeEventListener('rerun', onRerun);
+            enableSignal?.removeEventListener('enable', onEnable);
+        }
 
         if (!disabled) {
             promiseFactory(abortController?.signal)

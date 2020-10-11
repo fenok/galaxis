@@ -188,11 +188,10 @@ it('does not merge network requests for queries with the same request id when ex
     const firstDataFromCache = queryProcessor.getCompleteRequestState(firstItemRequest, 'test1');
     const secondDataFromCache = queryProcessor.getCompleteRequestState(firstItemRequest, 'test2');
 
-    // TODO: freshness should be 2
-    expect(networkResponse[0]).toEqual({ ...FIRST_ITEM, freshness: 3 });
-    expect(networkResponse[1]).toEqual({ ...FIRST_ITEM, freshness: 3 });
-    expect(firstDataFromCache).toEqual({ data: { ...FIRST_ITEM, freshness: 3 }, loading: [], error: undefined });
-    expect(secondDataFromCache).toEqual({ data: { ...FIRST_ITEM, freshness: 3 }, loading: [], error: undefined });
+    expect(networkResponse[0]).toEqual({ ...FIRST_ITEM, freshness: 2 });
+    expect(networkResponse[1]).toEqual({ ...FIRST_ITEM, freshness: 2 });
+    expect(firstDataFromCache).toEqual({ data: { ...FIRST_ITEM, freshness: 2 }, loading: [], error: undefined });
+    expect(secondDataFromCache).toEqual({ data: { ...FIRST_ITEM, freshness: 2 }, loading: [], error: undefined });
 });
 
 it('can abort query', async () => {
