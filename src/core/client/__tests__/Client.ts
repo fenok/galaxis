@@ -99,7 +99,6 @@ const request: YarfRequest<CacheState, ResponseData, Error, FetchRequestInit> = 
         ...baseRequestInit,
         pathParams: { id: '1' },
     },
-    disableInitialRenderDataRefetchOptimization: true,
     toCache({ cacheData, data, requestId }) {
         return {
             ...cacheData,

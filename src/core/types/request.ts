@@ -20,7 +20,7 @@ export interface YarfRequest<
     lazy?: boolean;
     refetchQueries?: YarfRequest<CD>[];
     disableSsr?: boolean;
-    disableInitialRenderDataRefetchOptimization?: boolean;
+    enableInitialRenderDataRefetchOptimization?: boolean;
     getNetworkRequestFactory(requestInit: I): (abortSignal?: AbortSignal) => Promise<D | E>;
     getId(requestInit: I): string;
     toCache(opts: CommonCacheOptions<CD, I> & { data: D }): CD;

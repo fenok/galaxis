@@ -283,7 +283,7 @@ export class QueryProcessor<C extends NonUndefined> {
                 request.fetchPolicy === 'cache-only' ||
                 (request.fetchPolicy === 'cache-first' &&
                     this.isCachedDataSufficient(request, requestState, queryOptions)) ||
-                (!request.disableInitialRenderDataRefetchOptimization &&
+                (Boolean(request.enableInitialRenderDataRefetchOptimization) &&
                     !this.isDataRefetchEnabled &&
                     this.isCachedDataSufficient(request, requestState, queryOptions)))
         );
