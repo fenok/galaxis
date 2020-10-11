@@ -10,8 +10,7 @@ export interface QueryOptions {
     requesterId: string;
     forceNetworkRequest?: boolean; // Perform a network request regardless of fetchPolicy and cache state
     disableNetworkRequestReuse?: boolean; // Perform new network request instead of reusing the existing one
-    multiAbortSignal?: MultiAbortSignal;
-    ssr?: boolean;
+    abortSignal?: MultiAbortSignal | AbortSignal;
 }
 
 export interface QueryResult<R extends NonUndefined, E extends Error> {
@@ -92,7 +91,7 @@ export class QueryProcessor<C extends NonUndefined> {
         request: YarfRequest<C, R, E, I>,
         options: QueryOptions,
     ): Promise<R> | undefined {
-        const { requesterId, multiAbortSignal } = options;
+        const { requesterId, abortSignal } = options;
 
         const requestData = this.initQueryPromiseData(request, options);
 
@@ -116,14 +115,14 @@ export class QueryProcessor<C extends NonUndefined> {
             }
         };
 
-        wireAbortSignals(onAbort, multiAbortSignal);
+        wireAbortSignals(onAbort, abortSignal);
 
         return requestData.promise;
     }
 
     private initQueryPromiseData<R extends NonUndefined, E extends Error, I>(
         request: YarfRequest<C, R, E, I>,
-        { disableNetworkRequestReuse, requesterId, ssr }: QueryOptions,
+        { disableNetworkRequestReuse, requesterId }: QueryOptions,
     ): QueryPromiseData {
         const requestId = request.getId(request.requestInit);
 
@@ -144,7 +143,7 @@ export class QueryProcessor<C extends NonUndefined> {
                 loading: new Set([requesterId]),
             };
 
-            if (!ssr || this.shouldMakeNetworkRequestOnSsr(request, requesterId)) {
+            if (typeof window !== 'undefined' || this.shouldMakeNetworkRequestOnSsr(request, requesterId)) {
                 requestPromiseData.promise = this.networkRequestQueue
                     .addPromise(
                         NetworkRequestHelper.getPromiseFactory(request, {

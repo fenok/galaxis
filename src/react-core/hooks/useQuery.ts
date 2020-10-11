@@ -7,15 +7,16 @@ import { useId } from './useId';
 import { useSubscription } from './useSubscription';
 import { usePrevious } from './usePrevious';
 import { NonUndefined, YarfRequest, RequestState } from '../../core';
+import { QueryOptions } from '../../core/client/QueryProcessor';
 
-interface QueryOptions<C extends NonUndefined, R extends NonUndefined, E extends Error, I> {
+interface UseQueryOptions<C extends NonUndefined, R extends NonUndefined, E extends Error, I> {
     requesterId?: string;
     getRequestHash?(request: YarfRequest<C, R, E, I>): string | number;
 }
 
 export function useQuery<C extends NonUndefined, R extends NonUndefined, E extends Error, I>(
     request: YarfRequest<C, R, E, I>,
-    { getRequestHash: getRequestHashOuter, requesterId: outerRequesterId }: QueryOptions<C, R, E, I> = {},
+    { getRequestHash: getRequestHashOuter, requesterId: outerRequesterId }: UseQueryOptions<C, R, E, I> = {},
 ) {
     const requesterId = useId(outerRequesterId);
 
@@ -29,12 +30,7 @@ export function useQuery<C extends NonUndefined, R extends NonUndefined, E exten
     const multiAbortControllerRef = React.useRef<MultiAbortController>();
 
     const getRequestOptions = React.useCallback(
-        (
-            ssr: boolean,
-            respectLazy: boolean,
-            forceNetworkRequest: boolean,
-            disableNetworkRequestOptimization: boolean,
-        ) => {
+        (forceNetworkRequest: boolean, disableNetworkRequestReuse: boolean): QueryOptions => {
             if (!multiAbortControllerRef.current || multiAbortControllerRef.current.signal.aborted) {
                 multiAbortControllerRef.current = new MultiAbortController();
             }
@@ -42,10 +38,8 @@ export function useQuery<C extends NonUndefined, R extends NonUndefined, E exten
             return {
                 requesterId,
                 forceNetworkRequest,
-                disableNetworkRequestOptimization,
-                respectLazy,
-                ssr,
-                multiAbortSignal: multiAbortControllerRef.current.signal,
+                disableNetworkRequestReuse,
+                abortSignal: multiAbortControllerRef.current.signal,
             };
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -54,10 +48,7 @@ export function useQuery<C extends NonUndefined, R extends NonUndefined, E exten
 
     const refetch = React.useCallback(
         (disableNetworkRequestOptimization?: boolean) => {
-            return client.query(
-                request,
-                getRequestOptions(false, false, true, Boolean(disableNetworkRequestOptimization)),
-            );
+            return client.query(request, getRequestOptions(true, Boolean(disableNetworkRequestOptimization)));
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [client, requestHash],
@@ -74,11 +65,9 @@ export function useQuery<C extends NonUndefined, R extends NonUndefined, E exten
 
     if (prevClient !== client || prevRequestId !== requestHash) {
         abort();
-        const queryPromise = client
-            .query(request, getRequestOptions(typeof window === 'undefined', true, false, false))
-            .fromNetwork?.catch(() => {
-                // Prevent uncaught error message (error will be in state)
-            });
+        const queryPromise = client.query(request, getRequestOptions(false, false)).fromNetwork?.catch(() => {
+            // Prevent uncaught error message (error will be in state)
+        });
 
         if (typeof window === 'undefined' && ssrPromisesManager && queryPromise) {
             ssrPromisesManager.addPromise(queryPromise);

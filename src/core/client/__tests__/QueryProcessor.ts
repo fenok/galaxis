@@ -258,7 +258,7 @@ it('can abort network request', async () => {
 
     const queryResult = queryProcessor.query(firstItemRequest, {
         requesterId: 'test',
-        multiAbortSignal: abortController.signal,
+        abortSignal: abortController.signal,
     });
 
     abortController.abort();
@@ -280,12 +280,12 @@ it('can abort network request for multiple requesters', async () => {
 
     const firstQueryResult = queryProcessor.query(firstItemRequest, {
         requesterId: 'test1',
-        multiAbortSignal: firstAbortController.signal,
+        abortSignal: firstAbortController.signal,
     });
 
     const secondQueryResult = queryProcessor.query(firstItemRequest, {
         requesterId: 'test2',
-        multiAbortSignal: secondAbortController.signal,
+        abortSignal: secondAbortController.signal,
     });
 
     expect(queryProcessor.getCompleteRequestState(firstItemRequest, 'test1').loading).toEqual(['test1', 'test2']);
@@ -310,7 +310,7 @@ it('does not abort network request if not all requesters asked so', async () => 
 
     const firstQueryResult = queryProcessor.query(firstItemRequest, {
         requesterId: 'test1',
-        multiAbortSignal: abortController.signal,
+        abortSignal: abortController.signal,
     });
 
     const secondQueryResult = queryProcessor.query(firstItemRequest, {
@@ -340,7 +340,7 @@ it('one requester can explicitly ask to abort network request for multiple reque
 
     const firstQueryResult = queryProcessor.query(firstItemRequest, {
         requesterId: 'test1',
-        multiAbortSignal: abortController.signal,
+        abortSignal: abortController.signal,
     });
 
     const secondQueryResult = queryProcessor.query(firstItemRequest, {
@@ -371,7 +371,7 @@ it('correctly aborts previous request when the next one is executed immediately 
         { ...firstItemRequest, getId: () => 'one-and-only' },
         {
             requesterId: 'test',
-            multiAbortSignal: abortController.signal,
+            abortSignal: abortController.signal,
         },
     );
 
