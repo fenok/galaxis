@@ -1,5 +1,4 @@
-import { MultiAbortController, RerunController } from '../promise/controllers';
-import { wireAbortSignals } from '../promise';
+import { MultiAbortController, RerunController, wireAbortSignals } from '../promise';
 import { RequestState } from './Client';
 import * as logger from '../logger';
 import { NetworkRequestQueue } from './NetworkRequestQueue';
