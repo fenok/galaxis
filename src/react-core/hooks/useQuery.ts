@@ -62,6 +62,7 @@ export function useQuery<C extends NonUndefined, R extends NonUndefined, E exten
         abort();
         const queryPromise = client.query({ ...request, abortSignal: getAbortSignal() }).fromNetwork?.catch(() => {
             // Prevent uncaught error message (error will be in state)
+            // TODO: log unexpected (non-network) errors
         });
 
         if (typeof window === 'undefined' && ssrPromisesManager && queryPromise) {

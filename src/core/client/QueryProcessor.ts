@@ -1,6 +1,5 @@
 import { MultiAbortController, RerunController, wireAbortSignals } from '../promise';
 import { RequestState } from './Client';
-import * as logger from '../logger';
 import { NetworkRequestQueue } from './NetworkRequestQueue';
 import { BaseRequestHelper } from './BaseRequestHelper';
 import { NonUndefined, QueryInit, Cache } from '../types';
@@ -72,12 +71,7 @@ export class QueryProcessor<C extends NonUndefined> {
 
         return {
             fromCache: requestState,
-            fromNetwork: !isFromCache
-                ? this.getDataFromNetwork(request)?.catch(error => {
-                      this.warnAboutDivergedError(error, request);
-                      throw error;
-                  })
-                : undefined,
+            fromNetwork: !isFromCache ? this.getDataFromNetwork(request) : undefined,
         };
     }
 
@@ -302,27 +296,5 @@ export class QueryProcessor<C extends NonUndefined> {
                     requesterId: request.requesterId,
                 }))
         );
-    }
-
-    private warnAboutDivergedError<R extends NonUndefined, E extends Error, I>(
-        error: Error,
-        request: QueryInit<C, R, E, I>,
-    ) {
-        if (process.env.NODE_ENV !== 'production') {
-            const requestState = this.getQueryState(request);
-            if (error !== requestState.error) {
-                logger.warn(
-                    `Error from promise diverged from error in state. This can happen for various reasons:
-- Query was started, aborted, and then immediately started again (ignore)
-- Cache is updated asynchronously (ignore)
-- Some request function threw unexpected exception (fix that function)
-- Something's wrong in the library itself (file an issue)
-
-State error: ${requestState.error}
-
-Actual error: ${error}`,
-                );
-            }
-        }
     }
 }
