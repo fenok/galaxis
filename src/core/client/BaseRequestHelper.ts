@@ -1,10 +1,10 @@
 import { EnableSignal, Signals, smartPromise } from '../promise';
 import * as logger from '../logger';
-import { NonUndefined, CommonRequest } from '../types';
+import { NonUndefined, BaseRequestInit } from '../types';
 
-export class NetworkRequestHelper {
+export class BaseRequestHelper {
     public static getPromiseFactory<C extends NonUndefined, R extends NonUndefined, E extends Error, I>(
-        request: CommonRequest<C, R, E, I>,
+        request: BaseRequestInit<C, R, E, I>,
         signals: Signals = {},
     ): (enableSignal?: EnableSignal) => Promise<R> {
         return (enableSignal?: EnableSignal) =>

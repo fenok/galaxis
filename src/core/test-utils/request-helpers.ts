@@ -1,5 +1,5 @@
 import { NetworkRequestQueue } from '../client/NetworkRequestQueue';
-import { QueryInit, CommonRequest } from '../types';
+import { QueryInit, BaseRequestInit } from '../types';
 import { QueryProcessor } from '../client/QueryProcessor';
 import { TestCache } from './TestCache';
 import { wait } from '../promise/helpers';
@@ -75,7 +75,7 @@ export const INITIAL_CACHE_DATA: TestCacheData = {
 };
 
 export const BASE_REQUEST: Pick<
-    CommonRequest<TestCacheData, ItemEntity, Error, TestRequestInit>,
+    BaseRequestInit<TestCacheData, ItemEntity, Error, TestRequestInit>,
     'getRequestId' | 'requesterId'
 > = {
     requesterId: 'test',

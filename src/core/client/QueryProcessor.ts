@@ -2,7 +2,7 @@ import { MultiAbortController, RerunController, wireAbortSignals } from '../prom
 import { RequestState } from './Client';
 import * as logger from '../logger';
 import { NetworkRequestQueue } from './NetworkRequestQueue';
-import { NetworkRequestHelper } from './NetworkRequestHelper';
+import { BaseRequestHelper } from './BaseRequestHelper';
 import { NonUndefined, QueryInit, Cache } from '../types';
 
 export interface QueryResult<R extends NonUndefined, E extends Error> {
@@ -153,7 +153,7 @@ export class QueryProcessor<C extends NonUndefined> {
             if (typeof window !== 'undefined' || this.shouldMakeNetworkRequestOnSsr(request)) {
                 requestPromiseData.promise = this.networkRequestQueue
                     .addPromise(
-                        NetworkRequestHelper.getPromiseFactory(request, {
+                        BaseRequestHelper.getPromiseFactory(request, {
                             multiAbortSignal: multiAbortController.signal,
                             rerunSignal: rerunController.signal,
                         }),

@@ -10,7 +10,7 @@ export interface CommonCacheOptions<CD extends NonUndefined, I> {
     requesterId: string;
 }
 
-export interface CommonRequest<CD extends NonUndefined, D extends NonUndefined, E extends Error, I> {
+export interface BaseRequestInit<CD extends NonUndefined, D extends NonUndefined, E extends Error, I> {
     requesterId: string;
     requestInit: I;
     abortSignal?: MultiAbortSignal | AbortSignal;
@@ -26,7 +26,7 @@ export interface CommonRequest<CD extends NonUndefined, D extends NonUndefined, 
 }
 
 export interface QueryInit<CD extends NonUndefined, D extends NonUndefined, E extends Error, I>
-    extends CommonRequest<CD, D, E, I> {
+    extends BaseRequestInit<CD, D, E, I> {
     fetchPolicy: FetchPolicy;
     disableSsr?: boolean;
     preventExcessNetworkRequestOnHydrate?: boolean;
@@ -35,6 +35,6 @@ export interface QueryInit<CD extends NonUndefined, D extends NonUndefined, E ex
 }
 
 export interface MutationInit<CD extends NonUndefined, D extends NonUndefined, E extends Error, I>
-    extends CommonRequest<CD, D, E, I> {
+    extends BaseRequestInit<CD, D, E, I> {
     refetchQueries?: QueryInit<CD, any, any, any>[];
 }
