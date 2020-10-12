@@ -10,12 +10,12 @@ export interface QueryResult<R extends NonUndefined, E extends Error> {
     fromNetwork?: Promise<R>;
 }
 
-export interface QueryPromiseData {
+export interface QueryNetworkRequest {
     promise?: Promise<any>;
     loading: Set<string>;
     aborted: boolean;
     abort(): void;
-    rerunNetworkRequest(): void;
+    rerun(): void;
 }
 
 export interface QueryProcessorOptions<C extends NonUndefined> {
@@ -24,8 +24,8 @@ export interface QueryProcessorOptions<C extends NonUndefined> {
 }
 
 export class QueryProcessor<C extends NonUndefined> {
-    private queries: { [requestId: string]: QueryPromiseData | undefined } = {};
-    private isDataRefetchEnabled = false;
+    private queries: { [requestId: string]: QueryNetworkRequest | undefined } = {};
+    private isHydrate = true;
     private readonly cache: Cache<C>;
     private networkRequestQueue: NetworkRequestQueue;
 
@@ -34,8 +34,8 @@ export class QueryProcessor<C extends NonUndefined> {
         this.networkRequestQueue = networkRequestQueue;
     }
 
-    public enableDataRefetch() {
-        this.isDataRefetchEnabled = true;
+    public onHydrateComplete() {
+        this.isHydrate = false;
     }
 
     public purge() {
@@ -43,7 +43,7 @@ export class QueryProcessor<C extends NonUndefined> {
         this.queries = {};
     }
 
-    public getCompleteRequestState<R extends NonUndefined, E extends Error, I>(
+    public getQueryState<R extends NonUndefined, E extends Error, I>(
         request: QueryInit<C, R, E, I>,
     ): RequestState<R, E> {
         const requestId = request.getRequestId(request.requestInit);
@@ -62,7 +62,7 @@ export class QueryProcessor<C extends NonUndefined> {
     }
 
     public query<R extends NonUndefined, E extends Error, I>(request: QueryInit<C, R, E, I>): QueryResult<R, E> {
-        const requestState = this.getCompleteRequestState(request);
+        const requestState = this.getQueryState(request);
 
         const isFromCache = this.shouldReturnOrThrowFromState(request, requestState);
 
@@ -129,7 +129,7 @@ export class QueryProcessor<C extends NonUndefined> {
 
     private initQueryPromiseData<R extends NonUndefined, E extends Error, I>(
         request: QueryInit<C, R, E, I>,
-    ): QueryPromiseData {
+    ): QueryNetworkRequest {
         const requestId = request.getRequestId(request.requestInit);
         const { requesterId, rerunExistingNetworkRequest } = request;
 
@@ -137,8 +137,8 @@ export class QueryProcessor<C extends NonUndefined> {
             const multiAbortController = new MultiAbortController();
             const rerunController = new RerunController();
 
-            const requestPromiseData: QueryPromiseData = {
-                rerunNetworkRequest() {
+            const requestPromiseData: QueryNetworkRequest = {
+                rerun() {
                     rerunController.rerun();
                 },
                 abort() {
@@ -254,7 +254,7 @@ export class QueryProcessor<C extends NonUndefined> {
             });
 
             if (rerunExistingNetworkRequest) {
-                this.queries[requestId]!.rerunNetworkRequest();
+                this.queries[requestId]!.rerun();
             }
         }
 
@@ -264,7 +264,7 @@ export class QueryProcessor<C extends NonUndefined> {
     private shouldMakeNetworkRequestOnSsr<R extends NonUndefined, E extends Error, I>(
         request: QueryInit<C, R, E, I>,
     ): boolean {
-        const requestState = this.getCompleteRequestState(request);
+        const requestState = this.getQueryState(request);
 
         return (
             !request.disableSsr &&
@@ -281,8 +281,8 @@ export class QueryProcessor<C extends NonUndefined> {
         return (
             request.fetchPolicy === 'cache-only' ||
             (request.fetchPolicy === 'cache-first' && this.isCachedDataSufficient(request, requestState)) ||
-            (Boolean(request.enableInitialRenderDataRefetchOptimization) &&
-                !this.isDataRefetchEnabled &&
+            (Boolean(request.preventExcessNetworkRequestOnHydrate) &&
+                this.isHydrate &&
                 this.isCachedDataSufficient(request, requestState))
         );
     }
@@ -309,7 +309,7 @@ export class QueryProcessor<C extends NonUndefined> {
         request: QueryInit<C, R, E, I>,
     ) {
         if (process.env.NODE_ENV !== 'production') {
-            const requestState = this.getCompleteRequestState(request);
+            const requestState = this.getQueryState(request);
             if (error !== requestState.error) {
                 logger.warn(
                     `Error from promise diverged from error in state. This can happen for various reasons:

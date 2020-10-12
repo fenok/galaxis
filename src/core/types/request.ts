@@ -29,7 +29,7 @@ export interface QueryInit<CD extends NonUndefined, D extends NonUndefined, E ex
     extends CommonRequest<CD, D, E, I> {
     fetchPolicy: FetchPolicy;
     disableSsr?: boolean;
-    enableInitialRenderDataRefetchOptimization?: boolean;
+    preventExcessNetworkRequestOnHydrate?: boolean;
     rerunExistingNetworkRequest?: boolean;
     fromCache(opts: CommonCacheOptions<CD, I>): D | undefined;
 }

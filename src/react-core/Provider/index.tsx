@@ -11,7 +11,7 @@ interface ProviderProps {
 
 const Provider: React.FC<ProviderProps> = ({ children, client }) => {
     React.useEffect(() => {
-        client.enableDataRefetch();
+        client.onHydrateComplete();
     }, [client]);
 
     client.resetRequesterIdGenerator();

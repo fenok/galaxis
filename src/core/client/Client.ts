@@ -51,12 +51,12 @@ class Client<C extends NonUndefined> {
         });
     }
 
-    public enableDataRefetch() {
-        this.queryProcessor.enableDataRefetch();
+    public onHydrateComplete() {
+        this.queryProcessor.onHydrateComplete();
     }
 
     public getState<R extends NonUndefined, E extends Error, I>(request: QueryInit<C, R, E, I>): RequestState<R, E> {
-        return this.queryProcessor.getCompleteRequestState(request);
+        return this.queryProcessor.getQueryState(request);
     }
 
     public query<R extends NonUndefined, E extends Error, I>(request: QueryInit<C, R, E, I>): QueryResult<R, E> {
