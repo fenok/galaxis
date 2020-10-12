@@ -3,7 +3,7 @@ import { MultiAbortSignal } from '../promise/controllers';
 
 export type FetchPolicy = 'cache-only' | 'cache-first' | 'cache-and-network';
 
-export interface CommonCacheOptions<CD extends NonUndefined = null, I = unknown> {
+export interface CommonCacheOptions<CD extends NonUndefined, I> {
     cacheData: CD;
     requestInit: I;
     requestId: string;
