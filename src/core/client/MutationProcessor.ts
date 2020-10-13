@@ -1,7 +1,7 @@
 import { MultiAbortController, wireAbortSignals } from '../promise';
-import { NetworkRequestQueue } from './NetworkRequestQueue';
+import { RequestQueue } from './RequestQueue';
 import { BaseRequestHelper } from './BaseRequestHelper';
-import { NonUndefined, Cache, MutationInit } from '../types';
+import { NonUndefined, Cache, Mutation } from '../types';
 
 export interface MutationPromiseData {
     promise: Promise<any>;
@@ -11,13 +11,13 @@ export interface MutationPromiseData {
 
 export interface MutationProcessorOptions<C extends NonUndefined> {
     cache: Cache<C>;
-    networkRequestQueue: NetworkRequestQueue;
+    networkRequestQueue: RequestQueue;
 }
 
 export class MutationProcessor<C extends NonUndefined> {
     private mutations: Set<MutationPromiseData> = new Set();
     private readonly cache: Cache<C>;
-    private networkRequestQueue: NetworkRequestQueue;
+    private networkRequestQueue: RequestQueue;
 
     constructor({ cache, networkRequestQueue }: MutationProcessorOptions<C>) {
         this.cache = cache;
@@ -29,7 +29,7 @@ export class MutationProcessor<C extends NonUndefined> {
         this.mutations.clear();
     }
 
-    public mutate<R extends NonUndefined, E extends Error, I>(request: MutationInit<C, R, E, I>): Promise<R> {
+    public mutate<R extends NonUndefined, E extends Error, I>(request: Mutation<C, R, E, I>): Promise<R> {
         const requestId = request.getRequestId(request.requestInit);
         const { abortSignal, requesterId } = request;
 

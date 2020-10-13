@@ -1,9 +1,9 @@
 import { getHashBase64 } from './getHashBase64';
-import { NonUndefined, QueryInit } from '../../core';
+import { NonUndefined, Query } from '../../core';
 
 export function getRequestHash<C extends NonUndefined, R extends NonUndefined, E extends Error, I>(
-    request: QueryInit<C, R, E, I>,
-    getRequestHash?: (request: QueryInit<C, R, E, I>) => string | number,
+    request: Query<C, R, E, I>,
+    getRequestHash?: (request: Query<C, R, E, I>) => string | number,
 ) {
     let requestId: string | number;
     if (getRequestHash) {

@@ -1,4 +1,4 @@
-import { NetworkRequestQueue } from '../NetworkRequestQueue';
+import { RequestQueue } from '../RequestQueue';
 import { resolveAfter, smartPromise, EnableSignal } from '../../promise';
 
 function getPromiseFactory(value: string, timeout?: number) {
@@ -23,7 +23,7 @@ it('processes queries independently and mutations sequentially', async () => {
         values.push(nextValue);
     }
 
-    const queue = new NetworkRequestQueue();
+    const queue = new RequestQueue();
     await Promise.all([
         queue.addPromise(...getOpts('short', 'query')).then(updateValues),
         queue.addPromise(...getOpts('long', 'query')).then(updateValues),

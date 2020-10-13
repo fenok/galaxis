@@ -6,15 +6,15 @@ import { getRequestHash } from './getRequestHash';
 import { useId } from './useId';
 import { useSubscription } from './useSubscription';
 import { usePrevious } from './usePrevious';
-import { NonUndefined, QueryInit, RequestState } from '../../core';
+import { NonUndefined, Query, RequestState } from '../../core';
 
 interface UseQueryOptions<C extends NonUndefined, R extends NonUndefined, E extends Error, I> {
     requesterId?: string;
-    getRequestHash?(request: QueryInit<C, R, E, I>): string | number;
+    getRequestHash?(request: Query<C, R, E, I>): string | number;
 }
 
 export function useQuery<C extends NonUndefined, R extends NonUndefined, E extends Error, I>(
-    request: QueryInit<C, R, E, I>,
+    request: Query<C, R, E, I>,
     { getRequestHash: getRequestHashOuter, requesterId: outerRequesterId }: UseQueryOptions<C, R, E, I> = {},
 ) {
     const requesterId = useId(outerRequesterId);
@@ -42,7 +42,7 @@ export function useQuery<C extends NonUndefined, R extends NonUndefined, E exten
                 ...request,
                 abortSignal: getAbortSignal(),
                 fetchPolicy: 'cache-and-network',
-                rerunExistingNetworkRequest: disableNetworkRequestReuse,
+                rerunExistingRequest: disableNetworkRequestReuse,
             });
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -60,7 +60,7 @@ export function useQuery<C extends NonUndefined, R extends NonUndefined, E exten
 
     if (prevClient !== client || prevRequestId !== requestHash) {
         abort();
-        const queryPromise = client.query({ ...request, abortSignal: getAbortSignal() }).fromNetwork?.catch(() => {
+        const queryPromise = client.query({ ...request, abortSignal: getAbortSignal() }).request?.catch(() => {
             // Prevent uncaught error message (error will be in state)
             // TODO: log unexpected (non-network) errors
         });

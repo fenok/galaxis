@@ -17,7 +17,7 @@ it('does not return promise if there is error in cache', async () => {
 
     const queryResult = queryProcessor.query(firstItemRequest);
 
-    await expect(queryResult.fromNetwork).rejects.toEqual(getNetworkError());
+    await expect(queryResult.request).rejects.toEqual(getNetworkError());
 
     const dataFromCache = queryProcessor.getQueryState(firstItemRequest);
     expect(dataFromCache).toEqual({ data: undefined, loading: [], error: getNetworkError() });
@@ -27,7 +27,7 @@ it('does not return promise if there is error in cache', async () => {
     const postQueryDataFromCache = queryProcessor.getQueryState(firstItemRequest);
     expect(postQueryDataFromCache).toEqual({ data: undefined, loading: ['test'], error: getNetworkError() });
 
-    expect(nextQueryResult.fromNetwork).toEqual(undefined);
+    expect(nextQueryResult.request).toEqual(undefined);
 
     const nextDataFromCache = queryProcessor.getQueryState(firstItemRequest);
 
@@ -41,7 +41,7 @@ it('does not return promise if there is data in cache', async () => {
 
     const queryResult = queryProcessor.query(firstItemRequest);
 
-    await expect(queryResult.fromNetwork).resolves.toEqual(FIRST_ITEM);
+    await expect(queryResult.request).resolves.toEqual(FIRST_ITEM);
 
     const dataFromCache = queryProcessor.getQueryState(firstItemRequest);
 
@@ -49,7 +49,7 @@ it('does not return promise if there is data in cache', async () => {
 
     const nextQueryResult = queryProcessor.query(firstItemRequest);
 
-    expect(nextQueryResult.fromNetwork).toEqual(undefined);
+    expect(nextQueryResult.request).toEqual(undefined);
 
     const nextDataFromCache = queryProcessor.getQueryState(firstItemRequest);
 
@@ -62,7 +62,7 @@ it('can opt-out from returning the promise', () => {
     const firstItemRequest = getFirstItemRequest();
 
     const queryResult = queryProcessor.query({ ...firstItemRequest, disableSsr: true });
-    expect(queryResult.fromNetwork).toEqual(undefined);
+    expect(queryResult.request).toEqual(undefined);
 
     const dataFromCache = queryProcessor.getQueryState(firstItemRequest);
     expect(dataFromCache).toEqual({ data: undefined, loading: ['test'], error: undefined });

@@ -7,7 +7,7 @@ export interface QueueSection {
     enableController: EnableController;
 }
 
-export class NetworkRequestQueue {
+export class RequestQueue {
     private queue: (QueueSection | undefined)[] = [];
 
     public addPromise<R extends NonUndefined>(

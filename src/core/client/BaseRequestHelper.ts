@@ -1,15 +1,15 @@
 import { EnableSignal, Signals, smartPromise } from '../promise';
 import * as logger from '../logger';
-import { NonUndefined, BaseRequestInit } from '../types';
+import { NonUndefined, BaseRequest } from '../types';
 
 export class BaseRequestHelper {
     public static getPromiseFactory<C extends NonUndefined, R extends NonUndefined, E extends Error, I>(
-        request: BaseRequestInit<C, R, E, I>,
+        request: BaseRequest<C, R, E, I>,
         signals: Signals = {},
     ): (enableSignal?: EnableSignal) => Promise<R> {
         return (enableSignal?: EnableSignal) =>
             smartPromise(
-                request.getNetworkRequestFactory(request.requestInit),
+                request.getRequestFactory(request.requestInit),
                 {
                     ...signals,
                     enableSignal,

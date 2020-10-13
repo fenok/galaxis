@@ -4,7 +4,7 @@ import { serializeError, deserializeError } from 'serialize-error';
 import { FetchRequestInit } from '../../../fetch-network-request-factory/types';
 import { getId } from '../../../fetch-network-request-factory/getId';
 import { getUrl } from '../../../fetch-network-request-factory/getUrl';
-import { QueryInit } from '../../types';
+import { Query } from '../../types';
 
 const FIRST_ITEM = {
     id: 1,
@@ -91,9 +91,9 @@ const client = new Client({
     }),
 });
 
-const request: QueryInit<CacheState, ResponseData, Error, FetchRequestInit> = {
+const request: Query<CacheState, ResponseData, Error, FetchRequestInit> = {
     requesterId: 'test',
-    getNetworkRequestFactory: requestInit => () => fetchFn(getUrl(requestInit), { ...requestInit }),
+    getRequestFactory: requestInit => () => fetchFn(getUrl(requestInit), { ...requestInit }),
     getRequestId: getId,
     fetchPolicy: 'cache-and-network',
     requestInit: {
@@ -112,7 +112,7 @@ const request: QueryInit<CacheState, ResponseData, Error, FetchRequestInit> = {
     },
 };
 
-const requestWithSharedData: QueryInit<CacheState, ResponseData, Error, FetchRequestInit> = {
+const requestWithSharedData: Query<CacheState, ResponseData, Error, FetchRequestInit> = {
     ...request,
     toCache({ cacheData, data, requestInit }) {
         return {
@@ -129,8 +129,10 @@ const requestWithSharedData: QueryInit<CacheState, ResponseData, Error, FetchReq
 it('can query data', async () => {
     fakeBackendState = JSON.parse(JSON.stringify(INITIAL_FAKE_BACKEND_STATE));
 
-    const response = await client.query({ ...request, requestInit: { ...baseRequestInit, pathParams: { id: '1' } } })
-        .fromNetwork;
+    const response = await client.query({
+        ...request,
+        requestInit: { ...baseRequestInit, pathParams: { id: '1' } },
+    }).request;
 
     expect(response).toEqual({ data: FIRST_ITEM });
 });
@@ -154,7 +156,7 @@ it('can mutate data', async () => {
 it('caches queried data', async () => {
     fakeBackendState = JSON.parse(JSON.stringify(INITIAL_FAKE_BACKEND_STATE));
 
-    await client.query({ ...request, requestInit: { ...baseRequestInit, pathParams: { id: '1' } } }).fromNetwork;
+    await client.query({ ...request, requestInit: { ...baseRequestInit, pathParams: { id: '1' } } }).request;
     const { data: responseFromCache } = client.getState({
         ...request,
         requestInit: { ...baseRequestInit, pathParams: { id: '1' } },
@@ -166,8 +168,10 @@ it('caches queried data', async () => {
 it('caches queried data for request with custom caching', async () => {
     fakeBackendState = JSON.parse(JSON.stringify(INITIAL_FAKE_BACKEND_STATE));
 
-    await client.query({ ...requestWithSharedData, requestInit: { ...baseRequestInit, pathParams: { id: '1' } } })
-        .fromNetwork;
+    await client.query({
+        ...requestWithSharedData,
+        requestInit: { ...baseRequestInit, pathParams: { id: '1' } },
+    }).request;
     const { data: responseFromCache } = client.getState({
         ...requestWithSharedData,
         requestInit: { ...baseRequestInit, pathParams: { id: '1' } },

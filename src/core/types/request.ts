@@ -10,11 +10,11 @@ export interface CommonCacheOptions<CD extends NonUndefined, I> {
     requesterId: string;
 }
 
-export interface BaseRequestInit<CD extends NonUndefined, D extends NonUndefined, E extends Error, I> {
+export interface BaseRequest<CD extends NonUndefined, D extends NonUndefined, E extends Error, I> {
     requesterId: string;
     requestInit: I;
     abortSignal?: MultiAbortSignal | AbortSignal;
-    getNetworkRequestFactory(requestInit: I): (abortSignal?: AbortSignal) => Promise<D | E>;
+    getRequestFactory(requestInit: I): (abortSignal?: AbortSignal) => Promise<D | E>;
     getRequestId(requestInit: I): string;
     toCache(opts: CommonCacheOptions<CD, I> & { data: D }): CD;
 
@@ -25,16 +25,16 @@ export interface BaseRequestInit<CD extends NonUndefined, D extends NonUndefined
     };
 }
 
-export interface QueryInit<CD extends NonUndefined, D extends NonUndefined, E extends Error, I>
-    extends BaseRequestInit<CD, D, E, I> {
+export interface Query<CD extends NonUndefined, D extends NonUndefined, E extends Error, I>
+    extends BaseRequest<CD, D, E, I> {
     fetchPolicy: FetchPolicy;
     disableSsr?: boolean;
-    preventExcessNetworkRequestOnHydrate?: boolean;
-    rerunExistingNetworkRequest?: boolean;
+    preventExcessRequestOnHydrate?: boolean;
+    rerunExistingRequest?: boolean;
     fromCache(opts: CommonCacheOptions<CD, I>): D | undefined;
 }
 
-export interface MutationInit<CD extends NonUndefined, D extends NonUndefined, E extends Error, I>
-    extends BaseRequestInit<CD, D, E, I> {
-    refetchQueries?: QueryInit<CD, any, any, any>[];
+export interface Mutation<CD extends NonUndefined, D extends NonUndefined, E extends Error, I>
+    extends BaseRequest<CD, D, E, I> {
+    refetchQueries?: Query<CD, any, any, any>[];
 }

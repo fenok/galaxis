@@ -1,5 +1,5 @@
-import { NetworkRequestQueue } from '../client/NetworkRequestQueue';
-import { QueryInit, BaseRequestInit } from '../types';
+import { RequestQueue } from '../client/RequestQueue';
+import { Query, BaseRequest } from '../types';
 import { QueryProcessor } from '../client/QueryProcessor';
 import { TestCache } from './TestCache';
 import { wait } from '../promise/helpers';
@@ -75,7 +75,7 @@ export const INITIAL_CACHE_DATA: TestCacheData = {
 };
 
 export const BASE_REQUEST: Pick<
-    BaseRequestInit<TestCacheData, ItemEntity, Error, TestRequestInit>,
+    BaseRequest<TestCacheData, ItemEntity, Error, TestRequestInit>,
     'getRequestId' | 'requesterId'
 > = {
     requesterId: 'test',
@@ -85,14 +85,14 @@ export const BASE_REQUEST: Pick<
 };
 
 export const BASE_QUERY: typeof BASE_REQUEST &
-    Pick<QueryInit<TestCacheData, ItemEntity, Error, TestRequestInit>, 'fetchPolicy'> = {
+    Pick<Query<TestCacheData, ItemEntity, Error, TestRequestInit>, 'fetchPolicy'> = {
     ...BASE_REQUEST,
     fetchPolicy: 'cache-and-network',
 };
 
 export const ITEM_REQUEST: Omit<
-    QueryInit<TestCacheData, ItemEntity, Error, TestRequestInit>,
-    'requestInit' | 'getNetworkRequestFactory'
+    Query<TestCacheData, ItemEntity, Error, TestRequestInit>,
+    'requestInit' | 'getRequestFactory'
 > = {
     ...BASE_QUERY,
     toCache({ cacheData, data }) {
@@ -103,31 +103,26 @@ export const ITEM_REQUEST: Omit<
     },
 };
 
-export function getFirstItemRequest(): QueryInit<TestCacheData, ItemEntity, Error, TestRequestInit> {
+export function getFirstItemRequest(): Query<TestCacheData, ItemEntity, Error, TestRequestInit> {
     return {
         ...ITEM_REQUEST,
-        getNetworkRequestFactory,
+        getRequestFactory: getNetworkRequestFactory,
         requestInit: { id: '1' },
     };
 }
 
-export function getFailingFirstItemRequest(): QueryInit<TestCacheData, ItemEntity, Error, TestRequestInit> {
+export function getFailingFirstItemRequest(): Query<TestCacheData, ItemEntity, Error, TestRequestInit> {
     return {
         ...ITEM_REQUEST,
-        getNetworkRequestFactory: () => () => Promise.reject(getNetworkError()),
+        getRequestFactory: () => () => Promise.reject(getNetworkError()),
         requestInit: { id: '1' },
     };
 }
 
-export function getFirstItemRequestWithOptimisticResponse(): QueryInit<
-    TestCacheData,
-    ItemEntity,
-    Error,
-    TestRequestInit
-> {
+export function getFirstItemRequestWithOptimisticResponse(): Query<TestCacheData, ItemEntity, Error, TestRequestInit> {
     return {
         ...ITEM_REQUEST,
-        getNetworkRequestFactory,
+        getRequestFactory: getNetworkRequestFactory,
         requestInit: { id: '1' },
         optimisticResponse: {
             optimisticData: OPTIMISTIC_FIRST_ITEM,
@@ -148,10 +143,10 @@ export function getFirstItemRequestWithOptimisticResponse(): QueryInit<
     };
 }
 
-export function getSecondItemRequest(): QueryInit<TestCacheData, ItemEntity, Error, TestRequestInit> {
+export function getSecondItemRequest(): Query<TestCacheData, ItemEntity, Error, TestRequestInit> {
     return {
         ...ITEM_REQUEST,
-        getNetworkRequestFactory,
+        getRequestFactory: getNetworkRequestFactory,
         requestInit: { id: '2' },
     };
 }
@@ -159,6 +154,6 @@ export function getSecondItemRequest(): QueryInit<TestCacheData, ItemEntity, Err
 export function getQueryProcessor() {
     return new QueryProcessor({
         cache: new TestCache({ initialData: INITIAL_CACHE_DATA, emptyData: INITIAL_CACHE_DATA }),
-        networkRequestQueue: new NetworkRequestQueue(),
+        requestQueue: new RequestQueue(),
     });
 }
