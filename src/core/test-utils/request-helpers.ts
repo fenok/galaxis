@@ -134,11 +134,9 @@ export function getFirstItemRequestWithOptimisticResponse(): QueryInit<
             isOptimisticData({ data }): boolean {
                 return Boolean(data.optimistic);
             },
-            removeOptimisticData({ cacheData, optimisticData }) {
+            removeOptimisticData({ cacheData, data }) {
                 const newItems = Object.fromEntries(
-                    Object.entries(cacheData.items).filter(
-                        ([, { optimistic, id }]) => !(optimistic && optimisticData.id === id),
-                    ),
+                    Object.entries(cacheData.items).filter(([, { optimistic, id }]) => !(optimistic && data.id === id)),
                 );
 
                 return {

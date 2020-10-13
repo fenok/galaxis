@@ -20,7 +20,7 @@ export interface BaseRequestInit<CD extends NonUndefined, D extends NonUndefined
 
     optimisticResponse?: {
         optimisticData: D;
-        removeOptimisticData(opts: CommonCacheOptions<CD, I> & { optimisticData: D }): CD;
+        removeOptimisticData(opts: CommonCacheOptions<CD, I> & { data: D }): CD;
         isOptimisticData(opts: CommonCacheOptions<CD, I> & { data: D }): boolean;
     };
 }

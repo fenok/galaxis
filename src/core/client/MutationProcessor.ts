@@ -80,7 +80,7 @@ export class MutationProcessor<C extends NonUndefined> {
                                 cacheData: request.optimisticResponse
                                     ? request.optimisticResponse.removeOptimisticData({
                                           cacheData: cacheData,
-                                          optimisticData: request.optimisticResponse.optimisticData,
+                                          data: request.optimisticResponse.optimisticData,
                                           requestInit: request.requestInit,
                                           requestId,
                                           requesterId,
@@ -105,7 +105,7 @@ export class MutationProcessor<C extends NonUndefined> {
                             updateCacheData: cacheData =>
                                 request.optimisticResponse!.removeOptimisticData({
                                     cacheData,
-                                    optimisticData: request.optimisticResponse!.optimisticData,
+                                    data: request.optimisticResponse!.optimisticData,
                                     requestInit: request.requestInit,
                                     requestId,
                                     requesterId,

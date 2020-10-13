@@ -23,7 +23,7 @@ export interface QueryProcessorOptions<C extends NonUndefined> {
 }
 
 export class QueryProcessor<C extends NonUndefined> {
-    private queries: { [requestId: string]: QueryNetworkRequest | undefined } = {};
+    private ongoingNetworkRequests: { [requestId: string]: QueryNetworkRequest | undefined } = {};
     private isHydrate = true;
     private readonly cache: Cache<C>;
     private networkRequestQueue: NetworkRequestQueue;
@@ -38,100 +38,78 @@ export class QueryProcessor<C extends NonUndefined> {
     }
 
     public purge() {
-        Object.values(this.queries).forEach(query => query?.abort());
-        this.queries = {};
+        Object.values(this.ongoingNetworkRequests).forEach(query => query?.abort());
+        this.ongoingNetworkRequests = {};
     }
 
     public getQueryState<R extends NonUndefined, E extends Error, I>(
         request: QueryInit<C, R, E, I>,
     ): RequestState<R, E> {
         const requestId = request.getRequestId(request.requestInit);
-        const cacheRequestState = this.cache.getRequestState(requestId);
+        const { loading, error } = this.cache.getRequestState(requestId);
 
         return {
-            loading: cacheRequestState.loading,
-            error: cacheRequestState.error,
+            loading,
+            error,
             data: request.fromCache({
                 cacheData: this.cache.getCacheData(),
-                requestInit: request.requestInit,
-                requestId,
-                requesterId: request.requesterId,
+                ...this.getCommonCacheOptions(request, requestId),
             }),
         };
     }
 
     public query<R extends NonUndefined, E extends Error, I>(request: QueryInit<C, R, E, I>): QueryResult<R, E> {
+        const requestId = request.getRequestId(request.requestInit);
         const requestState = this.getQueryState(request);
-
-        const isFromCache = this.shouldReturnOrThrowFromState(request, requestState);
-
-        if (isFromCache) {
-            this.ensureNonLoadingState(request.getRequestId(request.requestInit));
-        }
 
         return {
             fromCache: requestState,
-            fromNetwork: !isFromCache ? this.getDataFromNetwork(request) : undefined,
+            fromNetwork: this.getNetworkRequestPromise(request, requestId, requestState),
         };
     }
 
-    private ensureNonLoadingState(requestId: string) {
-        if (!this.queries[requestId]) {
-            this.cache.updateState({
-                updateRequestState: {
-                    requestId,
-                    update: ({ error }) => ({
-                        error,
-                        loading: [],
-                    }),
-                },
-            });
-        }
-    }
-
-    private getDataFromNetwork<R extends NonUndefined, E extends Error, I>(
+    private getNetworkRequestPromise<R extends NonUndefined, E extends Error, I>(
         request: QueryInit<C, R, E, I>,
+        requestId: string,
+        requestState: RequestState<R, E>,
     ): Promise<R> | undefined {
-        const { requesterId, abortSignal } = request;
+        const isNetworkRequestRequired = this.isNetworkRequestRequired(request, requestId, requestState);
 
-        const requestData = this.initQueryPromiseData(request);
+        if (isNetworkRequestRequired) {
+            const networkRequest = this.ensureQueryNetworkRequest(request, requestId, requestState);
 
-        const onAbort = (multi?: boolean) => {
-            requestData.loading.delete(requesterId);
+            const onAbort = (multi?: boolean) => {
+                networkRequest.loading.delete(request.requesterId);
 
-            if (multi || requestData.loading.size === 0) {
-                requestData.abort();
-            } else {
-                const requestId = request.getRequestId(request.requestInit);
+                if (multi || networkRequest.loading.size === 0) {
+                    networkRequest.abort();
+                } else {
+                    this.updateCache(request, requestId, { type: 'loading' });
+                }
+            };
 
-                this.cache.updateState({
-                    updateRequestState: {
-                        requestId,
-                        update: ({ error }) => ({
-                            error,
-                            loading: [...requestData.loading],
-                        }),
-                    },
-                });
-            }
-        };
+            wireAbortSignals(onAbort, request.abortSignal);
 
-        wireAbortSignals(onAbort, abortSignal);
+            return networkRequest.promise;
+        }
 
-        return requestData.promise;
+        this.updateCache(request, requestId, { type: 'loading' });
+
+        return undefined;
     }
 
-    private initQueryPromiseData<R extends NonUndefined, E extends Error, I>(
+    private ensureQueryNetworkRequest<R extends NonUndefined, E extends Error, I>(
         request: QueryInit<C, R, E, I>,
+        requestId: string,
+        requestState: RequestState<R, E>,
     ): QueryNetworkRequest {
-        const requestId = request.getRequestId(request.requestInit);
-        const { requesterId, rerunExistingNetworkRequest } = request;
+        const currentNetworkRequest = this.ongoingNetworkRequests[requestId];
 
-        if (!this.queries[requestId] || this.queries[requestId]?.aborted) {
+        if (!currentNetworkRequest || currentNetworkRequest.aborted) {
             const multiAbortController = new MultiAbortController();
             const rerunController = new RerunController();
 
-            const requestPromiseData: QueryNetworkRequest = {
+            const networkRequest: QueryNetworkRequest = {
                 rerun() {
                     rerunController.rerun();
                 },
@@ -141,11 +119,11 @@ export class QueryProcessor<C extends NonUndefined> {
                 get aborted() {
                     return Boolean(multiAbortController.signal.aborted);
                 },
-                loading: new Set([requesterId]),
+                loading: new Set([request.requesterId]),
             };
 
-            if (typeof window !== 'undefined' || this.shouldMakeNetworkRequestOnSsr(request)) {
-                requestPromiseData.promise = this.networkRequestQueue
+            if (this.isNetworkRequestAllowedOnCurrentPlatform(request, requestState)) {
+                networkRequest.promise = this.networkRequestQueue
                     .addPromise(
                         BaseRequestHelper.getPromiseFactory(request, {
                             multiAbortSignal: multiAbortController.signal,
@@ -154,135 +132,116 @@ export class QueryProcessor<C extends NonUndefined> {
                         'query',
                     )
                     .then(data => {
-                        if (this.queries[requestId] === requestPromiseData) {
-                            this.queries[requestId] = undefined;
+                        if (this.ongoingNetworkRequests[requestId] === networkRequest) {
+                            this.ongoingNetworkRequests[requestId] = undefined;
 
-                            this.cache.updateState({
-                                updateRequestState: {
-                                    requestId,
-                                    update: () => ({
-                                        error: undefined,
-                                        loading: [],
-                                    }),
-                                },
-                                updateCacheData: cacheData =>
-                                    request.toCache({
-                                        cacheData: request.optimisticResponse
-                                            ? request.optimisticResponse.removeOptimisticData({
-                                                  cacheData: cacheData,
-                                                  optimisticData: request.optimisticResponse.optimisticData,
-                                                  requestInit: request.requestInit,
-                                                  requestId,
-                                                  requesterId,
-                                              })
-                                            : cacheData,
-                                        data,
-                                        requestInit: request.requestInit,
-                                        requestId,
-                                        requesterId,
-                                    }),
-                            });
+                            this.updateCache(request, requestId, { type: 'success', data });
                         }
                         return data;
                     })
                     .catch(error => {
-                        if (this.queries[requestId] === requestPromiseData) {
-                            this.queries[requestId] = undefined;
+                        if (this.ongoingNetworkRequests[requestId] === networkRequest) {
+                            this.ongoingNetworkRequests[requestId] = undefined;
 
-                            this.cache.updateState({
-                                updateRequestState: {
-                                    requestId,
-                                    update: () => ({
-                                        loading: [],
-                                        error,
-                                    }),
-                                },
-                                updateCacheData: cacheData =>
-                                    request.optimisticResponse
-                                        ? request.optimisticResponse.removeOptimisticData({
-                                              cacheData: cacheData,
-                                              optimisticData: request.optimisticResponse.optimisticData,
-                                              requestInit: request.requestInit,
-                                              requestId,
-                                              requesterId,
-                                          })
-                                        : cacheData,
-                            });
+                            this.updateCache(request, requestId, { type: 'fail', error });
                         }
                         throw error;
                     });
             }
 
-            this.queries[requestId] = requestPromiseData;
+            this.ongoingNetworkRequests[requestId] = networkRequest;
 
-            this.cache.updateState({
-                updateRequestState: {
-                    requestId,
-                    update: ({ error }) => ({
-                        error,
-                        loading: [requesterId],
-                    }),
-                },
-                updateCacheData: cacheData =>
-                    request.optimisticResponse
-                        ? request.toCache({
-                              cacheData,
-                              data: request.optimisticResponse.optimisticData,
-                              requestInit: request.requestInit,
-                              requestId,
-                              requesterId,
-                          })
-                        : cacheData,
-            });
+            this.updateCache(request, requestId, { type: 'start' });
         } else {
-            this.queries[requestId]!.loading.add(requesterId);
+            currentNetworkRequest.loading.add(request.requesterId);
 
-            this.cache.updateState({
-                updateRequestState: {
-                    requestId,
-                    update: ({ error }) => ({
-                        error,
-                        loading: [...this.queries[requestId]!.loading],
-                    }),
-                },
-            });
+            this.updateCache(request, requestId, { type: 'loading' });
 
-            if (rerunExistingNetworkRequest) {
-                this.queries[requestId]!.rerun();
+            if (request.rerunExistingNetworkRequest) {
+                currentNetworkRequest.rerun();
             }
         }
 
-        return this.queries[requestId]!;
+        return this.ongoingNetworkRequests[requestId]!;
     }
 
-    private shouldMakeNetworkRequestOnSsr<R extends NonUndefined, E extends Error, I>(
+    private updateCache<R extends NonUndefined, E extends Error, I>(
         request: QueryInit<C, R, E, I>,
-    ): boolean {
-        const requestState = this.getQueryState(request);
+        requestId: string,
+        action: { type: 'loading' } | { type: 'start' } | { type: 'fail'; error: E } | { type: 'success'; data: R },
+    ) {
+        this.cache.updateState({
+            updateRequestState: {
+                requestId,
+                update: ({ error }) => ({
+                    error: action.type !== 'fail' ? (action.type !== 'success' ? error : undefined) : action.error,
+                    loading: [...(this.ongoingNetworkRequests[requestId]?.loading ?? [])],
+                }),
+            },
+            updateCacheData:
+                action.type !== 'loading'
+                    ? cacheData => {
+                          if (action.type === 'start') {
+                              return request.optimisticResponse
+                                  ? request.toCache({
+                                        cacheData,
+                                        data: request.optimisticResponse.optimisticData,
+                                        ...this.getCommonCacheOptions(request, requestId),
+                                    })
+                                  : cacheData;
+                          } else if (action.type === 'fail') {
+                              return request.optimisticResponse
+                                  ? request.optimisticResponse.removeOptimisticData({
+                                        cacheData,
+                                        data: request.optimisticResponse.optimisticData,
+                                        ...this.getCommonCacheOptions(request, requestId),
+                                    })
+                                  : cacheData;
+                          } else {
+                              return request.toCache({
+                                  cacheData: request.optimisticResponse
+                                      ? request.optimisticResponse.removeOptimisticData({
+                                            cacheData: cacheData,
+                                            data: request.optimisticResponse.optimisticData,
+                                            ...this.getCommonCacheOptions(request, requestId),
+                                        })
+                                      : cacheData,
+                                  data: action.data,
+                                  ...this.getCommonCacheOptions(request, requestId),
+                              });
+                          }
+                      }
+                    : undefined,
+        });
+    }
 
-        return (
-            !request.disableSsr &&
-            typeof window === 'undefined' &&
-            requestState.data === undefined &&
-            requestState.error === undefined
+    private isNetworkRequestRequired<R extends NonUndefined, E extends Error, I>(
+        request: QueryInit<C, R, E, I>,
+        requestId: string,
+        requestState: RequestState<R, E>,
+    ): boolean {
+        return !(
+            request.fetchPolicy === 'cache-only' ||
+            (request.fetchPolicy === 'cache-first' && this.isCacheSufficient(request, requestId, requestState)) ||
+            (request.preventExcessNetworkRequestOnHydrate &&
+                this.isHydrate &&
+                this.isCacheSufficient(request, requestId, requestState))
         );
     }
 
-    private shouldReturnOrThrowFromState<R extends NonUndefined, E extends Error, I>(
+    private isNetworkRequestAllowedOnCurrentPlatform<R extends NonUndefined, E extends Error, I>(
         request: QueryInit<C, R, E, I>,
         requestState: RequestState<R, E>,
     ): boolean {
         return (
-            request.fetchPolicy === 'cache-only' ||
-            (request.fetchPolicy === 'cache-first' && this.isCachedDataSufficient(request, requestState)) ||
-            (Boolean(request.preventExcessNetworkRequestOnHydrate) &&
-                this.isHydrate &&
-                this.isCachedDataSufficient(request, requestState))
+            typeof window !== 'undefined' ||
+            (!request.disableSsr && requestState.data === undefined && requestState.error === undefined)
         );
     }
 
-    private isCachedDataSufficient<R extends NonUndefined, E extends Error, I>(
+    private isCacheSufficient<R extends NonUndefined, E extends Error, I>(
         request: QueryInit<C, R, E, I>,
+        requestId: string,
         requestState: RequestState<R, E>,
     ): boolean {
         return (
@@ -291,10 +250,19 @@ export class QueryProcessor<C extends NonUndefined> {
                 !request.optimisticResponse.isOptimisticData({
                     data: requestState.data,
                     cacheData: this.cache.getCacheData(),
-                    requestInit: request.requestInit,
-                    requestId: request.getRequestId(request.requestInit),
-                    requesterId: request.requesterId,
+                    ...this.getCommonCacheOptions(request, requestId),
                 }))
         );
+    }
+
+    private getCommonCacheOptions<R extends NonUndefined, E extends Error, I>(
+        request: QueryInit<C, R, E, I>,
+        requestId: string,
+    ) {
+        return {
+            requestInit: request.requestInit,
+            requestId,
+            requesterId: request.requesterId,
+        };
     }
 }
