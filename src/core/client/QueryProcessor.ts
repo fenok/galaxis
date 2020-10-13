@@ -122,7 +122,7 @@ export class QueryProcessor<C extends NonUndefined> {
                 loading: new Set([request.requesterId]),
             };
 
-            if (this.isNetworkRequestAllowedOnCurrentPlatform(request, requestState)) {
+            if (this.isNetworkRequestAllowed(request, requestState)) {
                 networkRequest.promise = this.networkRequestQueue
                     .addPromise(
                         BaseRequestHelper.getPromiseFactory(request, {
@@ -222,14 +222,15 @@ export class QueryProcessor<C extends NonUndefined> {
     ): boolean {
         return !(
             request.fetchPolicy === 'cache-only' ||
-            (request.fetchPolicy === 'cache-first' && this.isCacheSufficient(request, requestId, requestState)) ||
+            (request.fetchPolicy === 'cache-first' &&
+                this.isRequestStateSufficient(request, requestId, requestState)) ||
             (request.preventExcessNetworkRequestOnHydrate &&
                 this.isHydrate &&
-                this.isCacheSufficient(request, requestId, requestState))
+                this.isRequestStateSufficient(request, requestId, requestState))
         );
     }
 
-    private isNetworkRequestAllowedOnCurrentPlatform<R extends NonUndefined, E extends Error, I>(
+    private isNetworkRequestAllowed<R extends NonUndefined, E extends Error, I>(
         request: QueryInit<C, R, E, I>,
         requestState: RequestState<R, E>,
     ): boolean {
@@ -239,7 +240,7 @@ export class QueryProcessor<C extends NonUndefined> {
         );
     }
 
-    private isCacheSufficient<R extends NonUndefined, E extends Error, I>(
+    private isRequestStateSufficient<R extends NonUndefined, E extends Error, I>(
         request: QueryInit<C, R, E, I>,
         requestId: string,
         requestState: RequestState<R, E>,
