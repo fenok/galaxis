@@ -26,7 +26,7 @@ export class QueryProcessor<C extends NonUndefined> {
     private ongoingRequests: { [requestId: string]: QueryRequest | undefined } = {};
     private isHydrate = true;
     private readonly cache: Cache<C>;
-    private requestQueue: RequestQueue;
+    private readonly requestQueue: RequestQueue;
 
     constructor({ cache, requestQueue }: QueryProcessorOptions<C>) {
         this.cache = cache;
