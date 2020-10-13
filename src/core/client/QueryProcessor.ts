@@ -38,7 +38,7 @@ export class QueryProcessor<C extends NonUndefined> {
     }
 
     public purge() {
-        Object.values(this.ongoingRequests).forEach(query => query?.abort());
+        Object.values(this.ongoingRequests).forEach(request => request?.abort());
         this.ongoingRequests = {};
     }
 
