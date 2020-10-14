@@ -1,4 +1,4 @@
-import { EnableSignal, Signals, smartPromise } from '../promise';
+import { EnableSignal, Signals, delayedPromise } from '../promise';
 import * as logger from '../logger';
 import { NonUndefined, BaseRequest } from '../types';
 
@@ -8,7 +8,7 @@ export class BaseRequestHelper {
         signals: Signals = {},
     ): (enableSignal?: EnableSignal) => Promise<R> {
         return (enableSignal?: EnableSignal) =>
-            smartPromise(request.getRequestFactory(request), {
+            delayedPromise(request.getRequestFactory(request), {
                 ...signals,
                 enableSignal,
             }).then(dataOrError => {

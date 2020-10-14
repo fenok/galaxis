@@ -1,9 +1,9 @@
 import { RequestQueue } from '../RequestQueue';
-import { resolveAfter, smartPromise, EnableSignal } from '../../promise';
+import { resolveAfter, delayedPromise, EnableSignal } from '../../promise';
 
 function getPromiseFactory(value: string, timeout?: number) {
     return (enableSignal: EnableSignal) =>
-        smartPromise(() => (timeout ? resolveAfter(timeout, value) : Promise.resolve(value)), { enableSignal });
+        delayedPromise(() => (timeout ? resolveAfter(timeout, value) : Promise.resolve(value)), { enableSignal });
 }
 
 function getOpts(

@@ -5,7 +5,7 @@ export interface Signals {
     enableSignal?: EnableSignal;
 }
 
-export function smartPromise<T>(
+export function delayedPromise<T>(
     promiseFactory: (abortSignal?: AbortSignal) => Promise<T>,
     { abortSignal, enableSignal }: Signals = {},
 ): Promise<T> {
