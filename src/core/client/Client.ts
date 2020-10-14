@@ -1,4 +1,4 @@
-import { QueryProcessor, QueryResult } from './QueryProcessor';
+import { QueryProcessor, QueryResult, QueryState } from './QueryProcessor';
 import { MutationProcessor } from './MutationProcessor';
 import { RequestQueue } from './RequestQueue';
 import { RequesterIdGenerator } from './RequesterIdGenerator';
@@ -6,12 +6,6 @@ import { NonUndefined, Cache, Query, Mutation } from '../types';
 
 interface ClientOptions<C extends NonUndefined = null> {
     cache: Cache<C>;
-}
-
-interface RequestState<D extends NonUndefined = null, E extends Error = Error> {
-    loading: string[];
-    error?: E | Error; // Regular error can always slip through
-    data?: D;
 }
 
 class Client<C extends NonUndefined> {
@@ -44,7 +38,7 @@ class Client<C extends NonUndefined> {
 
     public subscribe<R extends NonUndefined, E extends Error, I>(
         request: Query<C, R, E, I>,
-        onChange: (state: RequestState<R, E>) => void,
+        onChange: (state: QueryState<R, E>) => void,
     ) {
         return this.cache.subscribe(() => {
             onChange(this.getState(request));
@@ -55,7 +49,7 @@ class Client<C extends NonUndefined> {
         this.queryProcessor.onHydrateComplete();
     }
 
-    public getState<R extends NonUndefined, E extends Error, I>(request: Query<C, R, E, I>): RequestState<R, E> {
+    public getState<R extends NonUndefined, E extends Error, I>(request: Query<C, R, E, I>): QueryState<R, E> {
         return this.queryProcessor.getQueryState(request);
     }
 
@@ -74,4 +68,4 @@ class Client<C extends NonUndefined> {
     }
 }
 
-export { Client, ClientOptions, RequestState };
+export { Client, ClientOptions };

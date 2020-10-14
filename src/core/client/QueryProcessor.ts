@@ -1,12 +1,17 @@
 import { wireAbortSignals } from '../promise';
-import { RequestState } from './Client';
 import { RequestQueue } from './RequestQueue';
 import { BaseRequestHelper } from './BaseRequestHelper';
 import { NonUndefined, Query, Cache } from '../types';
 import { getAbortController } from '../promise/getAbortController';
 
+export interface QueryState<D extends NonUndefined = null, E extends Error = Error> {
+    loading: boolean;
+    error?: E | Error; // Regular error can always slip through
+    data?: D;
+}
+
 export interface QueryResult<R extends NonUndefined, E extends Error> {
-    fromCache: RequestState<R, E>;
+    fromCache: QueryState<R, E>;
     request?: Promise<R>;
 }
 
@@ -42,12 +47,12 @@ export class QueryProcessor<C extends NonUndefined> {
         this.ongoingRequests = {};
     }
 
-    public getQueryState<R extends NonUndefined, E extends Error, I>(query: Query<C, R, E, I>): RequestState<R, E> {
+    public getQueryState<R extends NonUndefined, E extends Error, I>(query: Query<C, R, E, I>): QueryState<R, E> {
         const requestId = query.getRequestId(query);
         const { loading, error } = this.cache.getRequestState(requestId);
 
         return {
-            loading,
+            loading: loading.includes(query.requesterId),
             error,
             data: query.fromCache({
                 cacheData: this.cache.getCacheData(),
@@ -69,7 +74,7 @@ export class QueryProcessor<C extends NonUndefined> {
     private getRequestPromise<R extends NonUndefined, E extends Error, I>(
         query: Query<C, R, E, I>,
         requestId: string,
-        requestState: RequestState<R, E>,
+        requestState: QueryState<R, E>,
     ): Promise<R> | undefined {
         const isRequestRequired = this.isRequestRequired(query, requestId, requestState);
 
@@ -99,7 +104,7 @@ export class QueryProcessor<C extends NonUndefined> {
     private ensureQueryRequest<R extends NonUndefined, E extends Error, I>(
         query: Query<C, R, E, I>,
         requestId: string,
-        requestState: RequestState<R, E>,
+        requestState: QueryState<R, E>,
     ): QueryRequest {
         const currentQueryRequest = this.ongoingRequests[requestId];
 
@@ -208,7 +213,7 @@ export class QueryProcessor<C extends NonUndefined> {
     private isRequestRequired<R extends NonUndefined, E extends Error, I>(
         query: Query<C, R, E, I>,
         requestId: string,
-        requestState: RequestState<R, E>,
+        requestState: QueryState<R, E>,
     ): boolean {
         return !(
             query.fetchPolicy === 'cache-only' ||
@@ -221,7 +226,7 @@ export class QueryProcessor<C extends NonUndefined> {
 
     private isRequestAllowed<R extends NonUndefined, E extends Error, I>(
         query: Query<C, R, E, I>,
-        requestState: RequestState<R, E>,
+        requestState: QueryState<R, E>,
     ): boolean {
         return (
             typeof window !== 'undefined' ||
@@ -232,7 +237,7 @@ export class QueryProcessor<C extends NonUndefined> {
     private isRequestStateSufficient<R extends NonUndefined, E extends Error, I>(
         query: Query<C, R, E, I>,
         requestId: string,
-        requestState: RequestState<R, E>,
+        requestState: QueryState<R, E>,
     ): boolean {
         return (
             requestState.data !== undefined &&

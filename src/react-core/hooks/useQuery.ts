@@ -5,7 +5,8 @@ import { getRequestHash } from './getRequestHash';
 import { useId } from './useId';
 import { useSubscription } from './useSubscription';
 import { usePrevious } from './usePrevious';
-import { NonUndefined, Query, RequestState } from '../../core';
+import { NonUndefined, Query } from '../../core';
+import { QueryState } from '../../core/client/QueryProcessor';
 
 interface UseQueryOptions<C extends NonUndefined, R extends NonUndefined, E extends Error, I> {
     requesterId?: string;
@@ -71,7 +72,7 @@ export function useQuery<C extends NonUndefined, R extends NonUndefined, E exten
     const subscription = React.useMemo(
         () => ({
             getCurrentValue: () => client.getState(request),
-            subscribe: (callback: (state: RequestState<R, E>) => void) => {
+            subscribe: (callback: (state: QueryState<R, E>) => void) => {
                 return client.subscribe(request, callback);
             },
         }),

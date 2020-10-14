@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
-import { NonUndefined, RequestState } from '../../core';
+import { NonUndefined } from '../../core';
+import { QueryState } from '../../core/client/QueryProcessor';
 
 interface Options<D extends NonUndefined, E extends Error> {
-    getCurrentValue(): RequestState<D, E>;
-    subscribe(cb: (state: RequestState<D, E>) => void): () => void;
+    getCurrentValue(): QueryState<D, E>;
+    subscribe(cb: (state: QueryState<D, E>) => void): () => void;
 }
 
 /**
