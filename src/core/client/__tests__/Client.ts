@@ -157,7 +157,7 @@ it('caches queried data', async () => {
     fakeBackendState = JSON.parse(JSON.stringify(INITIAL_FAKE_BACKEND_STATE));
 
     await client.query({ ...request, requestInit: { ...baseRequestInit, pathParams: { id: '1' } } }).request;
-    const { data: responseFromCache } = client.getState({
+    const { data: responseFromCache } = client.getQueryState({
         ...request,
         requestInit: { ...baseRequestInit, pathParams: { id: '1' } },
     });
@@ -172,7 +172,7 @@ it('caches queried data for request with custom caching', async () => {
         ...requestWithSharedData,
         requestInit: { ...baseRequestInit, pathParams: { id: '1' } },
     }).request;
-    const { data: responseFromCache } = client.getState({
+    const { data: responseFromCache } = client.getQueryState({
         ...requestWithSharedData,
         requestInit: { ...baseRequestInit, pathParams: { id: '1' } },
     });
@@ -199,7 +199,7 @@ it("guarantees that old query data won't overwrite state after mutation", async 
 
     await Promise.all([queryPromise, mutatePromise]);
 
-    const { data: responseFromCache } = client.getState({
+    const { data: responseFromCache } = client.getQueryState({
         ...requestWithSharedData,
         requestInit: { ...baseRequestInit, pathParams: { id: '1' } },
     });

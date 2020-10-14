@@ -71,7 +71,7 @@ export function useQuery<C extends NonUndefined, R extends NonUndefined, E exten
 
     const subscription = React.useMemo(
         () => ({
-            getCurrentValue: () => client.getState(request),
+            getCurrentValue: () => client.getQueryState(request),
             subscribe: (callback: (state: QueryState<R, E>) => void) => {
                 return client.subscribe(request, callback);
             },

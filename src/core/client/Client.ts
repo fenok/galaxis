@@ -37,11 +37,11 @@ class Client<C extends NonUndefined> {
     }
 
     public subscribe<R extends NonUndefined, E extends Error, I>(
-        request: Query<C, R, E, I>,
+        query: Query<C, R, E, I>,
         onChange: (state: QueryState<R, E>) => void,
     ) {
         return this.cache.subscribe(() => {
-            onChange(this.getState(request));
+            onChange(this.getQueryState(query));
         });
     }
 
@@ -49,17 +49,17 @@ class Client<C extends NonUndefined> {
         this.queryProcessor.onHydrateComplete();
     }
 
-    public getState<R extends NonUndefined, E extends Error, I>(request: Query<C, R, E, I>): QueryState<R, E> {
-        return this.queryProcessor.getQueryState(request);
+    public getQueryState<R extends NonUndefined, E extends Error, I>(query: Query<C, R, E, I>): QueryState<R, E> {
+        return this.queryProcessor.getQueryState(query);
     }
 
-    public query<R extends NonUndefined, E extends Error, I>(request: Query<C, R, E, I>): QueryResult<R, E> {
-        return this.queryProcessor.query(request);
+    public query<R extends NonUndefined, E extends Error, I>(query: Query<C, R, E, I>): QueryResult<R, E> {
+        return this.queryProcessor.query(query);
     }
 
-    public async mutate<R extends NonUndefined, E extends Error, I>(request: Mutation<C, R, E, I>): Promise<R> {
-        return this.mutationProcessor.mutate(request).then(result => {
-            request.refetchQueries?.forEach(requestData => {
+    public async mutate<R extends NonUndefined, E extends Error, I>(mutation: Mutation<C, R, E, I>): Promise<R> {
+        return this.mutationProcessor.mutate(mutation).then(result => {
+            mutation.refetchQueries?.forEach(requestData => {
                 this.queryProcessor.query(requestData);
             });
 
