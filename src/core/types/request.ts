@@ -32,7 +32,6 @@ export interface Query<CD extends NonUndefined, D extends NonUndefined, E extend
     fetchPolicy: FetchPolicy;
     disableSsr?: boolean;
     preventExcessRequestOnHydrate?: boolean;
-    rerunExistingRequest?: boolean;
     fromCache(opts: CommonCacheOptions<CD, I>): D | undefined;
 }
 

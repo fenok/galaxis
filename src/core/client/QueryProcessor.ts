@@ -154,10 +154,6 @@ export class QueryProcessor<C extends NonUndefined> {
             currentQueryRequest.loading.add(query.requesterId);
 
             this.updateCache(query, requestId, { type: 'loading' });
-
-            if (query.rerunExistingRequest) {
-                currentQueryRequest.rerun();
-            }
         }
 
         return this.ongoingRequests[requestId]!;

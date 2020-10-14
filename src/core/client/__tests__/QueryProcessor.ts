@@ -120,51 +120,6 @@ it('can reuse network requests', async () => {
     expect(secondDataFromCache).toEqual({ data: FIRST_ITEM, loading: [], error: undefined });
 });
 
-it('can opt-out from network request reuse', async () => {
-    const queryProcessor = getQueryProcessor();
-
-    const firstItemRequest = getFirstItemRequest();
-
-    const firstQueryResult = queryProcessor.query({ ...firstItemRequest, requesterId: 'test1' });
-
-    expect(queryProcessor.getQueryState({ ...firstItemRequest, requesterId: 'test1' })).toEqual({
-        data: undefined,
-        loading: ['test1'],
-        error: undefined,
-    });
-
-    const secondQueryResult = queryProcessor.query({
-        ...firstItemRequest,
-        requesterId: 'test2',
-        rerunExistingRequest: true,
-    });
-
-    expect(
-        queryProcessor.getQueryState({
-            ...firstItemRequest,
-            requesterId: 'test2',
-            rerunExistingRequest: true,
-        }),
-    ).toEqual({
-        data: undefined,
-        loading: ['test1', 'test2'],
-        error: undefined,
-    });
-
-    expect(firstQueryResult.request).toBeDefined();
-    expect(secondQueryResult.request).toBeDefined();
-
-    const networkResponse = await Promise.all([firstQueryResult.request, secondQueryResult.request]);
-
-    const firstDataFromCache = queryProcessor.getQueryState({ ...firstItemRequest, requesterId: 'test1' });
-    const secondDataFromCache = queryProcessor.getQueryState({ ...firstItemRequest, requesterId: 'test2' });
-
-    expect(networkResponse[0]).toEqual({ ...FIRST_ITEM, freshness: 2 });
-    expect(networkResponse[1]).toBe(networkResponse[0]);
-    expect(firstDataFromCache).toEqual({ data: { ...FIRST_ITEM, freshness: 2 }, loading: [], error: undefined });
-    expect(secondDataFromCache).toEqual({ data: { ...FIRST_ITEM, freshness: 2 }, loading: [], error: undefined });
-});
-
 it('can abort network request', async () => {
     const queryProcessor = getQueryProcessor();
 

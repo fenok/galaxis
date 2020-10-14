@@ -36,12 +36,11 @@ export function useQuery<C extends NonUndefined, R extends NonUndefined, E exten
     }, []);
 
     const refetch = React.useCallback(
-        (disableNetworkRequestReuse?: boolean) => {
+        () => {
             return client.query({
                 ...request,
                 abortSignal: getAbortSignal(),
                 fetchPolicy: 'cache-and-network',
-                rerunExistingRequest: disableNetworkRequestReuse,
             });
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
