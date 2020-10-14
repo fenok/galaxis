@@ -1,8 +1,7 @@
-import { wireAbortSignals } from '../promise';
+import { wireAbortSignals, getAbortController } from '../promise';
 import { RequestQueue } from './RequestQueue';
 import { BaseRequestHelper } from './BaseRequestHelper';
 import { NonUndefined, Cache, Mutation } from '../types';
-import { getAbortController } from '../promise/getAbortController';
 
 export interface MutationPromiseData {
     promise: Promise<any>;

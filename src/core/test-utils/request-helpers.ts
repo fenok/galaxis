@@ -2,7 +2,7 @@ import { RequestQueue } from '../client/RequestQueue';
 import { Query, BaseRequest, CommonRequestOptions } from '../types';
 import { QueryProcessor } from '../client/QueryProcessor';
 import { TestCache } from './TestCache';
-import { wait } from '../promise/helpers';
+import { wait } from '../promise';
 
 export interface ItemEntity {
     id: string;
