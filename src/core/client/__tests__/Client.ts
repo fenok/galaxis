@@ -93,7 +93,7 @@ const client = new Client({
 
 const request: Query<CacheState, ResponseData, Error, FetchRequestInit> = {
     requesterId: 'test',
-    getRequestFactory: requestInit => () => fetchFn(getUrl(requestInit), { ...requestInit }),
+    getRequestFactory: ({ requestInit }) => () => fetchFn(getUrl(requestInit), { ...requestInit }),
     getRequestId: getId,
     fetchPolicy: 'cache-and-network',
     requestInit: {

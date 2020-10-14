@@ -10,12 +10,17 @@ export interface CommonCacheOptions<CD extends NonUndefined, I> {
     requesterId: string;
 }
 
+export interface CommonRequestOptions<I> {
+    requestInit: I;
+    requesterId: string;
+}
+
 export interface BaseRequest<CD extends NonUndefined, D extends NonUndefined, E extends Error, I> {
     requesterId: string;
     requestInit: I;
     abortSignal?: MultiAbortSignal | AbortSignal;
-    getRequestFactory(requestInit: I): (abortSignal?: AbortSignal) => Promise<D | E>;
-    getRequestId(requestInit: I): string;
+    getRequestFactory(opts: CommonRequestOptions<I>): (abortSignal?: AbortSignal) => Promise<D | E>;
+    getRequestId(opts: CommonRequestOptions<I>): string;
     toCache(opts: CommonCacheOptions<CD, I> & { data: D }): CD;
 
     optimisticData?: D;

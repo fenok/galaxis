@@ -9,7 +9,7 @@ export class BaseRequestHelper {
     ): (enableSignal?: EnableSignal) => Promise<R> {
         return (enableSignal?: EnableSignal) =>
             smartPromise(
-                request.getRequestFactory(request.requestInit),
+                request.getRequestFactory(request),
                 {
                     ...signals,
                     enableSignal,

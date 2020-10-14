@@ -43,7 +43,7 @@ export class QueryProcessor<C extends NonUndefined> {
     }
 
     public getQueryState<R extends NonUndefined, E extends Error, I>(query: Query<C, R, E, I>): RequestState<R, E> {
-        const requestId = query.getRequestId(query.requestInit);
+        const requestId = query.getRequestId(query);
         const { loading, error } = this.cache.getRequestState(requestId);
 
         return {
@@ -57,7 +57,7 @@ export class QueryProcessor<C extends NonUndefined> {
     }
 
     public query<R extends NonUndefined, E extends Error, I>(query: Query<C, R, E, I>): QueryResult<R, E> {
-        const requestId = query.getRequestId(query.requestInit);
+        const requestId = query.getRequestId(query);
         const requestState = this.getQueryState(query);
 
         return {

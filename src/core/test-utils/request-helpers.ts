@@ -1,5 +1,5 @@
 import { RequestQueue } from '../client/RequestQueue';
-import { Query, BaseRequest } from '../types';
+import { Query, BaseRequest, CommonRequestOptions } from '../types';
 import { QueryProcessor } from '../client/QueryProcessor';
 import { TestCache } from './TestCache';
 import { wait } from '../promise/helpers';
@@ -42,7 +42,7 @@ export function getNetworkError() {
     return new Error('Network error');
 }
 
-export function getNetworkRequestFactory(requestInit: TestRequestInit) {
+export function getNetworkRequestFactory({ requestInit }: CommonRequestOptions<TestRequestInit>) {
     let freshness = 0;
 
     return (abortSignal?: AbortSignal) => {
@@ -79,7 +79,7 @@ export const BASE_REQUEST: Pick<
     'getRequestId' | 'requesterId'
 > = {
     requesterId: 'test',
-    getRequestId(requestInit: unknown): string {
+    getRequestId({ requestInit }: CommonRequestOptions<TestRequestInit>): string {
         return Buffer.from(JSON.stringify(requestInit)).toString('base64');
     },
 };

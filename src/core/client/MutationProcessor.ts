@@ -30,7 +30,7 @@ export class MutationProcessor<C extends NonUndefined> {
     }
 
     public mutate<R extends NonUndefined, E extends Error, I>(request: Mutation<C, R, E, I>): Promise<R> {
-        const requestId = request.getRequestId(request.requestInit);
+        const requestId = request.getRequestId(request);
         const { abortSignal, requesterId } = request;
 
         if (request.optimisticData) {
