@@ -3,11 +3,7 @@ import { resolveAfter, smartPromise, EnableSignal } from '../../promise';
 
 function getPromiseFactory(value: string, timeout?: number) {
     return (enableSignal: EnableSignal) =>
-        smartPromise(
-            () => (timeout ? resolveAfter(timeout, value) : Promise.resolve(value)),
-            { enableSignal },
-            { disabled: true },
-        );
+        smartPromise(() => (timeout ? resolveAfter(timeout, value) : Promise.resolve(value)), { enableSignal });
 }
 
 function getOpts(

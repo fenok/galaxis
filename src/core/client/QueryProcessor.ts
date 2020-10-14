@@ -1,8 +1,9 @@
-import { MultiAbortController, RerunController, wireAbortSignals } from '../promise';
+import { wireAbortSignals } from '../promise';
 import { RequestState } from './Client';
 import { RequestQueue } from './RequestQueue';
 import { BaseRequestHelper } from './BaseRequestHelper';
 import { NonUndefined, Query, Cache } from '../types';
+import { getAbortController } from '../promise/getAbortController';
 
 export interface QueryResult<R extends NonUndefined, E extends Error> {
     fromCache: RequestState<R, E>;
@@ -14,7 +15,6 @@ export interface QueryRequest {
     loading: Set<string>;
     aborted: boolean;
     abort(): void;
-    rerun(): void;
 }
 
 export interface QueryProcessorOptions<C extends NonUndefined> {
@@ -104,18 +104,14 @@ export class QueryProcessor<C extends NonUndefined> {
         const currentQueryRequest = this.ongoingRequests[requestId];
 
         if (!currentQueryRequest || currentQueryRequest.aborted) {
-            const multiAbortController = new MultiAbortController();
-            const rerunController = new RerunController();
+            const abortController = getAbortController();
 
             const queryRequest: QueryRequest = {
-                rerun() {
-                    rerunController.rerun();
-                },
                 abort() {
-                    multiAbortController.abort();
+                    abortController?.abort();
                 },
                 get aborted() {
-                    return Boolean(multiAbortController.signal.aborted);
+                    return Boolean(abortController?.signal.aborted);
                 },
                 loading: new Set([query.requesterId]),
             };
@@ -124,8 +120,7 @@ export class QueryProcessor<C extends NonUndefined> {
                 queryRequest.promise = this.requestQueue
                     .addPromise(
                         BaseRequestHelper.getPromiseFactory(query, {
-                            multiAbortSignal: multiAbortController.signal,
-                            rerunSignal: rerunController.signal,
+                            abortSignal: abortController?.signal,
                         }),
                         'query',
                     )

@@ -1,7 +1,8 @@
-import { MultiAbortController, wireAbortSignals } from '../promise';
+import { wireAbortSignals } from '../promise';
 import { RequestQueue } from './RequestQueue';
 import { BaseRequestHelper } from './BaseRequestHelper';
 import { NonUndefined, Cache, Mutation } from '../types';
+import { getAbortController } from '../promise/getAbortController';
 
 export interface MutationPromiseData {
     promise: Promise<any>;
@@ -46,15 +47,15 @@ export class MutationProcessor<C extends NonUndefined> {
             });
         }
 
-        const multiAbortController = new MultiAbortController();
+        const abortController = getAbortController();
 
         const mutationPromiseData: MutationPromiseData = {
             promise: Promise.resolve(),
             abort() {
-                multiAbortController.abort();
+                abortController?.abort();
             },
             get aborted() {
-                return Boolean(multiAbortController.signal.aborted);
+                return Boolean(abortController?.signal.aborted);
             },
         };
 
@@ -63,7 +64,7 @@ export class MutationProcessor<C extends NonUndefined> {
 
         const mutationPromise = this.networkRequestQueue
             .addPromise(
-                BaseRequestHelper.getPromiseFactory(request, { multiAbortSignal: multiAbortController.signal }),
+                BaseRequestHelper.getPromiseFactory(request, { abortSignal: abortController?.signal }),
                 'mutation',
             )
             .then(data => {

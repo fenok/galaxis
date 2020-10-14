@@ -8,14 +8,10 @@ export class BaseRequestHelper {
         signals: Signals = {},
     ): (enableSignal?: EnableSignal) => Promise<R> {
         return (enableSignal?: EnableSignal) =>
-            smartPromise(
-                request.getRequestFactory(request),
-                {
-                    ...signals,
-                    enableSignal,
-                },
-                { disabled: true },
-            ).then(dataOrError => {
+            smartPromise(request.getRequestFactory(request), {
+                ...signals,
+                enableSignal,
+            }).then(dataOrError => {
                 if (dataOrError instanceof Error) {
                     logger.warn(
                         'Network request promise was fulfilled with an error. You should reject the promise instead. Error: ',

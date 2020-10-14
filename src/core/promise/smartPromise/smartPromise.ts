@@ -1,74 +1,24 @@
-import { MultiAbortSignal, RerunSignal, EnableSignal } from '../controllers';
-import { wireAbortSignals } from '../controller-helpers';
-import * as logger from '../../logger';
+import { EnableSignal } from '../controllers';
 
 export interface Signals {
-    abortSignal?: AbortSignal | null;
-    multiAbortSignal?: MultiAbortSignal | null;
-    rerunSignal?: RerunSignal | null;
-    enableSignal?: EnableSignal | null;
-}
-
-export interface SmartPromiseOptions {
-    disabled?: boolean;
+    abortSignal?: AbortSignal;
+    enableSignal?: EnableSignal;
 }
 
 export function smartPromise<T>(
     promiseFactory: (abortSignal?: AbortSignal) => Promise<T>,
-    { multiAbortSignal, rerunSignal, abortSignal, enableSignal }: Signals = {},
-    { disabled }: SmartPromiseOptions = {},
+    { abortSignal, enableSignal }: Signals = {},
 ): Promise<T> {
-    return new Promise((resolve, reject) => {
-        const abortController = typeof AbortController !== 'undefined' ? new AbortController() : null;
-
-        const onAbort = () => {
-            if (abortController) {
-                abortController.abort();
-            } else if (typeof window !== 'undefined') {
-                reject(new Error('No AbortController detected'));
-                logger.error('Include AbortController polyfill for network request cancelling');
-            } else {
-                reject(new Error('Unexpected request cancel on server'));
-                logger.error("Request can't (and shouldn't) be canceled on server");
-            }
-        };
-
-        wireAbortSignals(onAbort, multiAbortSignal, abortSignal);
-
-        const onRerun = () => {
-            onAbort();
-            removeEventListeners();
-            resolve(
-                smartPromise(
-                    promiseFactory,
-                    { multiAbortSignal, rerunSignal, abortSignal, enableSignal },
-                    { disabled },
-                ),
-            );
-        };
-
-        rerunSignal?.addEventListener('rerun', onRerun);
-
+    return new Promise(resolve => {
         const onEnable = () => {
-            removeEventListeners();
-            resolve(smartPromise(promiseFactory, { multiAbortSignal, rerunSignal, abortSignal }, { disabled: false }));
+            enableSignal?.removeEventListener('enable', onEnable);
+            resolve(promiseFactory(abortSignal));
         };
 
         if (enableSignal?.enabled) {
             onEnable();
-        }
-
-        enableSignal?.addEventListener('enable', onEnable);
-
-        function removeEventListeners() {
-            rerunSignal?.removeEventListener('rerun', onRerun);
-            enableSignal?.removeEventListener('enable', onEnable);
-        }
-
-        if (!disabled) {
-            promiseFactory(abortController?.signal)
-                .then(resolve)
-                .catch(reject);
+        } else {
+            enableSignal?.addEventListener('enable', onEnable);
         }
     });
 }
