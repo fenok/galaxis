@@ -1,8 +1,7 @@
-import { wireAbortSignals } from '../promise';
+import { getAbortController, wireAbortSignals } from '../promise';
 import { RequestQueue } from './RequestQueue';
 import { BaseRequestHelper } from './BaseRequestHelper';
 import { NonUndefined, Query, Cache } from '../types';
-import { getAbortController } from '../promise/getAbortController';
 
 export interface QueryState<D extends NonUndefined = null, E extends Error = Error> {
     loading: boolean;
