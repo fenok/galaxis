@@ -33,12 +33,12 @@ export class MutationProcessor<C extends NonUndefined> {
         const requestId = request.getRequestId(request.requestInit);
         const { abortSignal, requesterId } = request;
 
-        if (request.optimisticResponse) {
+        if (request.optimisticData) {
             this.cache.updateState({
                 updateCacheData: cacheData =>
                     request.toCache({
                         cacheData,
-                        data: request.optimisticResponse!.optimisticData,
+                        data: request.optimisticData!,
                         requestInit: request.requestInit,
                         requestId,
                         requesterId,
@@ -77,15 +77,16 @@ export class MutationProcessor<C extends NonUndefined> {
                     this.cache.updateState({
                         updateCacheData: cacheData =>
                             request.toCache({
-                                cacheData: request.optimisticResponse
-                                    ? request.optimisticResponse.removeOptimisticData({
-                                          cacheData: cacheData,
-                                          data: request.optimisticResponse.optimisticData,
-                                          requestInit: request.requestInit,
-                                          requestId,
-                                          requesterId,
-                                      })
-                                    : cacheData,
+                                cacheData:
+                                    request.optimisticData && request.removeOptimisticData
+                                        ? request.removeOptimisticData({
+                                              cacheData: cacheData,
+                                              data: request.optimisticData,
+                                              requestInit: request.requestInit,
+                                              requestId,
+                                              requesterId,
+                                          })
+                                        : cacheData,
                                 data,
                                 requestInit: request.requestInit,
                                 requestId,
@@ -100,12 +101,12 @@ export class MutationProcessor<C extends NonUndefined> {
                 if (this.mutations.has(mutationPromiseData)) {
                     this.mutations.delete(mutationPromiseData);
 
-                    if (request.optimisticResponse) {
+                    if (request.optimisticData && request.removeOptimisticData) {
                         this.cache.updateState({
                             updateCacheData: cacheData =>
-                                request.optimisticResponse!.removeOptimisticData({
+                                request.removeOptimisticData!({
                                     cacheData,
-                                    data: request.optimisticResponse!.optimisticData,
+                                    data: request.optimisticData!,
                                     requestInit: request.requestInit,
                                     requestId,
                                     requesterId,

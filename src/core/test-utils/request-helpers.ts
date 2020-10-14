@@ -124,21 +124,19 @@ export function getFirstItemRequestWithOptimisticResponse(): Query<TestCacheData
         ...ITEM_REQUEST,
         getRequestFactory: getNetworkRequestFactory,
         requestInit: { id: '1' },
-        optimisticResponse: {
-            optimisticData: OPTIMISTIC_FIRST_ITEM,
-            isOptimisticData({ data }): boolean {
-                return Boolean(data.optimistic);
-            },
-            removeOptimisticData({ cacheData, data }) {
-                const newItems = Object.fromEntries(
-                    Object.entries(cacheData.items).filter(([, { optimistic, id }]) => !(optimistic && data.id === id)),
-                );
+        optimisticData: OPTIMISTIC_FIRST_ITEM,
+        isOptimisticData({ data }): boolean {
+            return Boolean(data.optimistic);
+        },
+        removeOptimisticData({ cacheData, data }) {
+            const newItems = Object.fromEntries(
+                Object.entries(cacheData.items).filter(([, { optimistic, id }]) => !(optimistic && data.id === id)),
+            );
 
-                return {
-                    ...cacheData,
-                    items: newItems,
-                };
-            },
+            return {
+                ...cacheData,
+                items: newItems,
+            };
         },
     };
 }

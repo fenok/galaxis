@@ -18,11 +18,9 @@ export interface BaseRequest<CD extends NonUndefined, D extends NonUndefined, E 
     getRequestId(requestInit: I): string;
     toCache(opts: CommonCacheOptions<CD, I> & { data: D }): CD;
 
-    optimisticResponse?: {
-        optimisticData: D;
-        removeOptimisticData(opts: CommonCacheOptions<CD, I> & { data: D }): CD;
-        isOptimisticData(opts: CommonCacheOptions<CD, I> & { data: D }): boolean;
-    };
+    optimisticData?: D;
+    removeOptimisticData?(opts: CommonCacheOptions<CD, I> & { data: D }): CD;
+    isOptimisticData?(opts: CommonCacheOptions<CD, I> & { data: D }): boolean;
 }
 
 export interface Query<CD extends NonUndefined, D extends NonUndefined, E extends Error, I>

@@ -180,30 +180,31 @@ export class QueryProcessor<C extends NonUndefined> {
                 action.type !== 'loading'
                     ? cacheData => {
                           if (action.type === 'start') {
-                              return query.optimisticResponse
+                              return query.optimisticData
                                   ? query.toCache({
                                         cacheData,
-                                        data: query.optimisticResponse.optimisticData,
+                                        data: query.optimisticData,
                                         ...this.getCommonCacheOptions(query, requestId),
                                     })
                                   : cacheData;
                           } else if (action.type === 'fail') {
-                              return query.optimisticResponse
-                                  ? query.optimisticResponse.removeOptimisticData({
+                              return query.optimisticData && query.removeOptimisticData
+                                  ? query.removeOptimisticData({
                                         cacheData,
-                                        data: query.optimisticResponse.optimisticData,
+                                        data: query.optimisticData,
                                         ...this.getCommonCacheOptions(query, requestId),
                                     })
                                   : cacheData;
                           } else {
                               return query.toCache({
-                                  cacheData: query.optimisticResponse
-                                      ? query.optimisticResponse.removeOptimisticData({
-                                            cacheData: cacheData,
-                                            data: query.optimisticResponse.optimisticData,
-                                            ...this.getCommonCacheOptions(query, requestId),
-                                        })
-                                      : cacheData,
+                                  cacheData:
+                                      query.optimisticData && query.removeOptimisticData
+                                          ? query.removeOptimisticData({
+                                                cacheData: cacheData,
+                                                data: query.optimisticData,
+                                                ...this.getCommonCacheOptions(query, requestId),
+                                            })
+                                          : cacheData,
                                   data: action.data,
                                   ...this.getCommonCacheOptions(query, requestId),
                               });
@@ -244,12 +245,11 @@ export class QueryProcessor<C extends NonUndefined> {
     ): boolean {
         return (
             requestState.data !== undefined &&
-            (!query.optimisticResponse ||
-                !query.optimisticResponse.isOptimisticData({
-                    data: requestState.data,
-                    cacheData: this.cache.getCacheData(),
-                    ...this.getCommonCacheOptions(query, requestId),
-                }))
+            !query.isOptimisticData?.({
+                data: requestState.data,
+                cacheData: this.cache.getCacheData(),
+                ...this.getCommonCacheOptions(query, requestId),
+            })
         );
     }
 
