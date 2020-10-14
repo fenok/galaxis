@@ -8,7 +8,6 @@ import {
     getFirstItemRequestWithOptimisticResponse,
     OPTIMISTIC_FIRST_ITEM,
 } from '../../test-utils/request-helpers';
-import { MultiAbortController } from '../../promise/controllers';
 
 it('can query data', async () => {
     const queryProcessor = getQueryProcessor();
@@ -266,39 +265,6 @@ it('does not abort network request if not all requesters asked so', async () => 
     const dataFromCache = queryProcessor.getQueryState(firstItemRequest);
 
     expect(dataFromCache).toEqual({ data: FIRST_ITEM, loading: [], error: undefined });
-});
-
-it('one requester can explicitly ask to abort network request for multiple requesters', async () => {
-    const queryProcessor = getQueryProcessor();
-
-    const firstItemRequest = getFirstItemRequest();
-
-    const abortController = new MultiAbortController();
-
-    const firstQueryResult = queryProcessor.query({
-        ...firstItemRequest,
-        requesterId: 'test1',
-        abortSignal: abortController.signal,
-    });
-
-    const secondQueryResult = queryProcessor.query({ ...firstItemRequest, requesterId: 'test2' });
-
-    expect(
-        queryProcessor.getQueryState({
-            ...firstItemRequest,
-            requesterId: 'test1',
-            abortSignal: abortController.signal,
-        }).loading,
-    ).toEqual(['test1', 'test2']);
-
-    abortController.abort(true);
-
-    await expect(firstQueryResult.request).rejects.toEqual(getAbortError());
-    await expect(secondQueryResult.request).rejects.toEqual(getAbortError());
-
-    const dataFromCache = queryProcessor.getQueryState(firstItemRequest);
-
-    expect(dataFromCache).toEqual({ data: undefined, loading: [], error: getAbortError() });
 });
 
 it('correctly aborts previous request when the next one is executed immediately with the same id', async () => {

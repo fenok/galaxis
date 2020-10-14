@@ -76,10 +76,10 @@ export class QueryProcessor<C extends NonUndefined> {
         if (isRequestRequired) {
             const queryRequest = this.ensureQueryRequest(query, requestId, requestState);
 
-            const onAbort = (multi?: boolean) => {
+            const onAbort = () => {
                 queryRequest.loading.delete(query.requesterId);
 
-                if (multi || queryRequest.loading.size === 0) {
+                if (queryRequest.loading.size === 0) {
                     queryRequest.abort();
                 } else {
                     this.updateCache(query, requestId, { type: 'loading' });

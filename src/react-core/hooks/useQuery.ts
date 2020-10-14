@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { MultiAbortController } from '../../core/promise';
 import { SsrPromisesManagerContext, useClient } from '../Provider';
 import { ensureClient } from './ensureClient';
 import { getRequestHash } from './getRequestHash';
@@ -26,11 +25,11 @@ export function useQuery<C extends NonUndefined, R extends NonUndefined, E exten
 
     const requestHash = getRequestHash(request, getRequestHashOuter);
 
-    const multiAbortControllerRef = React.useRef<MultiAbortController>();
+    const multiAbortControllerRef = React.useRef<AbortController>();
 
     const getAbortSignal = React.useCallback(() => {
         if (!multiAbortControllerRef.current || multiAbortControllerRef.current.signal.aborted) {
-            multiAbortControllerRef.current = new MultiAbortController();
+            multiAbortControllerRef.current = new AbortController();
         }
 
         return multiAbortControllerRef.current.signal;
@@ -49,9 +48,9 @@ export function useQuery<C extends NonUndefined, R extends NonUndefined, E exten
         [client, requestHash],
     );
 
-    const abort = React.useCallback((multi?: boolean) => {
+    const abort = React.useCallback(() => {
         if (multiAbortControllerRef.current) {
-            multiAbortControllerRef.current.abort(multi);
+            multiAbortControllerRef.current.abort();
         }
     }, []);
 

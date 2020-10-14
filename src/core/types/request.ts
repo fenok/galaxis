@@ -1,5 +1,4 @@
 import { NonUndefined } from './helpers';
-import { MultiAbortSignal } from '../promise/controllers';
 
 export type FetchPolicy = 'cache-only' | 'cache-first' | 'cache-and-network';
 
@@ -18,7 +17,7 @@ export interface CommonRequestOptions<I> {
 export interface BaseRequest<CD extends NonUndefined, D extends NonUndefined, E extends Error, I> {
     requesterId: string;
     requestInit: I;
-    abortSignal?: MultiAbortSignal | AbortSignal;
+    abortSignal?: AbortSignal;
     getRequestFactory(opts: CommonRequestOptions<I>): (abortSignal?: AbortSignal) => Promise<D | E>;
     getRequestId(opts: CommonRequestOptions<I>): string;
     toCache(opts: CommonCacheOptions<CD, I> & { data: D }): CD;
