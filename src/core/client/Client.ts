@@ -58,13 +58,7 @@ class Client<C extends NonUndefined> {
     }
 
     public async mutate<R extends NonUndefined, E extends Error, I>(mutation: Mutation<C, R, E, I>): Promise<R> {
-        return this.mutationProcessor.mutate(mutation).then(result => {
-            mutation.refetchQueries?.forEach(requestData => {
-                this.queryProcessor.query(requestData);
-            });
-
-            return result;
-        });
+        return this.mutationProcessor.mutate(mutation);
     }
 }
 

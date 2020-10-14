@@ -36,6 +36,4 @@ export interface Query<CD extends NonUndefined, D extends NonUndefined, E extend
 }
 
 export interface Mutation<CD extends NonUndefined, D extends NonUndefined, E extends Error, I>
-    extends BaseRequest<CD, D, E, I> {
-    refetchQueries?: Query<CD, any, any, any>[];
-}
+    extends BaseRequest<CD, D, E, I> {}
