@@ -3,7 +3,7 @@ import { RequestQueue } from './RequestQueue';
 import { BaseRequestHelper } from './BaseRequestHelper';
 import { NonUndefined, Cache, Mutation } from '../types';
 
-export interface MutationPromiseData {
+export interface MutationRequest {
     promise: Promise<any>;
     aborted: boolean;
     abort(): void;
@@ -15,41 +15,91 @@ export interface MutationProcessorOptions<C extends NonUndefined> {
 }
 
 export class MutationProcessor<C extends NonUndefined> {
-    private mutations: Set<MutationPromiseData> = new Set();
+    private ongoingRequests: Set<MutationRequest> = new Set();
     private readonly cache: Cache<C>;
-    private networkRequestQueue: RequestQueue;
+    private readonly requestQueue: RequestQueue;
 
     constructor({ cache, networkRequestQueue }: MutationProcessorOptions<C>) {
         this.cache = cache;
-        this.networkRequestQueue = networkRequestQueue;
+        this.requestQueue = networkRequestQueue;
     }
 
     public purge() {
-        this.mutations.forEach(mutation => mutation.abort());
-        this.mutations.clear();
+        this.ongoingRequests.forEach(mutation => mutation.abort());
+        this.ongoingRequests.clear();
     }
 
-    public mutate<R extends NonUndefined, E extends Error, I>(request: Mutation<C, R, E, I>): Promise<R> {
-        const requestId = request.getRequestId(request);
-        const { abortSignal, requesterId } = request;
+    public mutate<R extends NonUndefined, E extends Error, I>(mutation: Mutation<C, R, E, I>): Promise<R> {
+        const requestId = mutation.getRequestId(mutation);
 
-        if (request.optimisticData) {
+        if (mutation.optimisticData) {
             this.cache.updateState({
                 updateCacheData: cacheData =>
-                    request.toCache({
+                    mutation.toCache({
                         cacheData,
-                        data: request.optimisticData!,
-                        requestInit: request.requestInit,
+                        data: mutation.optimisticData!,
+                        requestInit: mutation.requestInit,
                         requestId,
-                        requesterId,
+                        requesterId: mutation.requesterId,
                     }),
             });
         }
 
         const abortController = getAbortController();
 
-        const mutationPromiseData: MutationPromiseData = {
-            promise: Promise.resolve(),
+        const mutationRequest: MutationRequest = {
+            promise: this.requestQueue
+                .addPromise(
+                    BaseRequestHelper.getPromiseFactory(mutation, { abortSignal: abortController?.signal }),
+                    'mutation',
+                )
+                .then(data => {
+                    if (this.ongoingRequests.has(mutationRequest)) {
+                        this.ongoingRequests.delete(mutationRequest);
+
+                        this.cache.updateState({
+                            updateCacheData: cacheData =>
+                                mutation.toCache({
+                                    cacheData:
+                                        mutation.optimisticData && mutation.removeOptimisticData
+                                            ? mutation.removeOptimisticData({
+                                                  cacheData: cacheData,
+                                                  data: mutation.optimisticData,
+                                                  requestInit: mutation.requestInit,
+                                                  requestId,
+                                                  requesterId: mutation.requesterId,
+                                              })
+                                            : cacheData,
+                                    data,
+                                    requestInit: mutation.requestInit,
+                                    requestId,
+                                    requesterId: mutation.requesterId,
+                                }),
+                        });
+                    }
+
+                    return data;
+                })
+                .catch(error => {
+                    if (this.ongoingRequests.has(mutationRequest)) {
+                        this.ongoingRequests.delete(mutationRequest);
+
+                        if (mutation.optimisticData && mutation.removeOptimisticData) {
+                            this.cache.updateState({
+                                updateCacheData: cacheData =>
+                                    mutation.removeOptimisticData!({
+                                        cacheData,
+                                        data: mutation.optimisticData!,
+                                        requestInit: mutation.requestInit,
+                                        requestId,
+                                        requesterId: mutation.requesterId,
+                                    }),
+                            });
+                        }
+                    }
+
+                    throw error;
+                }),
             abort() {
                 abortController?.abort();
             },
@@ -59,69 +109,10 @@ export class MutationProcessor<C extends NonUndefined> {
         };
 
         // eslint-disable-next-line @typescript-eslint/unbound-method
-        wireAbortSignals(mutationPromiseData.abort, abortSignal);
+        wireAbortSignals(mutationRequest.abort, mutation.abortSignal);
 
-        const mutationPromise = this.networkRequestQueue
-            .addPromise(
-                BaseRequestHelper.getPromiseFactory(request, { abortSignal: abortController?.signal }),
-                'mutation',
-            )
-            .then(data => {
-                // Delay state update to let all planned state updates finish
-                return data;
-            })
-            .then(data => {
-                if (this.mutations.has(mutationPromiseData)) {
-                    this.mutations.delete(mutationPromiseData);
+        this.ongoingRequests.add(mutationRequest);
 
-                    this.cache.updateState({
-                        updateCacheData: cacheData =>
-                            request.toCache({
-                                cacheData:
-                                    request.optimisticData && request.removeOptimisticData
-                                        ? request.removeOptimisticData({
-                                              cacheData: cacheData,
-                                              data: request.optimisticData,
-                                              requestInit: request.requestInit,
-                                              requestId,
-                                              requesterId,
-                                          })
-                                        : cacheData,
-                                data,
-                                requestInit: request.requestInit,
-                                requestId,
-                                requesterId,
-                            }),
-                    });
-                }
-
-                return data;
-            })
-            .catch(error => {
-                if (this.mutations.has(mutationPromiseData)) {
-                    this.mutations.delete(mutationPromiseData);
-
-                    if (request.optimisticData && request.removeOptimisticData) {
-                        this.cache.updateState({
-                            updateCacheData: cacheData =>
-                                request.removeOptimisticData!({
-                                    cacheData,
-                                    data: request.optimisticData!,
-                                    requestInit: request.requestInit,
-                                    requestId,
-                                    requesterId,
-                                }),
-                        });
-                    }
-                }
-
-                throw error;
-            });
-
-        mutationPromiseData.promise = mutationPromise;
-
-        this.mutations.add(mutationPromiseData);
-
-        return mutationPromise;
+        return mutationRequest.promise;
     }
 }
