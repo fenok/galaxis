@@ -1,5 +1,5 @@
 import { getHashBase64 } from './getHashBase64';
-import { NonUndefined, Query } from '../../core';
+import { NonUndefined, Query } from '../core';
 
 export function getRequestHash<C extends NonUndefined, R extends NonUndefined, E extends Error, I>(
     request: Query<C, R, E, I>,

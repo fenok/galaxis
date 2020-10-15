@@ -1,5 +1,5 @@
 import { EnableSignal, Signals, delayedPromise } from '../promise';
-import * as logger from '../logger';
+import { logger } from '../logger';
 import { NonUndefined, BaseRequest } from '../types';
 
 export class BaseRequestHelper {

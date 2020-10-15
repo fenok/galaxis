@@ -1,8 +1,8 @@
 import * as React from 'react';
-import { useClient } from '../Provider';
+import { useClient } from '../react-core';
 
 // Not necessarily SSR-friendly, just unique for each call in current render
-export function useId(outerId?: string) {
+export function useRequesterId(outerId?: string) {
     const client = useClient();
 
     const [id] = React.useState(() => (outerId !== undefined ? outerId : client.generateRequesterId()));

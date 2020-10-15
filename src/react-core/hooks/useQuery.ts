@@ -1,65 +1,62 @@
 import * as React from 'react';
 import { useClient } from '../Provider';
-import { getRequestHash } from './getRequestHash';
-import { useId } from './useId';
 import { useSubscription } from './useSubscription';
 import { usePrevious } from './usePrevious';
-import { NonUndefined, Query } from '../../core';
-import { QueryState } from '../../core/client/QueryProcessor';
+import { NonUndefined, Query, QueryState, logger } from '../../core';
 import { SsrPromisesManagerContext } from '../ssr';
 
-interface UseQueryOptions<C extends NonUndefined, R extends NonUndefined, E extends Error, I> {
-    requesterId?: string;
-    getRequestHash?(request: Query<C, R, E, I>): string | number;
+export interface UseQueryOptions<C extends NonUndefined, R extends NonUndefined, E extends Error, I> {
+    requesterId: string;
+    getQueryHash(query: Query<C, R, E, I>): string | number;
+    isExpectedError(error: E | Error): boolean;
 }
 
 export function useQuery<C extends NonUndefined, R extends NonUndefined, E extends Error, I>(
-    request: Query<C, R, E, I>,
-    { getRequestHash: getRequestHashOuter, requesterId: outerRequesterId }: UseQueryOptions<C, R, E, I> = {},
+    query: Query<C, R, E, I>,
+    { getQueryHash, requesterId, isExpectedError }: UseQueryOptions<C, R, E, I>,
 ) {
-    const requesterId = useId(outerRequesterId);
-
+    const queryHash = getQueryHash(query);
     const client = useClient<C>();
     const ssrPromisesManager = React.useContext(SsrPromisesManagerContext);
 
-    const requestHash = getRequestHash(request, getRequestHashOuter);
-
-    const multiAbortControllerRef = React.useRef<AbortController>();
+    const abortControllerRef = React.useRef<AbortController>();
 
     const getAbortSignal = React.useCallback(() => {
-        if (!multiAbortControllerRef.current || multiAbortControllerRef.current.signal.aborted) {
-            multiAbortControllerRef.current = new AbortController();
+        if (!abortControllerRef.current || abortControllerRef.current.signal.aborted) {
+            abortControllerRef.current = new AbortController();
         }
 
-        return multiAbortControllerRef.current.signal;
+        return abortControllerRef.current.signal;
     }, []);
 
     const refetch = React.useCallback(
         () => {
             return client.query({
-                ...request,
+                ...query,
                 abortSignal: getAbortSignal(),
                 fetchPolicy: 'cache-and-network',
             });
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        [client, requestHash],
+        [client, queryHash],
     );
 
     const abort = React.useCallback(() => {
-        if (multiAbortControllerRef.current) {
-            multiAbortControllerRef.current.abort();
+        if (abortControllerRef.current) {
+            abortControllerRef.current.abort();
         }
     }, []);
 
     const prevClient = usePrevious(client);
-    const prevRequestId = usePrevious(requestHash);
+    const prevQueryHash = usePrevious(queryHash);
 
-    if (prevClient !== client || prevRequestId !== requestHash) {
+    if (prevClient !== client || prevQueryHash !== queryHash) {
         abort();
-        const queryPromise = client.query({ ...request, abortSignal: getAbortSignal() }).request?.catch(() => {
-            // Prevent uncaught error message (error will be in state)
-            // TODO: log unexpected (non-network) errors
+        const queryPromise = client.query({ ...query, abortSignal: getAbortSignal() }).request?.catch(error => {
+            if (!isExpectedError(error)) {
+                logger.error('Got unexpected error:', error);
+            }
+            // Otherwise error is expected and is either in cache or discarded by next request
         });
 
         if (typeof window === 'undefined' && ssrPromisesManager && queryPromise) {
@@ -69,14 +66,14 @@ export function useQuery<C extends NonUndefined, R extends NonUndefined, E exten
 
     const subscription = React.useMemo(
         () => ({
-            getCurrentValue: () => client.getQueryState(request),
+            getCurrentValue: () => client.getQueryState(query),
             subscribe: (callback: (state: QueryState<R, E>) => void) => {
-                return client.subscribe(request, callback);
+                return client.subscribe(query, callback);
             },
         }),
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        [client, requestHash],
+        [client, queryHash],
     );
 
     const requestState = useSubscription(subscription);

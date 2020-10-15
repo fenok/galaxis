@@ -1,2 +1,2 @@
-export { useQuery } from './useQuery';
-export { useMutation } from './useMutation';
+export * from './useQuery';
+export * from './useMutation';

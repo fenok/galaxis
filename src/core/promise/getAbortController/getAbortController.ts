@@ -1,4 +1,4 @@
-import * as logger from '../../logger';
+import { logger } from '../../logger';
 
 export function getAbortController(): AbortController | undefined {
     const abortController = typeof AbortController !== 'undefined' ? new AbortController() : undefined;
