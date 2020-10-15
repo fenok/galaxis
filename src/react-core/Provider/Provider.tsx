@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { Client, NonUndefined } from '../../core';
+import { ensureClient } from './ensureClient';
 
 const ClientContext = React.createContext<Client<any> | null>(null);
 
@@ -17,7 +18,12 @@ const Provider: React.FC<ProviderProps> = ({ children, client }) => {
     return <ClientContext.Provider value={client}>{children}</ClientContext.Provider>;
 };
 
-const useClient = <T extends NonUndefined>() =>
-    React.useContext((ClientContext as unknown) as React.Context<Client<T>>);
+const useClient = <T extends NonUndefined>() => {
+    const client = React.useContext(ClientContext);
+
+    ensureClient(client);
+
+    return client as Client<T>;
+};
 
 export { Provider, useClient };

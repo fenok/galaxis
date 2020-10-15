@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { useClient } from '../Provider';
-import { ensureClient } from './ensureClient';
 import { getRequestHash } from './getRequestHash';
 import { useId } from './useId';
 import { useSubscription } from './useSubscription';
@@ -22,8 +21,6 @@ export function useQuery<C extends NonUndefined, R extends NonUndefined, E exten
 
     const client = useClient<C>();
     const ssrPromisesManager = React.useContext(SsrPromisesManagerContext);
-
-    ensureClient(client);
 
     const requestHash = getRequestHash(request, getRequestHashOuter);
 
