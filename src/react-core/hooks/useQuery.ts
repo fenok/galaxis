@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { SsrPromisesManagerContext, useClient } from '../Provider';
+import { useClient } from '../Provider';
 import { ensureClient } from './ensureClient';
 import { getRequestHash } from './getRequestHash';
 import { useId } from './useId';
@@ -7,6 +7,7 @@ import { useSubscription } from './useSubscription';
 import { usePrevious } from './usePrevious';
 import { NonUndefined, Query } from '../../core';
 import { QueryState } from '../../core/client/QueryProcessor';
+import { SsrPromisesManagerContext } from '../ssr';
 
 interface UseQueryOptions<C extends NonUndefined, R extends NonUndefined, E extends Error, I> {
     requesterId?: string;

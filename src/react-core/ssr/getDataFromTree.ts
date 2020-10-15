@@ -1,7 +1,7 @@
 import { renderToStaticMarkup } from 'react-dom/server';
-import { SsrPromisesManager } from '../../core/client';
-import { SsrPromisesManagerContext } from '../Provider';
+import { SsrPromisesManager } from '../../core';
 import * as React from 'react';
+import { SsrPromisesManagerContext } from './SsrPromisesManagerContext';
 
 /**
  * https://github.com/apollographql/react-apollo/blob/master/packages/ssr/src/getDataFromTree.ts
