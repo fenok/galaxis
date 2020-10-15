@@ -166,10 +166,28 @@ export class QueryProcessor<C extends NonUndefined> {
         this.cache.updateState({
             updateRequestState: {
                 requestId,
-                update: ({ error }) => ({
-                    error: action.type !== 'fail' ? (action.type !== 'success' ? error : undefined) : action.error,
-                    loading: [...(this.ongoingRequests[requestId]?.loading ?? [])],
-                }),
+                update: requestState => {
+                    const newError =
+                        action.type !== 'fail'
+                            ? action.type !== 'success'
+                                ? requestState.error
+                                : undefined
+                            : action.error;
+
+                    const currentLoading = [...(this.ongoingRequests[requestId]?.loading ?? [])];
+                    const newLoading =
+                        currentLoading.length === requestState.loading.length &&
+                        currentLoading.every(id => requestState.loading.includes(id))
+                            ? requestState.loading
+                            : currentLoading;
+
+                    return requestState.error === newError && requestState.loading === newLoading
+                        ? requestState
+                        : {
+                              error: newError,
+                              loading: newLoading,
+                          };
+                },
             },
             updateCacheData:
                 action.type !== 'loading'

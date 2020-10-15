@@ -52,16 +52,22 @@ export class TestCache<D extends NonUndefined> implements Cache<D> {
     }
 
     public updateState({ updateCacheData, updateRequestState }: UpdateStateOpts<D>) {
-        this.state = {
-            requestStates: updateRequestState
-                ? {
-                      ...this.state.requestStates,
-                      [updateRequestState.requestId]: updateRequestState.update(
-                          this.getRequestState(updateRequestState.requestId),
-                      ),
-                  }
-                : this.state.requestStates,
-            data: updateCacheData ? updateCacheData(this.state.data) : this.state.data,
-        };
+        const newData = updateCacheData ? updateCacheData(this.state.data) : this.state.data;
+        const currentRequestState = updateRequestState ? this.getRequestState(updateRequestState.requestId) : undefined;
+        const newRequestState =
+            updateRequestState && currentRequestState ? updateRequestState.update(currentRequestState) : undefined;
+
+        if (newData !== this.state.data || newRequestState !== currentRequestState) {
+            this.state = {
+                requestStates:
+                    updateRequestState && newRequestState
+                        ? {
+                              ...this.state.requestStates,
+                              [updateRequestState.requestId]: newRequestState,
+                          }
+                        : this.state.requestStates,
+                data: newData,
+            };
+        }
     }
 }
