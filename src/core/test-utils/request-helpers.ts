@@ -3,6 +3,7 @@ import { Query, BaseRequest, CommonRequestOptions } from '../types';
 import { QueryProcessor } from '../client/QueryProcessor';
 import { TestCache } from './TestCache';
 import { wait } from '../promise';
+import { Client } from '../client';
 
 export interface ItemEntity {
     id: string;
@@ -14,6 +15,16 @@ export interface ItemEntity {
 export const FIRST_ITEM: ItemEntity = {
     id: '1',
     value: 'first',
+    freshness: 1,
+};
+
+export const FIRST_ITEM_UPDATE_DTO: Partial<Omit<ItemEntity, 'id' | 'freshness'>> = {
+    value: 'first-updated',
+};
+
+export const FIRST_ITEM_UPDATED: ItemEntity = {
+    id: '1',
+    value: 'first-updated',
     freshness: 1,
 };
 
@@ -31,7 +42,9 @@ export const SECOND_ITEM: ItemEntity = {
 };
 
 export interface TestRequestInit {
-    id: '1' | '2';
+    id: string;
+    updateItem?: Partial<Omit<ItemEntity, 'id' | 'freshness'>>;
+    time?: number;
 }
 
 export function getAbortError() {
@@ -42,27 +55,35 @@ export function getNetworkError() {
     return new Error('Network error');
 }
 
-export function getNetworkRequestFactory({ requestInit }: CommonRequestOptions<TestRequestInit>) {
-    let freshness = 0;
+export function getGetRequestFactory() {
+    const state: Record<string, ItemEntity> = { '1': FIRST_ITEM, '2': SECOND_ITEM };
 
-    return (abortSignal?: AbortSignal) => {
-        freshness++;
+    return ({ requestInit }: CommonRequestOptions<TestRequestInit>) => {
+        let freshness = 0;
 
-        return new Promise<ItemEntity>((resolve, reject) => {
-            function onAbort() {
-                reject(getAbortError());
-            }
+        return (abortSignal?: AbortSignal) => {
+            freshness++;
 
-            if (abortSignal?.aborted) {
-                onAbort();
-            } else {
-                abortSignal?.addEventListener('abort', onAbort);
-            }
+            return new Promise<ItemEntity>((resolve, reject) => {
+                function onAbort() {
+                    reject(getAbortError());
+                }
 
-            wait(200).then(() => {
-                resolve(requestInit.id === '1' ? { ...FIRST_ITEM, freshness } : { ...SECOND_ITEM, freshness });
+                if (abortSignal?.aborted) {
+                    onAbort();
+                } else {
+                    abortSignal?.addEventListener('abort', onAbort);
+                }
+
+                wait(requestInit.time ?? 200).then(() => {
+                    if (requestInit.updateItem) {
+                        state[requestInit.id] = { ...state[requestInit.id], ...requestInit.updateItem };
+                    }
+
+                    resolve({ ...state[requestInit.id], freshness });
+                });
             });
-        });
+        };
     };
 }
 
@@ -103,10 +124,12 @@ export const ITEM_REQUEST: Omit<
     },
 };
 
-export function getFirstItemRequest(): Query<TestCacheData, ItemEntity, Error, TestRequestInit> {
+export function getFirstItemRequest(
+    getRequestFactory = getGetRequestFactory(),
+): Query<TestCacheData, ItemEntity, Error, TestRequestInit> {
     return {
         ...ITEM_REQUEST,
-        getRequestFactory: getNetworkRequestFactory,
+        getRequestFactory,
         requestInit: { id: '1' },
     };
 }
@@ -119,10 +142,12 @@ export function getFailingFirstItemRequest(): Query<TestCacheData, ItemEntity, E
     };
 }
 
-export function getFirstItemRequestWithOptimisticResponse(): Query<TestCacheData, ItemEntity, Error, TestRequestInit> {
+export function getFirstItemRequestWithOptimisticResponse(
+    getRequestFactory = getGetRequestFactory(),
+): Query<TestCacheData, ItemEntity, Error, TestRequestInit> {
     return {
         ...ITEM_REQUEST,
-        getRequestFactory: getNetworkRequestFactory,
+        getRequestFactory,
         requestInit: { id: '1' },
         optimisticData: OPTIMISTIC_FIRST_ITEM,
         isOptimisticData({ data }): boolean {
@@ -141,17 +166,38 @@ export function getFirstItemRequestWithOptimisticResponse(): Query<TestCacheData
     };
 }
 
-export function getSecondItemRequest(): Query<TestCacheData, ItemEntity, Error, TestRequestInit> {
+export function getSecondItemRequest(
+    getRequestFactory = getGetRequestFactory(),
+): Query<TestCacheData, ItemEntity, Error, TestRequestInit> {
     return {
         ...ITEM_REQUEST,
-        getRequestFactory: getNetworkRequestFactory,
+        getRequestFactory,
         requestInit: { id: '2' },
     };
 }
 
-export function getQueryProcessor() {
+export function getRequestQueue() {
+    return new RequestQueue();
+}
+
+export function getCache() {
+    return new TestCache({ initialData: INITIAL_CACHE_DATA, emptyData: INITIAL_CACHE_DATA });
+}
+
+export function getQueryProcessor(requestQueue = getRequestQueue(), cache = getCache()) {
     return new QueryProcessor({
-        cache: new TestCache({ initialData: INITIAL_CACHE_DATA, emptyData: INITIAL_CACHE_DATA }),
-        requestQueue: new RequestQueue(),
+        cache,
+        requestQueue,
     });
+}
+
+export function getMutationProcessor(requestQueue = getRequestQueue(), cache = getCache()) {
+    return new QueryProcessor({
+        cache,
+        requestQueue,
+    });
+}
+
+export function getClient(cache = getCache()) {
+    return new Client({ cache });
 }
