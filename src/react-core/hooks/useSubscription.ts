@@ -1,9 +1,8 @@
 import { useEffect, useState } from 'react';
-import { NonUndefined } from '../../core';
-import { QueryState } from '../../core/client/QueryProcessor';
+import { NonUndefined, QueryState } from '../../core';
 
 interface Options<D extends NonUndefined, E extends Error> {
-    getCurrentValue(): QueryState<D, E>;
+    getCurrentQueryState(): QueryState<D, E>;
     subscribe(cb: (state: QueryState<D, E>) => void): () => void;
 }
 
@@ -11,17 +10,17 @@ interface Options<D extends NonUndefined, E extends Error> {
  * https://github.com/facebook/react/tree/master/packages/use-subscription
  */
 export function useSubscription<D extends NonUndefined, E extends Error>({
-    getCurrentValue,
+    getCurrentQueryState,
     subscribe,
 }: Options<D, E>) {
-    const [state, setState] = useState(() => ({ getCurrentValue, subscribe, value: getCurrentValue() }));
+    const [state, setState] = useState(() => ({ getCurrentQueryState, subscribe, value: getCurrentQueryState() }));
 
     let valueToReturn = state.value;
 
-    if (state.getCurrentValue !== getCurrentValue || state.subscribe !== subscribe) {
-        valueToReturn = { ...getCurrentValue() };
+    if (state.getCurrentQueryState !== getCurrentQueryState || state.subscribe !== subscribe) {
+        valueToReturn = getCurrentQueryState();
 
-        setState({ getCurrentValue, subscribe, value: valueToReturn });
+        setState({ getCurrentQueryState, subscribe, value: valueToReturn });
     }
 
     useEffect(() => {
@@ -32,10 +31,10 @@ export function useSubscription<D extends NonUndefined, E extends Error>({
                 return;
             }
 
-            const value = getCurrentValue();
+            const value = getCurrentQueryState();
 
             setState(prevState => {
-                if (prevState.getCurrentValue !== getCurrentValue || prevState.subscribe !== subscribe) {
+                if (prevState.getCurrentQueryState !== getCurrentQueryState || prevState.subscribe !== subscribe) {
                     return prevState;
                 }
 
@@ -62,7 +61,7 @@ export function useSubscription<D extends NonUndefined, E extends Error>({
             didUnsubscribe = true;
             unsubscribe();
         };
-    }, [getCurrentValue, subscribe]);
+    }, [getCurrentQueryState, subscribe]);
 
     return valueToReturn;
 }

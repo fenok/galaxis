@@ -1,27 +1,26 @@
-import * as React from 'react';
 import { useClient } from '../Provider';
 import { useSubscription } from './useSubscription';
 import { usePrevious } from './usePrevious';
 import { NonUndefined, Query, QueryState, logger } from '../../core';
 import { SsrPromisesManagerContext } from '../ssr';
+import { useMemo, useCallback, useRef, useContext } from 'react';
 
 export interface UseQueryOptions<C extends NonUndefined, R extends NonUndefined, E extends Error, I> {
-    requesterId: string;
     getQueryHash(query: Query<C, R, E, I>): string | number;
     isExpectedError(error: E | Error): boolean;
 }
 
 export function useQuery<C extends NonUndefined, R extends NonUndefined, E extends Error, I>(
     query: Query<C, R, E, I>,
-    { getQueryHash, requesterId, isExpectedError }: UseQueryOptions<C, R, E, I>,
+    { getQueryHash, isExpectedError }: UseQueryOptions<C, R, E, I>,
 ) {
     const queryHash = getQueryHash(query);
     const client = useClient<C>();
-    const ssrPromisesManager = React.useContext(SsrPromisesManagerContext);
+    const ssrPromisesManager = useContext(SsrPromisesManagerContext);
 
-    const abortControllerRef = React.useRef<AbortController>();
+    const abortControllerRef = useRef<AbortController>();
 
-    const getAbortSignal = React.useCallback(() => {
+    const getAbortSignal = useCallback(() => {
         if (!abortControllerRef.current || abortControllerRef.current.signal.aborted) {
             abortControllerRef.current = new AbortController();
         }
@@ -29,7 +28,7 @@ export function useQuery<C extends NonUndefined, R extends NonUndefined, E exten
         return abortControllerRef.current.signal;
     }, []);
 
-    const refetch = React.useCallback(
+    const refetch = useCallback(
         () => {
             return client.query({
                 ...query,
@@ -41,7 +40,7 @@ export function useQuery<C extends NonUndefined, R extends NonUndefined, E exten
         [client, queryHash],
     );
 
-    const abort = React.useCallback(() => {
+    const abort = useCallback(() => {
         if (abortControllerRef.current) {
             abortControllerRef.current.abort();
         }
@@ -64,9 +63,9 @@ export function useQuery<C extends NonUndefined, R extends NonUndefined, E exten
         }
     }
 
-    const subscription = React.useMemo(
+    const subscription = useMemo(
         () => ({
-            getCurrentValue: () => client.getQueryState(query),
+            getCurrentQueryState: () => client.getQueryState(query),
             subscribe: (callback: (state: QueryState<R, E>) => void) => {
                 return client.subscribe(query, callback);
             },
@@ -78,5 +77,5 @@ export function useQuery<C extends NonUndefined, R extends NonUndefined, E exten
 
     const requestState = useSubscription(subscription);
 
-    return { ...requestState, requesterId: requesterId, refetch, abort };
+    return { ...requestState, refetch, abort };
 }

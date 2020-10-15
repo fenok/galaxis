@@ -1,7 +1,6 @@
 import { QueryProcessor, QueryResult, QueryState } from './QueryProcessor';
 import { MutationProcessor } from './MutationProcessor';
 import { RequestQueue } from './RequestQueue';
-import { RequesterIdGenerator } from './RequesterIdGenerator';
 import { NonUndefined, Cache, Query, Mutation } from '../types';
 
 interface ClientOptions<C extends NonUndefined = null> {
@@ -9,25 +8,15 @@ interface ClientOptions<C extends NonUndefined = null> {
 }
 
 class Client<C extends NonUndefined> {
-    private readonly requesterIdGenerator: RequesterIdGenerator;
     private readonly cache: Cache<C>;
     private queryProcessor: QueryProcessor<C>;
     private mutationProcessor: MutationProcessor<C>;
 
     constructor({ cache }: ClientOptions<C>) {
         const networkRequestQueue = new RequestQueue();
-        this.requesterIdGenerator = new RequesterIdGenerator();
         this.cache = cache;
         this.queryProcessor = new QueryProcessor({ cache, requestQueue: networkRequestQueue });
         this.mutationProcessor = new MutationProcessor({ cache, networkRequestQueue });
-    }
-
-    public generateRequesterId(): string {
-        return this.requesterIdGenerator.generateId();
-    }
-
-    public resetRequesterIdGenerator() {
-        this.requesterIdGenerator.reset();
     }
 
     public purge() {

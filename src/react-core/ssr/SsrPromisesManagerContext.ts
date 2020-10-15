@@ -1,6 +1,6 @@
-import * as React from 'react';
 import { SsrPromisesManager } from '../../core/client';
+import { createContext } from 'react';
 
-const SsrPromisesManagerContext = React.createContext<SsrPromisesManager | null>(null);
+const SsrPromisesManagerContext = createContext<SsrPromisesManager | null>(null);
 
 export { SsrPromisesManagerContext };

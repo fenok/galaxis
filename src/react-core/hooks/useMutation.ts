@@ -1,19 +1,15 @@
-import * as React from 'react';
 import { useClient } from '../Provider';
 import { NonUndefined, Mutation } from '../../core';
+import { useCallback } from 'react';
 
-export interface UseMutationOptions {
-    requesterId: string;
-}
-
-export function useMutation({ requesterId }: UseMutationOptions) {
+export function useMutation() {
     const client = useClient();
 
-    const mutate = React.useCallback(
+    const mutate = useCallback(
         <C extends NonUndefined, R extends NonUndefined, E extends Error, I>(mutation: Mutation<C, R, E, I>) => {
-            return client.mutate({ ...mutation, requesterId });
+            return client.mutate({ ...mutation });
         },
-        [client, requesterId],
+        [client],
     );
 
     return { mutate };
