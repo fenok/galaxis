@@ -20,7 +20,7 @@ export function useQuery<C extends NonUndefined, R extends NonUndefined, E exten
     const prevClient = usePrevious(client);
     const abortControllerRef = useRef<AbortController>();
     const requestFlagsRef = useRef<QueryRequestFlags>();
-    const [loading, setLoading] = useState(false);
+    const [queryRequestState, setQueryRequestState] = useState<{ loading: boolean; data?: R; error?: E | Error }>();
     const ssrPromisesManager = useContext(SsrPromisesManagerContext);
 
     const getAbortSignal = useCallback(() => {
@@ -56,7 +56,10 @@ export function useQuery<C extends NonUndefined, R extends NonUndefined, E exten
         requestFlagsRef.current = queryState.requestFlags;
 
         if (queryState.requestFlags.required) {
-            setLoading(true);
+            setQueryRequestState(prevRequestState => ({
+                ...prevRequestState,
+                loading: true,
+            }));
         }
 
         if (typeof window === 'undefined' && ssrPromisesManager) {
@@ -71,14 +74,16 @@ export function useQuery<C extends NonUndefined, R extends NonUndefined, E exten
     useEffect(() => {
         client
             .query({ ...query, abortSignal: getAbortSignal() }, requestFlagsRef.current)
-            .request?.catch(error => {
+            .request?.then(data => {
+                setQueryRequestState({ loading: false, error: undefined, data });
+            })
+            .catch(error => {
                 if (!isExpectedError(error)) {
                     logger.error('Got unexpected error:', error);
                 }
                 // Otherwise error is expected and is either in cache or discarded by next request
-            })
-            .finally(() => {
-                setLoading(false);
+
+                setQueryRequestState(prevRequestState => ({ ...prevRequestState, loading: false, error }));
             });
 
         return () => {
@@ -101,5 +106,5 @@ export function useQuery<C extends NonUndefined, R extends NonUndefined, E exten
 
     const queryCache = useSubscription(subscription, { disableSubscription: query.fetchPolicy === 'no-cache' });
 
-    return { ...queryCache, loading, refetch, abort };
+    return { ...queryRequestState, ...queryCache, refetch, abort };
 }
