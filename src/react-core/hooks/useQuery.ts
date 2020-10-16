@@ -7,12 +7,11 @@ import { useMemo, useCallback, useRef, useContext, useEffect, useState } from 'r
 
 export interface UseQueryOptions<C extends NonUndefined, R extends NonUndefined, E extends Error, I> {
     getQueryHash(query: Query<C, R, E, I>): string | number;
-    isExpectedError(error: E | Error): boolean;
 }
 
 export function useQuery<C extends NonUndefined, R extends NonUndefined, E extends Error, I>(
     query: Query<C, R, E, I>,
-    { getQueryHash, isExpectedError }: UseQueryOptions<C, R, E, I>,
+    { getQueryHash }: UseQueryOptions<C, R, E, I>,
 ) {
     const queryHash = getQueryHash(query);
     const prevQueryHash = usePrevious(queryHash);
@@ -20,7 +19,9 @@ export function useQuery<C extends NonUndefined, R extends NonUndefined, E exten
     const prevClient = usePrevious(client);
     const abortControllerRef = useRef<AbortController>();
     const requestFlagsRef = useRef<QueryRequestFlags>();
-    const [queryRequestState, setQueryRequestState] = useState<{ loading: boolean; data?: R; error?: E | Error }>();
+    const [queryRequestState, setQueryRequestState] = useState<{ loading: boolean; data?: R; error?: E | Error }>({
+        loading: false,
+    });
     const ssrPromisesManager = useContext(SsrPromisesManagerContext);
 
     const getAbortSignal = useCallback(() => {
@@ -72,25 +73,27 @@ export function useQuery<C extends NonUndefined, R extends NonUndefined, E exten
     }
 
     useEffect(() => {
+        let aborted = false;
+
         client
             .query({ ...query, abortSignal: getAbortSignal() }, requestFlagsRef.current)
             .request?.then(data => {
-                setQueryRequestState({ loading: false, error: undefined, data });
+                if (!aborted) {
+                    setQueryRequestState({ loading: false, error: undefined, data });
+                }
             })
             .catch(error => {
-                if (!isExpectedError(error)) {
-                    logger.error('Got unexpected error:', error);
+                if (!aborted) {
+                    setQueryRequestState(prevRequestState => ({ ...prevRequestState, loading: false, error }));
                 }
-                // Otherwise error is expected and is either in cache or discarded by next request
-
-                setQueryRequestState(prevRequestState => ({ ...prevRequestState, loading: false, error }));
             });
 
         return () => {
+            aborted = true;
             abort();
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [abort, client, getAbortSignal, isExpectedError, queryHash]);
+    }, [abort, client, getAbortSignal, queryHash]);
 
     const subscription = useMemo(
         () => ({
@@ -105,6 +108,20 @@ export function useQuery<C extends NonUndefined, R extends NonUndefined, E exten
     );
 
     const queryCache = useSubscription(subscription, { disableSubscription: query.fetchPolicy === 'no-cache' });
+
+    useEffect(() => {
+        if (
+            process.env.NODE_ENV !== 'production' &&
+            queryRequestState.error &&
+            queryCache &&
+            queryRequestState.error !== queryCache.error
+        ) {
+            logger.warn(
+                'Query request promise returned an error that is different from the cached one:',
+                queryRequestState.error,
+            );
+        }
+    }, [queryCache, queryRequestState.error]);
 
     return { ...queryRequestState, ...queryCache, refetch, abort };
 }
