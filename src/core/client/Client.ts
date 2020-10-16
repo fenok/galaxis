@@ -29,9 +29,13 @@ class Client<C extends NonUndefined> {
         query: Query<C, R, E, I>,
         onChange: (state: QueryState<R, E>) => void,
     ) {
-        return this.cache.subscribe(() => {
-            onChange(this.getQueryState(query));
-        });
+        if (query.fetchPolicy !== 'no-cache') {
+            return this.cache.subscribe(() => {
+                onChange(this.getQueryState(query));
+            });
+        }
+
+        throw new Error("Query with 'no-cache' fetch policy cannot be subscribed to cache");
     }
 
     public onHydrateComplete() {

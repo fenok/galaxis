@@ -31,5 +31,5 @@ it('guarantees that mutation waits for loading queries', async () => {
 
     const cacheState = client.getQueryState(firstItemRequest);
 
-    expect(cacheState).toMatchObject({ error: undefined, data: FIRST_ITEM_UPDATED });
+    expect(cacheState.cache).toMatchObject({ error: undefined, data: FIRST_ITEM_UPDATED });
 });

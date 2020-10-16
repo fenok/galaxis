@@ -32,10 +32,10 @@ export class MutationProcessor<C extends NonUndefined> {
     public mutate<R extends NonUndefined, E extends Error, I>(mutation: Mutation<C, R, E, I>): Promise<R> {
         const requestId = mutation.getRequestId(mutation);
 
-        if (mutation.optimisticData) {
+        if (mutation.optimisticData && mutation.toCache) {
             this.cache.updateState({
                 updateCacheData: cacheData =>
-                    mutation.toCache({
+                    mutation.toCache!({
                         cacheData,
                         data: mutation.optimisticData!,
                         requestInit: mutation.requestInit,
@@ -56,23 +56,25 @@ export class MutationProcessor<C extends NonUndefined> {
                     if (this.ongoingRequests.has(mutationRequest)) {
                         this.ongoingRequests.delete(mutationRequest);
 
-                        this.cache.updateState({
-                            updateCacheData: cacheData =>
-                                mutation.toCache({
-                                    cacheData:
-                                        mutation.optimisticData && mutation.removeOptimisticData
-                                            ? mutation.removeOptimisticData({
-                                                  cacheData: cacheData,
-                                                  data: mutation.optimisticData,
-                                                  requestInit: mutation.requestInit,
-                                                  requestId,
-                                              })
-                                            : cacheData,
-                                    data,
-                                    requestInit: mutation.requestInit,
-                                    requestId,
-                                }),
-                        });
+                        if (mutation.toCache) {
+                            this.cache.updateState({
+                                updateCacheData: cacheData =>
+                                    mutation.toCache!({
+                                        cacheData:
+                                            mutation.optimisticData && mutation.removeOptimisticData
+                                                ? mutation.removeOptimisticData({
+                                                      cacheData: cacheData,
+                                                      data: mutation.optimisticData,
+                                                      requestInit: mutation.requestInit,
+                                                      requestId,
+                                                  })
+                                                : cacheData,
+                                        data,
+                                        requestInit: mutation.requestInit,
+                                        requestId,
+                                    }),
+                            });
+                        }
                     }
 
                     return data;

@@ -9,14 +9,18 @@ export interface QueryCache<D extends NonUndefined, E extends Error> {
 }
 
 export interface QueryRequestFlags {
-    requestRequired: boolean;
-    requestAllowed: boolean;
+    required: boolean;
+    allowed: boolean;
 }
 
-export type QueryState<D extends NonUndefined, E extends Error> = QueryCache<D, E> & QueryRequestFlags;
+export type QueryState<D extends NonUndefined, E extends Error> = {
+    cache?: QueryCache<D, E>;
+    requestFlags: QueryRequestFlags;
+};
 
 export interface QueryResult<R extends NonUndefined, E extends Error> {
-    queryState: QueryState<R, E>;
+    cache?: QueryCache<R, E>;
+    requestFlags: QueryRequestFlags;
     request?: Promise<R>;
 }
 
@@ -59,29 +63,36 @@ export class QueryProcessor<C extends NonUndefined> {
         const requestId = query.getRequestId(query);
         const queryState = this.getQueryState(query);
 
-        const requestRequired = requestFlags?.requestRequired ?? queryState.requestRequired;
-        const requestAllowed = requestFlags?.requestAllowed ?? queryState.requestAllowed;
+        const requestRequired = requestFlags?.required ?? queryState.requestFlags.required;
+        const requestAllowed = requestFlags?.allowed ?? queryState.requestFlags.allowed;
 
         return {
-            queryState,
+            ...queryState,
             request: requestRequired && requestAllowed ? this.getRequestPromise(query, requestId) : undefined,
         };
     }
 
     public getQueryState<R extends NonUndefined, E extends Error, I>(query: Query<C, R, E, I>): QueryState<R, E> {
         const requestId = query.getRequestId(query);
-        const error = this.cache.getRequestError(requestId);
-        const data = query.fromCache({
-            cacheData: this.cache.getCacheData(),
-            requestInit: query.requestInit,
-            requestId,
-        });
+
+        const cache =
+            query.fetchPolicy !== 'no-cache'
+                ? {
+                      error: this.cache.getRequestError(requestId),
+                      data: query.fromCache?.({
+                          cacheData: this.cache.getCacheData(),
+                          requestInit: query.requestInit,
+                          requestId,
+                      }),
+                  }
+                : undefined;
 
         return {
-            error,
-            data,
-            requestRequired: this.isRequestRequired(query, requestId, { error, data }),
-            requestAllowed: this.isRequestAllowed(query, { error, data }),
+            cache,
+            requestFlags: {
+                required: this.isRequestRequired(query, requestId, cache),
+                allowed: this.isRequestAllowed(query, cache),
+            },
         };
     }
 
@@ -169,7 +180,7 @@ export class QueryProcessor<C extends NonUndefined> {
             },
             updateCacheData: cacheData => {
                 if (action.type === 'start') {
-                    return query.optimisticData
+                    return query.optimisticData && query.toCache
                         ? query.toCache({
                               cacheData,
                               data: query.optimisticData,
@@ -187,20 +198,22 @@ export class QueryProcessor<C extends NonUndefined> {
                           })
                         : cacheData;
                 } else {
-                    return query.toCache({
-                        cacheData:
-                            query.optimisticData && query.removeOptimisticData
-                                ? query.removeOptimisticData({
-                                      cacheData: cacheData,
-                                      data: query.optimisticData,
-                                      requestInit: query.requestInit,
-                                      requestId,
-                                  })
-                                : cacheData,
-                        data: action.data,
-                        requestInit: query.requestInit,
-                        requestId,
-                    });
+                    return query.toCache
+                        ? query.toCache({
+                              cacheData:
+                                  query.optimisticData && query.removeOptimisticData
+                                      ? query.removeOptimisticData({
+                                            cacheData: cacheData,
+                                            data: query.optimisticData,
+                                            requestInit: query.requestInit,
+                                            requestId,
+                                        })
+                                      : cacheData,
+                              data: action.data,
+                              requestInit: query.requestInit,
+                              requestId,
+                          })
+                        : cacheData;
                 }
             },
         });
@@ -209,7 +222,7 @@ export class QueryProcessor<C extends NonUndefined> {
     private isRequestRequired<R extends NonUndefined, E extends Error, I>(
         query: Query<C, R, E, I>,
         requestId: string,
-        queryCache: QueryCache<R, E>,
+        queryCache?: QueryCache<R, E>,
     ): boolean {
         return !(
             query.fetchPolicy === 'cache-only' ||
@@ -222,21 +235,21 @@ export class QueryProcessor<C extends NonUndefined> {
 
     private isRequestAllowed<R extends NonUndefined, E extends Error, I>(
         query: Query<C, R, E, I>,
-        queryCache: QueryCache<R, E>,
+        queryCache?: QueryCache<R, E>,
     ): boolean {
         return (
             typeof window !== 'undefined' ||
-            (!query.disableSsr && queryCache.data === undefined && queryCache.error === undefined)
+            (!query.disableSsr && queryCache?.data === undefined && queryCache?.error === undefined)
         );
     }
 
     private isRequestStateSufficient<R extends NonUndefined, E extends Error, I>(
         query: Query<C, R, E, I>,
         requestId: string,
-        queryCache: QueryCache<R, E>,
+        queryCache?: QueryCache<R, E>,
     ): boolean {
         return (
-            queryCache.data !== undefined &&
+            queryCache?.data !== undefined &&
             !query.isOptimisticData?.({
                 data: queryCache.data,
                 cacheData: this.cache.getCacheData(),

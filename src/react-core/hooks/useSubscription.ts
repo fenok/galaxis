@@ -38,11 +38,14 @@ export function useSubscription<D extends NonUndefined, E extends Error>({
                     return prevState;
                 }
 
-                if (prevState.value === value) {
+                if (prevState.value.cache === value.cache) {
                     return prevState;
                 }
 
-                if (prevState.value.error === value.error && prevState.value.data === value.data) {
+                if (
+                    prevState.value.cache?.error === value.cache?.error &&
+                    prevState.value.cache?.data === value.cache?.data
+                ) {
                     return prevState;
                 }
 

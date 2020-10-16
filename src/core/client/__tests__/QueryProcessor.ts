@@ -21,7 +21,7 @@ it('can query data', async () => {
     const dataFromCache = queryProcessor.getQueryState(firstItemRequest);
 
     expect(networkResponse).toEqual(FIRST_ITEM);
-    expect(dataFromCache).toMatchObject({ data: FIRST_ITEM, error: undefined });
+    expect(dataFromCache.cache).toMatchObject({ data: FIRST_ITEM, error: undefined });
 });
 
 it('respects fetch policies', async () => {
@@ -33,19 +33,19 @@ it('respects fetch policies', async () => {
         ...firstItemRequest,
         fetchPolicy: 'cache-only',
     });
-    expect(cacheOnlyQueryResult.queryState).toMatchObject({ data: undefined, error: undefined });
+    expect(cacheOnlyQueryResult.cache).toMatchObject({ data: undefined, error: undefined });
 
     let cacheFirstQueryResult = queryProcessor.query({
         ...firstItemRequest,
         fetchPolicy: 'cache-first',
     });
-    expect(cacheFirstQueryResult.queryState).toMatchObject({ data: undefined, error: undefined });
+    expect(cacheFirstQueryResult.cache).toMatchObject({ data: undefined, error: undefined });
 
     let cacheAndNetworkQueryResult = queryProcessor.query({
         ...firstItemRequest,
         fetchPolicy: 'cache-and-network',
     });
-    expect(cacheAndNetworkQueryResult.queryState).toMatchObject({ data: undefined, error: undefined });
+    expect(cacheAndNetworkQueryResult.cache).toMatchObject({ data: undefined, error: undefined });
 
     expect(cacheOnlyQueryResult.request).toEqual(undefined);
     await expect(cacheFirstQueryResult.request).resolves.toEqual(FIRST_ITEM);
@@ -55,19 +55,19 @@ it('respects fetch policies', async () => {
         ...firstItemRequest,
         fetchPolicy: 'cache-only',
     });
-    expect(cacheOnlyQueryResult.queryState).toMatchObject({ data: FIRST_ITEM, error: undefined });
+    expect(cacheOnlyQueryResult.cache).toMatchObject({ data: FIRST_ITEM, error: undefined });
 
     cacheFirstQueryResult = queryProcessor.query({
         ...firstItemRequest,
         fetchPolicy: 'cache-first',
     });
-    expect(cacheFirstQueryResult.queryState).toMatchObject({ data: FIRST_ITEM, error: undefined });
+    expect(cacheFirstQueryResult.cache).toMatchObject({ data: FIRST_ITEM, error: undefined });
 
     cacheAndNetworkQueryResult = queryProcessor.query({
         ...firstItemRequest,
         fetchPolicy: 'cache-and-network',
     });
-    expect(cacheAndNetworkQueryResult.queryState).toMatchObject({ data: FIRST_ITEM, error: undefined });
+    expect(cacheAndNetworkQueryResult.cache).toMatchObject({ data: FIRST_ITEM, error: undefined });
 
     expect(cacheOnlyQueryResult.request).toEqual(undefined);
     expect(cacheFirstQueryResult.request).toEqual(undefined);
@@ -75,7 +75,7 @@ it('respects fetch policies', async () => {
 
     const dataFromCache = queryProcessor.getQueryState({ ...firstItemRequest });
 
-    expect(dataFromCache).toMatchObject({ data: FIRST_ITEM, error: undefined });
+    expect(dataFromCache.cache).toMatchObject({ data: FIRST_ITEM, error: undefined });
 });
 
 it('can reuse network requests', async () => {
@@ -85,14 +85,14 @@ it('can reuse network requests', async () => {
 
     const firstQueryResult = queryProcessor.query({ ...firstItemRequest });
 
-    expect(queryProcessor.getQueryState({ ...firstItemRequest })).toMatchObject({
+    expect(queryProcessor.getQueryState({ ...firstItemRequest }).cache).toMatchObject({
         data: undefined,
         error: undefined,
     });
 
     const secondQueryResult = queryProcessor.query({ ...firstItemRequest });
 
-    expect(queryProcessor.getQueryState({ ...firstItemRequest })).toMatchObject({
+    expect(queryProcessor.getQueryState({ ...firstItemRequest }).cache).toMatchObject({
         data: undefined,
         error: undefined,
     });
@@ -107,8 +107,8 @@ it('can reuse network requests', async () => {
 
     expect(networkResponse[0]).toEqual(FIRST_ITEM);
     expect(networkResponse[1]).toBe(networkResponse[0]);
-    expect(firstDataFromCache).toMatchObject({ data: FIRST_ITEM, error: undefined });
-    expect(secondDataFromCache).toMatchObject({ data: FIRST_ITEM, error: undefined });
+    expect(firstDataFromCache.cache).toMatchObject({ data: FIRST_ITEM, error: undefined });
+    expect(secondDataFromCache.cache).toMatchObject({ data: FIRST_ITEM, error: undefined });
 });
 
 it('can abort network request', async () => {
@@ -126,7 +126,7 @@ it('can abort network request', async () => {
 
     const dataFromCache = queryProcessor.getQueryState(firstItemRequest);
 
-    expect(dataFromCache).toMatchObject({ data: undefined, error: getAbortError() });
+    expect(dataFromCache.cache).toMatchObject({ data: undefined, error: getAbortError() });
 });
 
 it('can abort network request for multiple requesters', async () => {
@@ -158,7 +158,7 @@ it('can abort network request for multiple requesters', async () => {
         abortSignal: firstAbortController.signal,
     });
 
-    expect(dataFromCache).toMatchObject({ data: undefined, error: getAbortError() });
+    expect(dataFromCache.cache).toMatchObject({ data: undefined, error: getAbortError() });
 });
 
 it('does not abort network request if not all requesters asked so', async () => {
@@ -182,7 +182,7 @@ it('does not abort network request if not all requesters asked so', async () => 
 
     const dataFromCache = queryProcessor.getQueryState(firstItemRequest);
 
-    expect(dataFromCache).toMatchObject({ data: FIRST_ITEM, error: undefined });
+    expect(dataFromCache.cache).toMatchObject({ data: FIRST_ITEM, error: undefined });
 });
 
 it('correctly aborts previous request when the next one is executed immediately with the same id', async () => {
@@ -211,7 +211,7 @@ it('correctly aborts previous request when the next one is executed immediately 
         getRequestId: () => 'one-and-only',
     });
 
-    expect(dataFromCache).toMatchObject({ data: SECOND_ITEM, error: undefined });
+    expect(dataFromCache.cache).toMatchObject({ data: SECOND_ITEM, error: undefined });
 });
 
 it('on purge all requests are aborted and do not affect cache anymore', async () => {
@@ -227,7 +227,7 @@ it('on purge all requests are aborted and do not affect cache anymore', async ()
 
     const dataFromCacheAfterPurge = queryProcessor.getQueryState(firstItemRequest);
 
-    expect(dataFromCacheAfterPurge).toMatchObject({ data: undefined, error: undefined });
+    expect(dataFromCacheAfterPurge.cache).toMatchObject({ data: undefined, error: undefined });
 });
 
 it('supports optimistic responses', async () => {
@@ -237,17 +237,17 @@ it('supports optimistic responses', async () => {
 
     const queryResult = queryProcessor.query(firstItemRequest);
 
-    expect(queryResult.queryState).toMatchObject({ data: undefined, error: undefined });
+    expect(queryResult.cache).toMatchObject({ data: undefined, error: undefined });
 
     const optimisticDataFromCache = queryProcessor.getQueryState(firstItemRequest);
 
-    expect(optimisticDataFromCache).toMatchObject({ data: OPTIMISTIC_FIRST_ITEM, error: undefined });
+    expect(optimisticDataFromCache.cache).toMatchObject({ data: OPTIMISTIC_FIRST_ITEM, error: undefined });
 
     await expect(queryResult.request).resolves.toEqual(FIRST_ITEM);
 
     const dataFromCache = queryProcessor.getQueryState(firstItemRequest);
 
-    expect(dataFromCache).toMatchObject({ data: FIRST_ITEM, error: undefined });
+    expect(dataFromCache.cache).toMatchObject({ data: FIRST_ITEM, error: undefined });
 });
 
 it('does not consider persisted optimistic data / resets persisted loading state', async () => {
@@ -257,14 +257,14 @@ it('does not consider persisted optimistic data / resets persisted loading state
 
     const queryResult = queryProcessor.query(firstItemRequest);
 
-    expect(queryResult.queryState).toMatchObject({ data: undefined, error: undefined });
+    expect(queryResult.cache).toMatchObject({ data: undefined, error: undefined });
 
     queryProcessor.purge();
 
     await expect(queryResult.request).rejects.toEqual(getAbortError());
 
     const optimisticDataFromCache = queryProcessor.getQueryState(firstItemRequest);
-    expect(optimisticDataFromCache).toMatchObject({ data: OPTIMISTIC_FIRST_ITEM, error: undefined });
+    expect(optimisticDataFromCache.cache).toMatchObject({ data: OPTIMISTIC_FIRST_ITEM, error: undefined });
 
     const cacheFirstQueryResult = queryProcessor.query({
         ...firstItemRequest,
@@ -275,7 +275,7 @@ it('does not consider persisted optimistic data / resets persisted loading state
         ...firstItemRequest,
         fetchPolicy: 'cache-first',
     });
-    expect(loadingDataFromCache).toMatchObject({ data: OPTIMISTIC_FIRST_ITEM, error: undefined });
+    expect(loadingDataFromCache.cache).toMatchObject({ data: OPTIMISTIC_FIRST_ITEM, error: undefined });
 
     await expect(cacheFirstQueryResult.request).resolves.toEqual(FIRST_ITEM);
 
@@ -283,7 +283,7 @@ it('does not consider persisted optimistic data / resets persisted loading state
         ...firstItemRequest,
         fetchPolicy: 'cache-first',
     });
-    expect(dataFromCache).toMatchObject({ data: FIRST_ITEM, error: undefined });
+    expect(dataFromCache.cache).toMatchObject({ data: FIRST_ITEM, error: undefined });
 });
 
 it('resets persisted loading state if there is no network request', async () => {
@@ -298,7 +298,7 @@ it('resets persisted loading state if there is no network request', async () => 
     await expect(queryResult.request).rejects.toEqual(getAbortError());
 
     const loadingDataFromCache = queryProcessor.getQueryState(firstItemRequest);
-    expect(loadingDataFromCache).toMatchObject({ data: undefined, error: undefined });
+    expect(loadingDataFromCache.cache).toMatchObject({ data: undefined, error: undefined });
 
     const cacheOnlyQueryResult = queryProcessor.query({
         ...firstItemRequest,
@@ -306,11 +306,11 @@ it('resets persisted loading state if there is no network request', async () => 
     });
 
     expect(cacheOnlyQueryResult.request).toEqual(undefined);
-    expect(cacheOnlyQueryResult.queryState).toMatchObject({ data: undefined, error: undefined });
+    expect(cacheOnlyQueryResult.cache).toMatchObject({ data: undefined, error: undefined });
 
     const dataFromCache = queryProcessor.getQueryState({
         ...firstItemRequest,
         fetchPolicy: 'cache-only',
     });
-    expect(dataFromCache).toMatchObject({ data: undefined, error: undefined });
+    expect(dataFromCache.cache).toMatchObject({ data: undefined, error: undefined });
 });
