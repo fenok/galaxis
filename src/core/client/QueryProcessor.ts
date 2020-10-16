@@ -15,7 +15,7 @@ export interface QueryResult<R extends NonUndefined, E extends Error> {
 
 export interface QueryRequest {
     promise?: Promise<any>;
-    loading: Set<string>;
+    loading: number;
     aborted: boolean;
     abort(): void;
 }
@@ -79,9 +79,9 @@ export class QueryProcessor<C extends NonUndefined> {
             const queryRequest = this.ensureQueryRequest(query, requestId, requestState);
 
             const onAbort = () => {
-                queryRequest.loading.delete(query.requesterId);
+                queryRequest.loading--;
 
-                if (queryRequest.loading.size === 0) {
+                if (queryRequest.loading <= 0) {
                     queryRequest.abort();
                 }
             };
@@ -111,7 +111,7 @@ export class QueryProcessor<C extends NonUndefined> {
                 get aborted() {
                     return Boolean(abortController?.signal.aborted);
                 },
-                loading: new Set([query.requesterId]),
+                loading: 1,
             };
 
             if (this.isRequestAllowed(query, requestState)) {
@@ -144,7 +144,7 @@ export class QueryProcessor<C extends NonUndefined> {
 
             this.updateCache(query, requestId, { type: 'start' });
         } else {
-            currentQueryRequest.loading.add(query.requesterId);
+            currentQueryRequest.loading++;
         }
 
         return this.ongoingRequests[requestId]!;
@@ -242,7 +242,6 @@ export class QueryProcessor<C extends NonUndefined> {
         return {
             requestInit: query.requestInit,
             requestId,
-            requesterId: query.requesterId,
         };
     }
 }

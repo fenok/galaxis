@@ -95,11 +95,7 @@ export const INITIAL_CACHE_DATA: TestCacheData = {
     items: {},
 };
 
-export const BASE_REQUEST: Pick<
-    BaseRequest<TestCacheData, ItemEntity, Error, TestRequestInit>,
-    'getRequestId' | 'requesterId'
-> = {
-    requesterId: 'test',
+export const BASE_REQUEST: Pick<BaseRequest<TestCacheData, ItemEntity, Error, TestRequestInit>, 'getRequestId'> = {
     getRequestId({ requestInit }: CommonRequestOptions<TestRequestInit>): string {
         return Buffer.from(JSON.stringify(requestInit)).toString('base64');
     },

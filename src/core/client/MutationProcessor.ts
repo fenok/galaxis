@@ -40,7 +40,6 @@ export class MutationProcessor<C extends NonUndefined> {
                         data: mutation.optimisticData!,
                         requestInit: mutation.requestInit,
                         requestId,
-                        requesterId: mutation.requesterId,
                     }),
             });
         }
@@ -67,13 +66,11 @@ export class MutationProcessor<C extends NonUndefined> {
                                                   data: mutation.optimisticData,
                                                   requestInit: mutation.requestInit,
                                                   requestId,
-                                                  requesterId: mutation.requesterId,
                                               })
                                             : cacheData,
                                     data,
                                     requestInit: mutation.requestInit,
                                     requestId,
-                                    requesterId: mutation.requesterId,
                                 }),
                         });
                     }
@@ -92,7 +89,6 @@ export class MutationProcessor<C extends NonUndefined> {
                                         data: mutation.optimisticData!,
                                         requestInit: mutation.requestInit,
                                         requestId,
-                                        requesterId: mutation.requesterId,
                                     }),
                             });
                         }

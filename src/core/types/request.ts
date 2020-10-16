@@ -6,16 +6,13 @@ export interface CommonCacheOptions<CD extends NonUndefined, I> {
     cacheData: CD;
     requestInit: I;
     requestId: string;
-    requesterId: string;
 }
 
 export interface CommonRequestOptions<I> {
     requestInit: I;
-    requesterId: string;
 }
 
 export interface BaseRequest<CD extends NonUndefined, D extends NonUndefined, E extends Error, I> {
-    requesterId: string;
     requestInit: I;
     abortSignal?: AbortSignal;
     getRequestFactory(opts: CommonRequestOptions<I>): (abortSignal?: AbortSignal) => Promise<D | E>;
