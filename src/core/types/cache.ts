@@ -1,15 +1,10 @@
 import { NonUndefined } from './helpers';
 
-export interface CacheRequestState {
-    loading: string[];
-    error: Error | undefined;
-}
-
 export interface UpdateStateOpts<D extends NonUndefined> {
     updateCacheData?(prevCacheData: D): D;
-    updateRequestState?: {
+    updateRequestError?: {
         requestId: string;
-        update(prevState: CacheRequestState): CacheRequestState;
+        update(prevError: Error | undefined): Error | undefined;
     };
 }
 
@@ -17,6 +12,6 @@ export interface Cache<D extends NonUndefined> {
     subscribe(callback: () => void): () => void;
     updateState(opts: UpdateStateOpts<D>): void;
     getCacheData(): D;
-    getRequestState(requestId: string): CacheRequestState;
+    getRequestError(requestId: string): Error | undefined;
     purge(): void;
 }

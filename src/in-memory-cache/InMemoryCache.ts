@@ -1,9 +1,8 @@
 import { devTools, ReduxDevTools } from './devTools';
-import { Cache, NonUndefined, UpdateStateOpts, CacheRequestState } from '../core';
+import { Cache, NonUndefined, UpdateStateOpts } from '../core';
 
 interface CacheState<D extends NonUndefined = null, E = Error> {
     data: D;
-    loading: { [id: string]: string[] | undefined };
     error: { [id: string]: E | undefined };
 }
 
@@ -18,7 +17,6 @@ interface CacheOptions<D extends NonUndefined = null> {
 
 class InMemoryCache<D extends NonUndefined = null> implements Cache<D> {
     public static readonly INITIAL_STATE: CacheState<any, any> = {
-        loading: {},
         error: {},
         data: undefined,
     };
@@ -64,11 +62,8 @@ class InMemoryCache<D extends NonUndefined = null> implements Cache<D> {
         return this.state.data;
     }
 
-    public getRequestState(requestId: string): CacheRequestState {
-        return {
-            loading: this.state.loading[requestId] ?? [],
-            error: this.state.error[requestId],
-        };
+    public getRequestError(requestId: string): Error | undefined {
+        return this.state.error[requestId];
     }
 
     public extract(): SerializableCacheState<D> {
@@ -115,17 +110,13 @@ class InMemoryCache<D extends NonUndefined = null> implements Cache<D> {
         this.devtools?.send({ type: 'UPDATE', ...opts }, this.state);
     }
 
-    private updateStateInner({ updateCacheData, updateRequestState }: UpdateStateOpts<D>) {
-        const newRequestState = updateRequestState?.update(this.getRequestState(updateRequestState.requestId));
+    private updateStateInner({ updateCacheData, updateRequestError }: UpdateStateOpts<D>) {
+        const newRequestError = updateRequestError?.update(this.getRequestError(updateRequestError.requestId));
 
         this.state = {
-            loading:
-                newRequestState && updateRequestState?.requestId
-                    ? { ...this.state.loading, [updateRequestState.requestId]: newRequestState.loading }
-                    : this.state.loading,
             error:
-                newRequestState && updateRequestState?.requestId
-                    ? { ...this.state.error, [updateRequestState.requestId]: newRequestState.error }
+                newRequestError && updateRequestError?.requestId
+                    ? { ...this.state.error, [updateRequestError.requestId]: newRequestError }
                     : this.state.error,
             data: updateCacheData ? updateCacheData(this.state.data) : this.state.data,
         };

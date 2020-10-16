@@ -1,8 +1,8 @@
-import { NonUndefined, Cache, CacheRequestState, UpdateStateOpts } from '../types';
+import { NonUndefined, Cache, UpdateStateOpts } from '../types';
 
 interface CacheState<D extends NonUndefined = null> {
     data: D;
-    requestStates: { [id: string]: { loading: string[]; error: Error | undefined } | undefined };
+    requestErrors: { [id: string]: Error | undefined };
 }
 
 export class TestCache<D extends NonUndefined> implements Cache<D> {
@@ -15,7 +15,7 @@ export class TestCache<D extends NonUndefined> implements Cache<D> {
 
         this._state = {
             data: opts.initialData,
-            requestStates: {},
+            requestErrors: {},
         };
     }
 
@@ -32,8 +32,8 @@ export class TestCache<D extends NonUndefined> implements Cache<D> {
         return this.state.data;
     }
 
-    public getRequestState(requestId: string): CacheRequestState {
-        return this.state.requestStates[requestId] ?? { error: undefined, loading: [] };
+    public getRequestError(requestId: string): Error | undefined {
+        return this.state.requestErrors[requestId];
     }
 
     public subscribe(callback: () => void) {
@@ -47,25 +47,23 @@ export class TestCache<D extends NonUndefined> implements Cache<D> {
     public purge() {
         this.state = {
             data: this.emptyData,
-            requestStates: {},
+            requestErrors: {},
         };
     }
 
-    public updateState({ updateCacheData, updateRequestState }: UpdateStateOpts<D>) {
+    public updateState({ updateCacheData, updateRequestError }: UpdateStateOpts<D>) {
         const newData = updateCacheData ? updateCacheData(this.state.data) : this.state.data;
-        const currentRequestState = updateRequestState ? this.getRequestState(updateRequestState.requestId) : undefined;
-        const newRequestState =
-            updateRequestState && currentRequestState ? updateRequestState.update(currentRequestState) : undefined;
+        const currentRequestError = updateRequestError ? this.getRequestError(updateRequestError.requestId) : undefined;
+        const newRequestError = updateRequestError ? updateRequestError.update(currentRequestError) : undefined;
 
-        if (newData !== this.state.data || newRequestState !== currentRequestState) {
+        if (newData !== this.state.data || newRequestError !== currentRequestError) {
             this.state = {
-                requestStates:
-                    updateRequestState && newRequestState
-                        ? {
-                              ...this.state.requestStates,
-                              [updateRequestState.requestId]: newRequestState,
-                          }
-                        : this.state.requestStates,
+                requestErrors: updateRequestError
+                    ? {
+                          ...this.state.requestErrors,
+                          [updateRequestError.requestId]: newRequestError,
+                      }
+                    : this.state.requestErrors,
                 data: newData,
             };
         }

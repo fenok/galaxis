@@ -42,11 +42,7 @@ export function useSubscription<D extends NonUndefined, E extends Error>({
                     return prevState;
                 }
 
-                if (
-                    prevState.value.loading === value.loading &&
-                    prevState.value.error === value.error &&
-                    prevState.value.data === value.data
-                ) {
+                if (prevState.value.error === value.error && prevState.value.data === value.data) {
                     return prevState;
                 }
 
