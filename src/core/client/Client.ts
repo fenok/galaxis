@@ -1,4 +1,4 @@
-import { QueryProcessor, QueryResult, QueryState } from './QueryProcessor';
+import { QueryProcessor, QueryResult, QueryState, QueryRequestFlags } from './QueryProcessor';
 import { MutationProcessor } from './MutationProcessor';
 import { RequestQueue } from './RequestQueue';
 import { NonUndefined, Cache, Query, Mutation } from '../types';
@@ -46,8 +46,11 @@ class Client<C extends NonUndefined> {
         return this.queryProcessor.getQueryState(query);
     }
 
-    public query<R extends NonUndefined, E extends Error, I>(query: Query<C, R, E, I>): QueryResult<R, E> {
-        return this.queryProcessor.query(query);
+    public query<R extends NonUndefined, E extends Error, I>(
+        query: Query<C, R, E, I>,
+        requestFlags?: Partial<QueryRequestFlags>,
+    ): QueryResult<R, E> {
+        return this.queryProcessor.query(query, requestFlags);
     }
 
     public async mutate<R extends NonUndefined, E extends Error, I>(mutation: Mutation<C, R, E, I>): Promise<R> {
