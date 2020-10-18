@@ -1,4 +1,4 @@
-const LIBRARY_PREFIX = '[React Fetching Hooks]';
+const LIBRARY_PREFIX = '[Fetcher]';
 
 export const logger = {
     log(message?: any, ...optionalParams: any[]) {

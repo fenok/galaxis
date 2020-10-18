@@ -1,7 +1,7 @@
 {
-    "name": "react-fetching-hooks",
+    "name": "fetcher",
     "version": "0.0.19",
-    "repository": "github:fenok/react-fetching-hooks",
+    "repository": "github:fenok/fetcher",
     "license": "MIT",
     "author": "Leonid Fenko <fenok2112@gmail.com>",
     "sideEffects": false,

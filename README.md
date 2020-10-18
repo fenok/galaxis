@@ -1,4 +1,4 @@
-# React Fetching Hooks
+# Fetcher
 
 [![npm](https://img.shields.io/npm/v/react-fetching-hooks)](https://www.npmjs.com/package/react-fetching-hooks)
 
