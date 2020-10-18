@@ -1,5 +1,13 @@
 dist/
 
+# Yarn 2 with Zero-Installs
+.yarn/*
+!.yarn/cache
+!.yarn/releases
+!.yarn/plugins
+!.yarn/sdks
+!.yarn/versions
+
 # Created by https://www.gitignore.io/api/node,linux,macos,windows,webstorm
 # Edit at https://www.gitignore.io/?templates=node,linux,macos,windows,webstorm
 
