@@ -4,47 +4,22 @@
     "repository": "github:fenok/fetcher",
     "license": "MIT",
     "author": "Leonid Fenko <fenok2112@gmail.com>",
-    "sideEffects": false,
-    "main": "dist/index.js",
-    "types": "dist/index.d.ts",
+    "private": true,
+    "workspaces": [
+        "packages/*"
+    ],
     "scripts": {
-        "prepare": "yarn build",
-        "prepublishOnly": "yarn test && yarn lint:js && yarn lint:ts",
-        "build": "rimraf ./dist && tsc",
-        "test": "jest",
-        "prettier:all": "prettier --write \"**/*.{js,ts,tsx,json,md,*rc}\"",
-        "lint:js": "eslint .",
-        "lint:ts": "eslint ./src/**/*.{ts,tsx}"
-    },
-    "dependencies": {
-        "buffer": "^5.6.0",
-        "path-to-regexp": "^6.1.0",
-        "query-string": "^6.11.1"
+        "build": "yarn workspaces foreach -p --topological-dev run build",
+        "lint": "yarn workspaces foreach -p run lint",
+        "test": "yarn workspaces foreach -p run test",
+        "prettier:all": "yarn workspaces foreach -p run prettier:all"
     },
     "devDependencies": {
-        "@types/jest": "25.1.4",
-        "@types/node": "13.9.0",
-        "@types/react": "*",
-        "@types/react-dom": "*",
-        "@typescript-eslint/eslint-plugin": "2.22.0",
-        "@typescript-eslint/parser": "2.22.0",
-        "eslint": "6.8.0",
-        "eslint-config-prettier": "6.10.0",
-        "eslint-plugin-react-hooks": "2.5.0",
-        "glob": "7.1.6",
-        "jest": "25.1.0",
-        "prettier": "1.19.1",
-        "react": "^16.8.0",
-        "react-dom": "^16.8.0",
-        "rimraf": "3.0.2",
-        "serialize-error": "^5.0.0",
-        "ts-jest": "25.2.1",
-        "typescript": "3.8.3"
-    },
-    "peerDependencies": {
-        "@types/react": "*",
-        "@types/react-dom": "*",
-        "react": "^16.8.0",
-        "react-dom": "^16.8.0"
+        "@typescript-eslint/eslint-plugin": "4.4.1",
+        "@typescript-eslint/parser": "4.4.1",
+        "eslint": "7.11.0",
+        "eslint-config-prettier": "6.13.0",
+        "prettier": "2.1.2",
+        "typescript": "4.0.3"
     }
 }

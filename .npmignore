@@ -1,5 +1,1 @@
-src
-.idea
-.gitignore
-jest.config.js
-tsconfig.json
+__tests__/

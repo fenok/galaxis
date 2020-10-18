@@ -1,0 +1,34 @@
+{
+    "name": "@fetcher/core",
+    "version": "0.0.19",
+    "repository": "github:fenok/fetcher",
+    "license": "MIT",
+    "author": "Leonid Fenko <fenok2112@gmail.com>",
+    "sideEffects": false,
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "files": [
+        "dist/"
+    ],
+    "scripts": {
+        "prepare": "yarn build",
+        "prepublishOnly": "yarn test && yarn lint",
+        "build": "rimraf ./dist && tsc",
+        "lint": "eslint .",
+        "test": "jest",
+        "prettier:all": "prettier --write \"**/*.{js,ts,tsx,json,md,*rc}\""
+    },
+    "devDependencies": {
+        "@types/jest": "26.0.14",
+        "@types/node": "14.11.10",
+        "@typescript-eslint/eslint-plugin": "4.4.1",
+        "@typescript-eslint/parser": "4.4.1",
+        "eslint": "7.11.0",
+        "eslint-config-prettier": "6.13.0",
+        "jest": "26.5.3",
+        "prettier": "2.1.2",
+        "rimraf": "3.0.2",
+        "ts-jest": "26.4.1",
+        "typescript": "4.0.3"
+    }
+}

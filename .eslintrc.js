@@ -8,7 +8,7 @@ module.exports = {
     overrides: [
         {
             files: ['**/*.ts', '**/*.tsx'],
-            plugins: ['@typescript-eslint', 'react-hooks'],
+            plugins: ['@typescript-eslint'],
             extends: [
                 'plugin:@typescript-eslint/eslint-recommended',
                 'plugin:@typescript-eslint/recommended',
@@ -16,15 +16,9 @@ module.exports = {
                 'prettier/@typescript-eslint',
             ],
             parser: '@typescript-eslint/parser',
-            parserOptions: {
-                tsconfigRootDir: __dirname,
-                project: ['./tsconfig.json'],
-            },
             rules: {
                 '@typescript-eslint/no-use-before-define': ['error', 'nofunc'],
                 '@typescript-eslint/no-unnecessary-condition': 'error',
-                'react-hooks/rules-of-hooks': 'error',
-                'react-hooks/exhaustive-deps': 'error',
             },
         },
     ],

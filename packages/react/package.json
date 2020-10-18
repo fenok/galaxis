@@ -1,0 +1,47 @@
+{
+    "name": "@fetcher/react",
+    "version": "0.0.19",
+    "repository": "github:fenok/fetcher",
+    "license": "MIT",
+    "author": "Leonid Fenko <fenok2112@gmail.com>",
+    "sideEffects": false,
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "files": [
+        "dist/"
+    ],
+    "scripts": {
+        "prepare": "yarn build",
+        "prepublishOnly": "yarn lint",
+        "build": "rimraf ./dist && tsc",
+        "lint": "eslint .",
+        "prettier:all": "prettier --write \"**/*.{js,ts,tsx,json,md,*rc}\""
+    },
+    "dependencies": {
+        "@fetcher/react-core": "0.0.19",
+        "buffer": "5.6.0",
+        "path-to-regexp": "6.2.0",
+        "query-string": "6.13.6"
+    },
+    "devDependencies": {
+        "@types/node": "13.9.0",
+        "@types/react": "*",
+        "@types/react-dom": "*",
+        "@typescript-eslint/eslint-plugin": "2.22.0",
+        "@typescript-eslint/parser": "2.22.0",
+        "eslint": "7.11.0",
+        "eslint-config-prettier": "6.13.0",
+        "eslint-plugin-react-hooks": "4.1.2",
+        "prettier": "2.1.2",
+        "react": "16.14.0",
+        "react-dom": "16.14.0",
+        "rimraf": "3.0.2",
+        "typescript": "4.0.3"
+    },
+    "peerDependencies": {
+        "@types/react": "*",
+        "@types/react-dom": "*",
+        "react": "^16.8.0",
+        "react-dom": "^16.8.0"
+    }
+}
