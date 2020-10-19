@@ -1,1 +1,2 @@
-export { App, Props as AppProps } from './App';
+export { App } from './App';
+export type { Props as AppProps } from './App';

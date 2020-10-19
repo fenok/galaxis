@@ -18,4 +18,5 @@ const Html: React.FC<Props> = ({ content }) => {
     );
 };
 
-export { Html, Props };
+export { Html };
+export type { Props };

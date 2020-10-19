@@ -1,1 +1,2 @@
-export { Html, Props as HtmlProps } from './Html';
+export { Html } from './Html';
+export type { Props as HtmlProps } from './Html';

@@ -6,8 +6,6 @@
     "author": "Leonid Fenko <fenok2112@gmail.com>",
     "private": true,
     "scripts": {
-        "prepare": "yarn build",
-        "prepublishOnly": "yarn lint",
         "build": "webpack",
         "start": "node src/server",
         "lint": "eslint .",

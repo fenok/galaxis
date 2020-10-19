@@ -3,6 +3,10 @@ module.exports = {
     env: {
         browser: true,
         node: true,
+        es6: true,
+    },
+    parserOptions: {
+        ecmaVersion: 2017,
     },
     extends: ['eslint:recommended', 'prettier'],
     overrides: [
@@ -19,6 +23,7 @@ module.exports = {
             rules: {
                 '@typescript-eslint/no-use-before-define': ['error', 'nofunc'],
                 '@typescript-eslint/no-unnecessary-condition': 'error',
+                '@typescript-eslint/no-empty-interface': 'off',
             },
         },
     ],
