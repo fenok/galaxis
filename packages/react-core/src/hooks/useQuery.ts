@@ -4,6 +4,7 @@ import { usePrevious } from './usePrevious';
 import { NonUndefined, Query, logger, QueryCache, QueryRequestFlags } from '@fetcher/core';
 import { SsrPromisesManagerContext } from '../ssr';
 import { useMemo, useCallback, useRef, useContext, useEffect, useState } from 'react';
+import { useIsUnmounted } from './useIsUnmounted';
 
 export interface UseQueryOptions<C extends NonUndefined, R extends NonUndefined, E extends Error, I> {
     getQueryHash(query: Query<C, R, E, I>): string | number;
@@ -13,6 +14,7 @@ export function useQuery<C extends NonUndefined, R extends NonUndefined, E exten
     query: Query<C, R, E, I>,
     { getQueryHash }: UseQueryOptions<C, R, E, I>,
 ) {
+    const isUnmounted = useIsUnmounted();
     const queryHash = getQueryHash(query);
     const prevQueryHash = usePrevious(queryHash);
     const client = useClient<C>();
@@ -23,6 +25,8 @@ export function useQuery<C extends NonUndefined, R extends NonUndefined, E exten
         loading: false,
     });
     const ssrPromisesManager = useContext(SsrPromisesManagerContext);
+    const ssrPromiseAddedRef = useRef(false);
+    const performQueryCallIdRef = useRef(1);
 
     const getAbortSignal = useCallback(() => {
         if (!abortControllerRef.current || abortControllerRef.current.signal.aborted) {
@@ -32,64 +36,88 @@ export function useQuery<C extends NonUndefined, R extends NonUndefined, E exten
         return abortControllerRef.current.signal;
     }, []);
 
-    const refetch = useCallback(
-        () => {
-            return client.query(
-                {
-                    ...query,
-                    abortSignal: getAbortSignal(),
-                },
-                { required: true },
-            );
-        },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        [client, getAbortSignal, queryHash],
-    );
-
     const abort = useCallback(() => {
         if (abortControllerRef.current) {
             abortControllerRef.current.abort();
         }
     }, []);
 
+    const performQuery = useCallback(
+        (requestFlags?: Partial<QueryRequestFlags>) => {
+            abort();
+
+            const performQueryCallId = ++performQueryCallIdRef.current;
+
+            setQueryRequestState((prevState) => (!prevState.loading ? { ...prevState, loading: true } : prevState));
+
+            const queryResult = client.query(
+                {
+                    ...query,
+                    abortSignal: getAbortSignal(),
+                },
+                requestFlags,
+            );
+
+            return {
+                ...queryResult,
+                request: queryResult.request
+                    ?.then((data) => {
+                        if (!isUnmounted.current && performQueryCallId === performQueryCallIdRef.current) {
+                            setQueryRequestState({ loading: false, error: undefined, data });
+                        }
+
+                        return data;
+                    })
+                    .catch((error) => {
+                        if (!isUnmounted.current && performQueryCallId === performQueryCallIdRef.current) {
+                            setQueryRequestState((prevRequestState) => ({
+                                ...prevRequestState,
+                                loading: false,
+                                error,
+                            }));
+                        }
+
+                        throw error;
+                    }),
+            };
+        },
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [client, getAbortSignal, queryHash],
+    );
+
+    const refetch = useCallback(() => performQuery({ required: true }), [performQuery]);
+
     if (prevClient !== client || prevQueryHash !== queryHash) {
         const queryState = client.getQueryState(query);
         requestFlagsRef.current = queryState.requestFlags;
 
-        if (queryState.requestFlags.required) {
-            setQueryRequestState((prevRequestState) => ({
-                ...prevRequestState,
-                loading: true,
-            }));
+        if (!queryRequestState.loading) {
+            if (queryState.requestFlags.required) {
+                setQueryRequestState((prevRequestState) =>
+                    prevRequestState.loading
+                        ? prevRequestState
+                        : {
+                              ...prevRequestState,
+                              loading: true,
+                          },
+                );
+            }
         }
 
-        if (typeof window === 'undefined' && ssrPromisesManager) {
+        if (typeof window === 'undefined' && ssrPromisesManager && !ssrPromiseAddedRef.current) {
             const queryResult = client.query(query, queryState.requestFlags);
 
             if (queryResult.request) {
                 ssrPromisesManager.addPromise(queryResult.request);
+                ssrPromiseAddedRef.current = true;
             }
         }
     }
 
     useEffect(() => {
-        let aborted = false;
-
-        client
-            .query({ ...query, abortSignal: getAbortSignal() }, requestFlagsRef.current)
-            .request?.then((data) => {
-                if (!aborted) {
-                    setQueryRequestState({ loading: false, error: undefined, data });
-                }
-            })
-            .catch((error) => {
-                if (!aborted) {
-                    setQueryRequestState((prevRequestState) => ({ ...prevRequestState, loading: false, error }));
-                }
-            });
+        performQuery(requestFlagsRef.current);
 
         return () => {
-            aborted = true;
             abort();
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -1553,7 +1553,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@fetcher/in-memory-cache@workspace:packages/in-memory-cache":
+"@fetcher/in-memory-cache@0.0.19, @fetcher/in-memory-cache@workspace:packages/in-memory-cache":
   version: 0.0.0-use.local
   resolution: "@fetcher/in-memory-cache@workspace:packages/in-memory-cache"
   dependencies:
@@ -1566,6 +1566,7 @@ __metadata:
     eslint-plugin-react-hooks: 4.1.2
     prettier: 2.1.2
     rimraf: 3.0.2
+    serialize-error: 7.0.1
     typescript: 4.0.3
   peerDependencies:
     "@fetcher/core": ^0.0.19
@@ -1608,9 +1609,12 @@ __metadata:
     "@babel/preset-env": 7.12.1
     "@babel/preset-react": 7.12.1
     "@babel/preset-typescript": 7.12.1
+    "@fetcher/in-memory-cache": 0.0.19
     "@fetcher/react": 0.0.19
+    "@fetcher/typed-fetch-request": 0.0.19
     "@types/express": 4.17.8
     "@types/node": 13.9.0
+    "@types/node-fetch": 2.5.7
     "@types/react": "*"
     "@types/react-dom": "*"
     "@typescript-eslint/eslint-plugin": 2.22.0
@@ -1620,6 +1624,7 @@ __metadata:
     eslint-config-prettier: 6.13.0
     eslint-plugin-react-hooks: 4.1.2
     express: 4.17.1
+    node-fetch: 2.6.1
     prettier: 2.1.2
     react: 16.14.0
     react-dom: 16.14.0
@@ -1659,7 +1664,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@fetcher/typed-fetch-request@workspace:packages/typed-fetch-request":
+"@fetcher/typed-fetch-request@0.0.19, @fetcher/typed-fetch-request@workspace:packages/typed-fetch-request":
   version: 0.0.0-use.local
   resolution: "@fetcher/typed-fetch-request@workspace:packages/typed-fetch-request"
   dependencies:
@@ -2165,6 +2170,16 @@ __metadata:
   version: 2.0.3
   resolution: "@types/mime@npm:2.0.3"
   checksum: 6df548a912494f8579d548cd883be0425f30eaa2922283335c405e270600f49045a06d766460c0f0edabb41dff570c614d174d3c52215de3bddd11f190ec9ae9
+  languageName: node
+  linkType: hard
+
+"@types/node-fetch@npm:2.5.7":
+  version: 2.5.7
+  resolution: "@types/node-fetch@npm:2.5.7"
+  dependencies:
+    "@types/node": "*"
+    form-data: ^3.0.0
+  checksum: 101f6e8474407f957dfe1750d82aa0bcaa56347d09c8ba8634e6a901d07032533c0a578860691d915ff8fa230355700c41c04ae7e505840b5d6ff8cc3ece7741
   languageName: node
   linkType: hard
 
@@ -3517,7 +3532,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"combined-stream@npm:^1.0.6, combined-stream@npm:~1.0.6":
+"combined-stream@npm:^1.0.6, combined-stream@npm:^1.0.8, combined-stream@npm:~1.0.6":
   version: 1.0.8
   resolution: "combined-stream@npm:1.0.8"
   dependencies:
@@ -4674,6 +4689,17 @@ __metadata:
   version: 0.6.1
   resolution: "forever-agent@npm:0.6.1"
   checksum: 9cc0054dd4ea5fc26e014b8c929d1fb9247e931e81165cbd965a712061d65fb84791b2124f64cd79492e516662b94068d29fe1d824732382237321b3f61955fe
+  languageName: node
+  linkType: hard
+
+"form-data@npm:^3.0.0":
+  version: 3.0.0
+  resolution: "form-data@npm:3.0.0"
+  dependencies:
+    asynckit: ^0.4.0
+    combined-stream: ^1.0.8
+    mime-types: ^2.1.12
+  checksum: 1af88217b449eda6566a0d95185f2baa403ed2a0e3b11547069f6062be66cbac7c8d7a25f0fc59560702e96526e659b5b9e5a8c6fefe00f06da44338191a9133
   languageName: node
   linkType: hard
 
@@ -6732,6 +6758,13 @@ fsevents@~2.1.2:
   languageName: node
   linkType: hard
 
+"node-fetch@npm:2.6.1":
+  version: 2.6.1
+  resolution: "node-fetch@npm:2.6.1"
+  checksum: cbb171635e538162b977eac5dfe7a1e07a9a02e991924377a6435502291e2f823d306b95aabc455caebf4a118ccf836868462bc70ccc3095af02bb9da61fda37
+  languageName: node
+  linkType: hard
+
 "node-gyp@npm:latest":
   version: 7.1.2
   resolution: "node-gyp@npm:7.1.2"
@@ -7938,6 +7971,15 @@ resolve@^1.3.2:
   languageName: node
   linkType: hard
 
+"serialize-error@npm:7.0.1":
+  version: 7.0.1
+  resolution: "serialize-error@npm:7.0.1"
+  dependencies:
+    type-fest: ^0.13.1
+  checksum: 2ed46997358204fa3bfef142104b0c9bfe3530acccd709caad4e89dac1dd6390bf54b2edec0dcab0242fc7814e73a9456813998e7ecc5b734cf2b9b92287c742
+  languageName: node
+  linkType: hard
+
 "serialize-javascript@npm:^5.0.1":
   version: 5.0.1
   resolution: "serialize-javascript@npm:5.0.1"
@@ -8741,6 +8783,13 @@ resolve@^1.3.2:
   version: 0.11.0
   resolution: "type-fest@npm:0.11.0"
   checksum: 02e5cadf13590a5724cacf8d9133320efd173f6fb1b695fcb29e56551a315bf0f07ca988a780a1999b7b55bb3eaaa7f37223615207236d393af17bba6749dc95
+  languageName: node
+  linkType: hard
+
+"type-fest@npm:^0.13.1":
+  version: 0.13.1
+  resolution: "type-fest@npm:0.13.1"
+  checksum: 11acce4f34c75a838914bdc4a0133d2dd0864e313897471974880df82624159521bae691a6100ff99f93be2d0f8871ecdab18573d2c67e61905cf2f5cbfa52a6
   languageName: node
   linkType: hard
 

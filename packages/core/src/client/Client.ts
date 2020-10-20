@@ -3,16 +3,16 @@ import { MutationProcessor } from './MutationProcessor';
 import { RequestQueue } from './RequestQueue';
 import { NonUndefined, Cache, Query, Mutation } from '../types';
 
-interface ClientOptions<C extends NonUndefined = null> {
-    cache: Cache<C>;
+interface ClientOptions<C extends NonUndefined, CACHE extends Cache<C> = Cache<C>> {
+    cache: CACHE;
 }
 
-class Client<C extends NonUndefined> {
-    private readonly cache: Cache<C>;
+class Client<C extends NonUndefined, CACHE extends Cache<C> = Cache<C>> {
+    private readonly cache: CACHE;
     private queryProcessor: QueryProcessor<C>;
     private mutationProcessor: MutationProcessor<C>;
 
-    constructor({ cache }: ClientOptions<C>) {
+    constructor({ cache }: ClientOptions<C, CACHE>) {
         const networkRequestQueue = new RequestQueue();
         this.cache = cache;
         this.queryProcessor = new QueryProcessor({ cache, requestQueue: networkRequestQueue });
@@ -23,6 +23,10 @@ class Client<C extends NonUndefined> {
         this.queryProcessor.purge();
         this.mutationProcessor.purge();
         this.cache.purge();
+    }
+
+    public getCache() {
+        return this.cache;
     }
 
     public subscribe<R extends NonUndefined, E extends Error, I>(

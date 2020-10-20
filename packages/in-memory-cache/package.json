@@ -31,5 +31,8 @@
     },
     "peerDependencies": {
         "@fetcher/core": "^0.0.19"
+    },
+    "dependencies": {
+        "serialize-error": "7.0.1"
     }
 }

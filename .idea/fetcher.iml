@@ -3,6 +3,12 @@
   <component name="NewModuleRootManager">
     <content url="file://$MODULE_DIR$">
       <excludeFolder url="file://$MODULE_DIR$/dist" />
+      <excludeFolder url="file://$MODULE_DIR$/packages/core/dist" />
+      <excludeFolder url="file://$MODULE_DIR$/packages/in-memory-cache/dist" />
+      <excludeFolder url="file://$MODULE_DIR$/packages/react-core/dist" />
+      <excludeFolder url="file://$MODULE_DIR$/packages/react-example/dist" />
+      <excludeFolder url="file://$MODULE_DIR$/packages/react/dist" />
+      <excludeFolder url="file://$MODULE_DIR$/packages/typed-fetch-request/dist" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

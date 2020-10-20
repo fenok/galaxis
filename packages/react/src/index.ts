@@ -1,2 +1,2 @@
 export * from './getHashBase64';
-export * from './getRequestHash';
+export * from '@fetcher/react-core';

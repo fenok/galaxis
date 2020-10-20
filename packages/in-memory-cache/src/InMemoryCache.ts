@@ -1,38 +1,33 @@
 import { devTools, ReduxDevTools } from './devTools';
 import { Cache, NonUndefined, UpdateStateOpts } from '@fetcher/core';
+import { serializeError, deserializeError } from 'serialize-error';
 
-interface CacheState<D extends NonUndefined = null, E = Error> {
+interface CacheState<D extends NonUndefined, E = Error> {
     data: D;
     error: { [id: string]: E | undefined };
 }
 
-type SerializableCacheState<D extends NonUndefined = null> = CacheState<D, object>;
-
-interface CacheOptions<D extends NonUndefined = null> {
-    serializeError(error: Error): object;
-    deserializeError(errorObject: object): Error;
-    initialSerializableState?: SerializableCacheState<D>;
+interface CacheOptions<D extends NonUndefined> {
+    emptyData: D;
+    initialState?: unknown;
     enableDevTools?: boolean;
 }
 
-class InMemoryCache<D extends NonUndefined = null> implements Cache<D> {
-    public static readonly INITIAL_STATE: CacheState<any, any> = {
-        error: {},
-        data: undefined,
-    };
-
+class InMemoryCache<D extends NonUndefined> implements Cache<D> {
     private readonly devtools: ReduxDevTools | null;
 
-    private _state: CacheState<D> = InMemoryCache.INITIAL_STATE;
+    private _state: CacheState<D>;
+    private emptyData: D;
 
     private subscribers: ((state: CacheState<D>) => void)[] = [];
 
-    private readonly serializeError: (error: Error) => object;
-    private readonly deserializeError: (errorObject: object) => Error;
+    constructor({ emptyData, initialState, enableDevTools }: CacheOptions<D>) {
+        this.emptyData = emptyData;
 
-    constructor({ serializeError, deserializeError, initialSerializableState, enableDevTools }: CacheOptions<D>) {
-        this.serializeError = serializeError;
-        this.deserializeError = deserializeError;
+        this._state = {
+            error: {},
+            data: this.emptyData,
+        };
 
         this.devtools =
             enableDevTools && devTools
@@ -43,9 +38,9 @@ class InMemoryCache<D extends NonUndefined = null> implements Cache<D> {
         this.subscribeToDevtools();
         this.devtools?.send({ type: 'INIT', state: this.state }, this.state);
 
-        if (initialSerializableState) {
-            this.state = this.deserializeState(initialSerializableState);
-            this.devtools?.send({ type: 'HYDRATE', state: initialSerializableState }, this.state);
+        if (initialState) {
+            this.state = this.deserializeState(initialState);
+            this.devtools?.send({ type: 'HYDRATE', state: initialState }, this.state);
         }
     }
 
@@ -66,9 +61,9 @@ class InMemoryCache<D extends NonUndefined = null> implements Cache<D> {
         return this.state.error[requestId];
     }
 
-    public extract(): SerializableCacheState<D> {
+    public extract(): unknown {
         const serializableErrors = Object.fromEntries(
-            Object.entries(this.state.error).map(([id, error]) => [id, error ? this.serializeError(error) : undefined]),
+            Object.entries(this.state.error).map(([id, error]) => [id, error ? serializeError(error) : undefined]),
         );
 
         return {
@@ -77,11 +72,11 @@ class InMemoryCache<D extends NonUndefined = null> implements Cache<D> {
         };
     }
 
-    private deserializeState(serializableState: SerializableCacheState<D>): CacheState<D> {
+    private deserializeState(serializableState: any): CacheState<D> {
         const deserializedErrors = Object.fromEntries(
             Object.entries(serializableState.error).map(([id, error]) => [
                 id,
-                error ? this.deserializeError(error) : undefined,
+                error ? deserializeError(error) : undefined,
             ]),
         );
 
@@ -99,10 +94,11 @@ class InMemoryCache<D extends NonUndefined = null> implements Cache<D> {
         };
     }
 
-    public purge(initialSerializableState?: SerializableCacheState<D>) {
-        this.state = initialSerializableState
-            ? this.deserializeState(initialSerializableState)
-            : InMemoryCache.INITIAL_STATE;
+    public purge() {
+        this.state = {
+            error: {},
+            data: this.emptyData,
+        };
     }
 
     public updateState(opts: UpdateStateOpts<D>) {
@@ -132,4 +128,4 @@ class InMemoryCache<D extends NonUndefined = null> implements Cache<D> {
     }
 }
 
-export { InMemoryCache, CacheState, SerializableCacheState };
+export { InMemoryCache, CacheState };

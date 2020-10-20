@@ -1,6 +1,8 @@
 const path = require('path');
 
 const clientConfig = {
+    mode: 'development',
+    devtool: 'eval-cheap-module-source-map',
     entry: './src/client/client.ts',
     target: 'web',
     resolve: {
@@ -22,6 +24,8 @@ const clientConfig = {
 };
 
 const serverConfig = {
+    mode: 'development',
+    devtool: 'eval-cheap-module-source-map',
     entry: './src/client/server.ts',
     target: 'node',
     resolve: {
@@ -33,6 +37,18 @@ const serverConfig = {
                 test: /\.tsx?$/,
                 exclude: /node_modules/,
                 loader: 'babel-loader',
+                options: {
+                    presets: [
+                        [
+                            '@babel/env',
+                            {
+                                targets: {
+                                    node: '12.14.1',
+                                },
+                            },
+                        ],
+                    ],
+                },
             },
         ],
     },
