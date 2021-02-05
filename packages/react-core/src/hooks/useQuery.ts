@@ -16,24 +16,22 @@ export function useQuery<C extends NonUndefined, R extends NonUndefined, E exten
 ) {
     const isUnmounted = useIsUnmounted();
     const queryHash = getQueryHash(query);
-    const prevQueryHash = usePrevious(queryHash);
     const client = useClient<C>();
-    const prevClient = usePrevious(client);
     const abortControllerRef = useRef<AbortController>();
-    const requestFlagsRef = useRef<QueryRequestFlags>();
-    const [queryRequestState, setQueryRequestState] = useState<{ loading: boolean; data?: R; error?: E | Error }>({
-        loading: false,
-    });
+    const [queryRequestState, setQueryRequestState] = useState<{ data?: R; error?: E | Error }>({});
+    const loadingRef = useRef(false);
     const ssrPromisesManager = useContext(SsrPromisesManagerContext);
     const ssrPromiseAddedRef = useRef(false);
     const performQueryCallIdRef = useRef(1);
 
     const getAbortSignal = useCallback(() => {
         if (!abortControllerRef.current || abortControllerRef.current.signal.aborted) {
-            abortControllerRef.current = new AbortController();
+            if (typeof AbortController !== 'undefined') {
+                abortControllerRef.current = new AbortController();
+            }
         }
 
-        return abortControllerRef.current.signal;
+        return abortControllerRef.current?.signal;
     }, []);
 
     const abort = useCallback(() => {
@@ -48,8 +46,6 @@ export function useQuery<C extends NonUndefined, R extends NonUndefined, E exten
 
             const performQueryCallId = ++performQueryCallIdRef.current;
 
-            setQueryRequestState((prevState) => (!prevState.loading ? { ...prevState, loading: true } : prevState));
-
             const queryResult = client.query(
                 {
                     ...query,
@@ -58,21 +54,26 @@ export function useQuery<C extends NonUndefined, R extends NonUndefined, E exten
                 requestFlags,
             );
 
+            if (queryResult.requestFlags.required) {
+                loadingRef.current = true;
+            }
+
             return {
                 ...queryResult,
                 request: queryResult.request
                     ?.then((data) => {
                         if (!isUnmounted.current && performQueryCallId === performQueryCallIdRef.current) {
-                            setQueryRequestState({ loading: false, error: undefined, data });
+                            loadingRef.current = false;
+                            setQueryRequestState({ error: undefined, data });
                         }
 
                         return data;
                     })
                     .catch((error) => {
                         if (!isUnmounted.current && performQueryCallId === performQueryCallIdRef.current) {
+                            loadingRef.current = false;
                             setQueryRequestState((prevRequestState) => ({
                                 ...prevRequestState,
-                                loading: false,
                                 error,
                             }));
                         }
@@ -85,28 +86,14 @@ export function useQuery<C extends NonUndefined, R extends NonUndefined, E exten
         [client, getAbortSignal, queryHash],
     );
 
+    const prevPerformQuery = usePrevious(performQuery);
+
     const refetch = useCallback(() => performQuery({ required: true }), [performQuery]);
 
-    if (prevClient !== client || prevQueryHash !== queryHash) {
-        const queryState = client.getQueryState(query);
-        requestFlagsRef.current = queryState.requestFlags;
-
-        if (!queryRequestState.loading) {
-            if (queryState.requestFlags.required) {
-                setQueryRequestState((prevRequestState) =>
-                    prevRequestState.loading
-                        ? prevRequestState
-                        : {
-                              ...prevRequestState,
-                              loading: true,
-                          },
-                );
-            }
-        }
+    if (prevPerformQuery !== performQuery) {
+        const queryResult = performQuery();
 
         if (typeof window === 'undefined' && ssrPromisesManager && !ssrPromiseAddedRef.current) {
-            const queryResult = client.query(query, queryState.requestFlags);
-
             if (queryResult.request) {
                 ssrPromisesManager.addPromise(queryResult.request);
                 ssrPromiseAddedRef.current = true;
@@ -115,13 +102,10 @@ export function useQuery<C extends NonUndefined, R extends NonUndefined, E exten
     }
 
     useEffect(() => {
-        performQuery(requestFlagsRef.current);
-
         return () => {
             abort();
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [abort, client, getAbortSignal, queryHash]);
+    }, [abort]);
 
     const subscription = useMemo(
         () => ({
@@ -151,5 +135,5 @@ export function useQuery<C extends NonUndefined, R extends NonUndefined, E exten
         }
     }, [queryCache, queryRequestState.error]);
 
-    return { ...queryRequestState, ...queryCache, refetch, abort };
+    return { loading: loadingRef.current, ...queryRequestState, ...queryCache, refetch, abort };
 }

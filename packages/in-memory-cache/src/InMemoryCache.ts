@@ -107,15 +107,21 @@ class InMemoryCache<D extends NonUndefined> implements Cache<D> {
     }
 
     private updateStateInner({ updateCacheData, updateRequestError }: UpdateStateOpts<D>) {
-        const newRequestError = updateRequestError?.update(this.getRequestError(updateRequestError.requestId));
+        const newData = updateCacheData ? updateCacheData(this.state.data) : this.state.data;
+        const currentRequestError = updateRequestError ? this.getRequestError(updateRequestError.requestId) : undefined;
+        const newRequestError = updateRequestError ? updateRequestError.update(currentRequestError) : undefined;
 
-        this.state = {
-            error:
-                newRequestError && updateRequestError?.requestId
-                    ? { ...this.state.error, [updateRequestError.requestId]: newRequestError }
+        if (newData !== this.state.data || newRequestError !== currentRequestError) {
+            this.state = {
+                error: updateRequestError
+                    ? {
+                          ...this.state.error,
+                          [updateRequestError.requestId]: newRequestError,
+                      }
                     : this.state.error,
-            data: updateCacheData ? updateCacheData(this.state.data) : this.state.data,
-        };
+                data: newData,
+            };
+        }
     }
 
     private subscribeToDevtools() {
