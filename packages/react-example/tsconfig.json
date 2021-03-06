@@ -6,5 +6,5 @@
         "outDir": "./dist",
         "jsx": "react"
     },
-    "include": ["src/client"]
+    "include": ["src/client", "@types"]
 }

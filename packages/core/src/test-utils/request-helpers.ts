@@ -28,13 +28,6 @@ export const FIRST_ITEM_UPDATED: ItemEntity = {
     freshness: 1,
 };
 
-export const OPTIMISTIC_FIRST_ITEM: ItemEntity = {
-    id: '1',
-    value: 'first',
-    freshness: 1,
-    optimistic: true,
-};
-
 export const SECOND_ITEM: ItemEntity = {
     id: '2',
     value: 'second',
@@ -135,30 +128,6 @@ export function getFailingFirstItemRequest(): Query<TestCacheData, ItemEntity, E
         ...ITEM_REQUEST,
         getRequestFactory: () => () => Promise.reject(getNetworkError()),
         requestInit: { id: '1' },
-    };
-}
-
-export function getFirstItemRequestWithOptimisticResponse(
-    getRequestFactory = getGetRequestFactory(),
-): Query<TestCacheData, ItemEntity, Error, TestRequestInit> {
-    return {
-        ...ITEM_REQUEST,
-        getRequestFactory,
-        requestInit: { id: '1' },
-        optimisticData: OPTIMISTIC_FIRST_ITEM,
-        isOptimisticData({ data }): boolean {
-            return Boolean(data.optimistic);
-        },
-        removeOptimisticData({ cacheData, data }) {
-            const newItems = Object.fromEntries(
-                Object.entries(cacheData.items).filter(([, { optimistic, id }]) => !(optimistic && data.id === id)),
-            );
-
-            return {
-                ...cacheData,
-                items: newItems,
-            };
-        },
     };
 }
 

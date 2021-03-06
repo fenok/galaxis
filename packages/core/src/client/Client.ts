@@ -34,9 +34,19 @@ class Client<C extends NonUndefined, CACHE extends Cache<C> = Cache<C>> {
         onChange: (state: QueryState<R, E>) => void,
     ) {
         if (query.fetchPolicy !== 'no-cache') {
-            return this.cache.subscribe(() => {
-                onChange(this.getQueryState(query));
-            });
+            let currentState = this.getQueryState(query);
+
+            return {
+                queryState: currentState,
+                unsubscribe: this.cache.subscribe(() => {
+                    const newState = this.getQueryState(query);
+
+                    if (!this.areQueryStatesEqual(currentState, newState)) {
+                        currentState = newState;
+                        onChange(newState);
+                    }
+                }),
+            };
         }
 
         throw new Error("Query with 'no-cache' fetch policy cannot be subscribed to cache");
@@ -59,6 +69,14 @@ class Client<C extends NonUndefined, CACHE extends Cache<C> = Cache<C>> {
 
     public async mutate<R extends NonUndefined, E extends Error, I>(mutation: Mutation<C, R, E, I>): Promise<R> {
         return this.mutationProcessor.mutate(mutation);
+    }
+
+    private areQueryStatesEqual<R extends NonUndefined, E extends Error>(
+        a: QueryState<R, E>,
+        b: QueryState<R, E>,
+    ): boolean {
+        // Since we compare states of the same query, that's all we need, as flags are the same if data and error are.
+        return a.cache?.error === b.cache?.error && a.cache?.data === b.cache?.data;
     }
 }
 

@@ -1,26 +1,36 @@
 import * as React from 'react';
-import { useQuery, getHashBase64 } from '@fetcher/react';
-import { userQuery } from '../../requests';
+import { useState } from 'react';
+import { userQuery } from '../../requests/user';
+import { useRichQuery } from '@fetcher/react';
 
-interface Props {}
+interface Props {
+    variant: number;
+}
 
-const UserDisplay: React.FC<Props> = () => {
-    const { data, error, loading, refetch, abort } = useQuery(userQuery, { getQueryHash: getHashBase64 });
+const UserDisplay: React.FC<Props> = ({ variant }) => {
+    const [userId, setUserId] = useState(1);
 
-    console.log(
-        'Render',
-        data?.map(({ name }) => name),
-        error,
-        loading,
+    const { data, error, loading, refetch, abort } = useRichQuery(
+        userQuery({
+            requestInit: { pathParams: { id: userId } },
+            fetchPolicy: variant === 1 ? 'cache-and-network' : variant === 2 ? 'cache-only' : 'no-cache',
+            pollInterval: 100,
+            lazy: false,
+        }),
     );
+
+    console.log('Render', variant, data?.name, error?.message, loading);
 
     return (
         <div>
             <button onClick={refetch}>Refetch</button>
             <button onClick={abort}>Abort</button>
-            <div>{JSON.stringify(data?.map(({ name }) => name))}</div>
+            <button onClick={() => setUserId((prevId) => prevId + 1)}>Iterate user</button>
+            <div>{JSON.stringify(data?.name)}</div>
             <div>{JSON.stringify(loading)}</div>
-            <div>{JSON.stringify(error)}</div>
+            <div>
+                {JSON.stringify(error?.message)}, {JSON.stringify(error?.response)}, {JSON.stringify(error?.code)}
+            </div>
         </div>
     );
 };

@@ -18,10 +18,6 @@ export interface BaseRequest<CD extends NonUndefined, D extends NonUndefined, E 
     getRequestFactory(opts: CommonRequestOptions<I>): (abortSignal?: AbortSignal) => Promise<D | E>;
     getRequestId(opts: CommonRequestOptions<I>): string;
     toCache?(opts: CommonCacheOptions<CD, I> & { data: D }): CD;
-
-    optimisticData?: D;
-    removeOptimisticData?(opts: CommonCacheOptions<CD, I> & { data: D }): CD;
-    isOptimisticData?(opts: CommonCacheOptions<CD, I> & { data: D }): boolean;
 }
 
 export interface Query<CD extends NonUndefined, D extends NonUndefined, E extends Error, I>
@@ -33,4 +29,7 @@ export interface Query<CD extends NonUndefined, D extends NonUndefined, E extend
 }
 
 export interface Mutation<CD extends NonUndefined, D extends NonUndefined, E extends Error, I>
-    extends BaseRequest<CD, D, E, I> {}
+    extends BaseRequest<CD, D, E, I> {
+    optimisticData?: D;
+    removeOptimisticData?(opts: CommonCacheOptions<CD, I> & { data: D }): CD;
+}

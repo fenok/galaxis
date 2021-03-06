@@ -3,5 +3,5 @@ import { stringifyQuery } from './stringifyQuery';
 import { FetchRequestInit } from '../types';
 
 export function getUrl({ root, path, pathParams, queryParams }: FetchRequestInit) {
-    return `${root}${compile(path)(pathParams)}${stringifyQuery(queryParams)}`;
+    return `${root || ''}${compile(path)(pathParams)}${stringifyQuery(queryParams)}`;
 }

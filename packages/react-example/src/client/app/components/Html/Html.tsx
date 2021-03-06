@@ -21,7 +21,7 @@ const Html: React.FC<Props> = ({ content, fetcherState }) => {
                     dangerouslySetInnerHTML={{
                         __html: content,
                     }}
-                ></div>
+                />
                 <script
                     dangerouslySetInnerHTML={{
                         __html: Object.entries({

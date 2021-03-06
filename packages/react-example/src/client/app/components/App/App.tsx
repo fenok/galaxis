@@ -1,17 +1,34 @@
 import * as React from 'react';
-import { Provider, Client } from '@fetcher/react';
+import { Client, getHashBase64, DefaultsProvider } from '@fetcher/react';
 import { UserDisplay } from '../UserDisplay';
+import { getRequestFactory } from '@fetcher/typed-fetch-request';
 
 interface Props {
     client: Client<any>;
+    fetch?: typeof fetch;
 }
 
-const App: React.FC<Props> = ({ client }) => {
+const App: React.FC<Props> = ({ client, fetch }) => {
     console.log('APP_RENDER');
     return (
-        <Provider client={client}>
-            <UserDisplay />
-        </Provider>
+        <DefaultsProvider
+            client={client}
+            query={{
+                preventExcessRequestOnHydrate: true,
+                requestInit: {
+                    root: 'https://jsonplaceholder.typicode.com',
+                },
+                fetchPolicy: 'cache-and-network',
+                getRequestFactory: getRequestFactory({ fetch }),
+                getRequestId({ requestInit }) {
+                    return getHashBase64(requestInit);
+                },
+            }}
+        >
+            <UserDisplay variant={1} />
+            <UserDisplay variant={2} />
+            <UserDisplay variant={3} />
+        </DefaultsProvider>
     );
 };
 

@@ -1,1 +1,1 @@
-export { processResponse } from './processResponse';
+export { processResponseJson } from './processResponseJson';
