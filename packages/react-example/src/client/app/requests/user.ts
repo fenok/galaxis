@@ -8,7 +8,7 @@ export interface User {
     email: string;
 }
 
-export type UserQueryRequestParams = { P: { id: number } };
+export type UserQueryRequestParams = { pathParams: { id: number } };
 
 export const userQuery = getQuery<User, UserQueryRequestParams>((params) => ({
     requestParams: {

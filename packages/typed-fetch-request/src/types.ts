@@ -13,20 +13,20 @@ export type HeadersConstraint = HeadersInit | undefined;
 export type BodyConstraint = CustomData<any> | BodyInit | null | undefined;
 
 export type FetchRequestParamsConstraint = {
-    P?: PathConstraint | undefined;
-    Q?: QueryConstraint | undefined;
-    H?: HeadersConstraint | undefined;
-    B?: BodyConstraint | undefined;
+    pathParams?: PathConstraint | undefined;
+    queryParams?: QueryConstraint | undefined;
+    headers?: HeadersConstraint | undefined;
+    body?: BodyConstraint | undefined;
 };
 
 export type DynamicFetchRequestParams<
     C extends FetchRequestParamsConstraint = FetchRequestParamsConstraint
 > = PartialUndefined<
     Omit<RequestInit, 'body' | 'headers'> & {
-        pathParams: unknown extends C['P'] ? PathConstraint : C['P'];
-        queryParams: unknown extends C['Q'] ? QueryConstraint : C['Q'];
-        headers: unknown extends C['H'] ? HeadersConstraint : C['H'];
-        body: unknown extends C['B'] ? BodyConstraint : C['B'];
+        pathParams: unknown extends C['pathParams'] ? PathConstraint : C['pathParams'];
+        queryParams: unknown extends C['queryParams'] ? QueryConstraint : C['queryParams'];
+        headers: unknown extends C['headers'] ? HeadersConstraint : C['headers'];
+        body: unknown extends C['body'] ? BodyConstraint : C['body'];
     }
 >;
 
