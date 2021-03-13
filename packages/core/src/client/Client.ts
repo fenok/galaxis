@@ -29,9 +29,9 @@ class Client<C extends NonUndefined, CACHE extends Cache<C> = Cache<C>> {
         return this.cache;
     }
 
-    public subscribe<R extends NonUndefined, E extends Error, I>(
-        query: BaseQuery<C, R, E, I>,
-        onChange: (state: QueryState<R, E>) => void,
+    public subscribe<D extends NonUndefined, E extends Error, R>(
+        query: BaseQuery<C, D, E, R>,
+        onChange: (state: QueryState<D, E>) => void,
     ) {
         if (query.fetchPolicy !== 'no-cache') {
             let currentState = this.getQueryState(query);
@@ -56,24 +56,24 @@ class Client<C extends NonUndefined, CACHE extends Cache<C> = Cache<C>> {
         this.queryProcessor.onHydrateComplete();
     }
 
-    public getQueryState<R extends NonUndefined, E extends Error, I>(query: BaseQuery<C, R, E, I>): QueryState<R, E> {
+    public getQueryState<D extends NonUndefined, E extends Error, R>(query: BaseQuery<C, D, E, R>): QueryState<D, E> {
         return this.queryProcessor.getQueryState(query);
     }
 
-    public query<R extends NonUndefined, E extends Error, I>(
-        query: BaseQuery<C, R, E, I>,
+    public query<D extends NonUndefined, E extends Error, R>(
+        query: BaseQuery<C, D, E, R>,
         requestFlags?: Partial<QueryRequestFlags>,
-    ): QueryResult<R, E> {
+    ): QueryResult<D, E> {
         return this.queryProcessor.query(query, requestFlags);
     }
 
-    public async mutate<R extends NonUndefined, E extends Error, I>(mutation: BaseMutation<C, R, E, I>): Promise<R> {
+    public async mutate<D extends NonUndefined, E extends Error, R>(mutation: BaseMutation<C, D, E, R>): Promise<D> {
         return this.mutationProcessor.mutate(mutation);
     }
 
-    private areQueryStatesEqual<R extends NonUndefined, E extends Error>(
-        a: QueryState<R, E>,
-        b: QueryState<R, E>,
+    private areQueryStatesEqual<D extends NonUndefined, E extends Error>(
+        a: QueryState<D, E>,
+        b: QueryState<D, E>,
     ): boolean {
         // Since we compare states of the same query, that's all we need, as flags are the same if data and error are.
         return a.cache?.error === b.cache?.error && a.cache?.data === b.cache?.data;

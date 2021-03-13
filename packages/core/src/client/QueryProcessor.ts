@@ -18,10 +18,10 @@ export type QueryState<D extends NonUndefined, E extends Error> = {
     requestFlags: QueryRequestFlags;
 };
 
-export interface QueryResult<R extends NonUndefined, E extends Error> {
-    cache?: QueryCache<R, E>;
+export interface QueryResult<D extends NonUndefined, E extends Error> {
+    cache?: QueryCache<D, E>;
     requestFlags: QueryRequestFlags;
-    request?: Promise<R>;
+    request?: Promise<D>;
 }
 
 export interface QueryRequest {
@@ -57,10 +57,10 @@ export class QueryProcessor<C extends NonUndefined> {
         this.ongoingRequests = {};
     }
 
-    public query<R extends NonUndefined, E extends Error, I>(
-        query: BaseQuery<C, R, E, I>,
+    public query<D extends NonUndefined, E extends Error, R>(
+        query: BaseQuery<C, D, E, R>,
         requestFlags?: Partial<QueryRequestFlags>,
-    ): QueryResult<R, E> {
+    ): QueryResult<D, E> {
         const requestId = query.getRequestId(query);
         const queryState = this.getQueryState(query);
 
@@ -73,7 +73,7 @@ export class QueryProcessor<C extends NonUndefined> {
         };
     }
 
-    public getQueryState<R extends NonUndefined, E extends Error, I>(query: BaseQuery<C, R, E, I>): QueryState<R, E> {
+    public getQueryState<D extends NonUndefined, E extends Error, R>(query: BaseQuery<C, D, E, R>): QueryState<D, E> {
         const requestId = query.getRequestId(query);
 
         const cache =
@@ -97,10 +97,10 @@ export class QueryProcessor<C extends NonUndefined> {
         };
     }
 
-    private getRequestPromise<R extends NonUndefined, E extends Error, I>(
-        query: BaseQuery<C, R, E, I>,
+    private getRequestPromise<D extends NonUndefined, E extends Error, R>(
+        query: BaseQuery<C, D, E, R>,
         requestId: string,
-    ): Promise<R> {
+    ): Promise<D> {
         const queryRequest = this.ensureQueryRequest(query, requestId);
 
         const onAbort = () => {
@@ -116,8 +116,8 @@ export class QueryProcessor<C extends NonUndefined> {
         return queryRequest.promise;
     }
 
-    private ensureQueryRequest<R extends NonUndefined, E extends Error, I>(
-        query: BaseQuery<C, R, E, I>,
+    private ensureQueryRequest<D extends NonUndefined, E extends Error, R>(
+        query: BaseQuery<C, D, E, R>,
         requestId: string,
     ): QueryRequest {
         const isQueryCacheable = query.fetchPolicy !== 'no-cache';
@@ -182,10 +182,10 @@ export class QueryProcessor<C extends NonUndefined> {
         return this.ongoingRequests[requestId]!;
     }
 
-    private updateCache<R extends NonUndefined, E extends Error, I>(
-        query: BaseQuery<C, R, E, I>,
+    private updateCache<D extends NonUndefined, E extends Error, R>(
+        query: BaseQuery<C, D, E, R>,
         requestId: string,
-        action: { type: 'fail'; error: E } | { type: 'success'; data: R },
+        action: { type: 'fail'; error: E } | { type: 'success'; data: D },
     ) {
         this.cache.updateState({
             updateRequestError: {
@@ -209,9 +209,9 @@ export class QueryProcessor<C extends NonUndefined> {
         });
     }
 
-    private isRequestRequired<R extends NonUndefined, E extends Error, I>(
-        query: BaseQuery<C, R, E, I>,
-        queryCache?: QueryCache<R, E>,
+    private isRequestRequired<D extends NonUndefined, E extends Error, R>(
+        query: BaseQuery<C, D, E, R>,
+        queryCache?: QueryCache<D, E>,
     ): boolean {
         return !(
             query.fetchPolicy === 'cache-only' ||
@@ -220,9 +220,9 @@ export class QueryProcessor<C extends NonUndefined> {
         );
     }
 
-    private isRequestAllowed<R extends NonUndefined, E extends Error, I>(
-        query: BaseQuery<C, R, E, I>,
-        queryCache?: QueryCache<R, E>,
+    private isRequestAllowed<D extends NonUndefined, E extends Error, R>(
+        query: BaseQuery<C, D, E, R>,
+        queryCache?: QueryCache<D, E>,
     ): boolean {
         return (
             typeof window !== 'undefined' ||
@@ -233,7 +233,7 @@ export class QueryProcessor<C extends NonUndefined> {
         );
     }
 
-    private isRequestStateSufficient<R extends NonUndefined, E extends Error>(queryCache?: QueryCache<R, E>): boolean {
+    private isRequestStateSufficient<D extends NonUndefined, E extends Error>(queryCache?: QueryCache<D, E>): boolean {
         return queryCache?.data !== undefined;
     }
 }

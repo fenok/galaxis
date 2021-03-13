@@ -2,12 +2,12 @@ import { NonUndefined, CommonCacheOptions } from '@fetcher/core';
 
 const cache: Record<string, { keys: any[]; value: unknown } | undefined> = {};
 
-export function memoize<CD extends NonUndefined, D extends NonUndefined, I>(
-    fromCache: (opts: CommonCacheOptions<CD, I>) => D | undefined,
-    getKeys: (opts: CommonCacheOptions<CD, I>) => any[],
+export function memoize<C extends NonUndefined, D extends NonUndefined, R>(
+    fromCache: (opts: CommonCacheOptions<C, R>) => D | undefined,
+    getKeys: (opts: CommonCacheOptions<C, R>) => any[],
 ) {
     if (typeof window !== 'undefined') {
-        return (opts: CommonCacheOptions<CD, I>) => {
+        return (opts: CommonCacheOptions<C, R>) => {
             const cacheEntry = cache[opts.requestId];
             const keys = getKeys(opts);
             if (!cacheEntry || cacheEntry.keys.some((cacheKey, cacheKeyIndex) => cacheKey !== keys[cacheKeyIndex])) {

@@ -4,14 +4,14 @@ export interface QueryProcessorOptions {
     forceUpdate(): void;
 }
 
-export class QueryProcessor<C extends NonUndefined, R extends NonUndefined, E extends Error, I> {
+export class QueryProcessor<C extends NonUndefined, D extends NonUndefined, E extends Error, R> {
     private forceUpdate: () => void;
     private queryHash?: string | number;
-    private query!: BaseQuery<C, R, E, I>;
+    private query!: BaseQuery<C, D, E, R>;
     private client!: Client<C>;
     private ssrPromisesManager?: SsrPromisesManager;
     private loading = false;
-    private queryCache?: QueryCache<R, E>;
+    private queryCache?: QueryCache<D, E>;
     private abortController?: AbortController;
     private queryPromise: Promise<any> | undefined;
     private unsubscribe?: () => void;
@@ -21,7 +21,7 @@ export class QueryProcessor<C extends NonUndefined, R extends NonUndefined, E ex
     }
 
     public onRender(
-        query: BaseQuery<C, R, E, I>,
+        query: BaseQuery<C, D, E, R>,
         queryHash: string | number,
         client: Client<C>,
         ssrPromisesManager: SsrPromisesManager | null,
@@ -127,7 +127,7 @@ export class QueryProcessor<C extends NonUndefined, R extends NonUndefined, E ex
         return request;
     }
 
-    private onExternalChange(queryState: QueryState<R, E>) {
+    private onExternalChange(queryState: QueryState<D, E>) {
         this.queryCache = queryState.cache;
         if (!this.loading) {
             this.forceUpdate();

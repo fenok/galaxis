@@ -6,8 +6,8 @@ export type DefaultQuery<
     C extends NonUndefined = any,
     D extends NonUndefined = any,
     E extends Error = any,
-    I = any
-> = Partial<DefaultRequest<C, D, E, I>> & Omit<BaseQuery<C, D, E, I>, keyof DefaultRequest<C, D, E, I>>;
+    R = any
+> = Partial<DefaultRequest<C, D, E, R>> & Omit<BaseQuery<C, D, E, R>, keyof DefaultRequest<C, D, E, R>>;
 
 export const initialDefaultQuery: DefaultQuery = {
     fetchPolicy: 'no-cache',
@@ -19,19 +19,19 @@ export interface DefaultQueryProviderOptions<
     C extends NonUndefined = any,
     D extends NonUndefined = any,
     E extends Error = any,
-    I = any
+    R = any
 > {
-    query: DefaultQuery<C, D, E, I>;
+    query: DefaultQuery<C, D, E, R>;
 }
 
 export const DefaultQueryProvider = <
     C extends NonUndefined = any,
     D extends NonUndefined = any,
     E extends Error = any,
-    I = any
+    R = any
 >({
     query,
     children,
-}: PropsWithChildren<DefaultQueryProviderOptions<C, D, E, I>>) => {
+}: PropsWithChildren<DefaultQueryProviderOptions<C, D, E, R>>) => {
     return createElement(DefaultQueryContext.Provider, { value: query }, children);
 };

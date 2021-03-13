@@ -16,12 +16,12 @@ const ClientProvider: FC<ProviderProps> = ({ children, client }) => {
     return createElement(ClientContext.Provider, { value: client }, children);
 };
 
-const useClient = <T extends NonUndefined>() => {
+const useClient = <C extends NonUndefined>() => {
     const client = useContext(ClientContext);
 
     ensureClient(client);
 
-    return client as Client<T>;
+    return client as Client<C>;
 };
 
 export { ClientProvider, useClient };

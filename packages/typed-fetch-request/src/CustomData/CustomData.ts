@@ -1,8 +1,8 @@
-export abstract class CustomData<D> {
-    public readonly data: D;
+export abstract class CustomData<T> {
+    public readonly data: T;
     public abstract readonly contentType: string;
 
-    constructor(data: D) {
+    constructor(data: T) {
         this.data = data;
     }
 

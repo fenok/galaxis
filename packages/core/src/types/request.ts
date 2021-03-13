@@ -2,34 +2,34 @@ import { NonUndefined } from './helpers';
 
 export type FetchPolicy = 'cache-only' | 'cache-first' | 'cache-and-network' | 'no-cache';
 
-export interface CommonCacheOptions<CD extends NonUndefined, I> {
-    cacheData: CD;
-    requestParams: I;
+export interface CommonCacheOptions<C extends NonUndefined, R> {
+    cacheData: C;
+    requestParams: R;
     requestId: string;
 }
 
-export interface CommonRequestOptions<I> {
-    requestParams: I;
+export interface CommonRequestOptions<R> {
+    requestParams: R;
 }
 
-export interface BaseRequest<CD extends NonUndefined, D extends NonUndefined, E extends Error, I> {
-    requestParams: I;
+export interface BaseRequest<C extends NonUndefined, D extends NonUndefined, E extends Error, R> {
+    requestParams: R;
     abortSignal?: AbortSignal;
-    getRequestFactory(opts: CommonRequestOptions<I>): (abortSignal?: AbortSignal) => Promise<D | E>;
-    getRequestId(opts: CommonRequestOptions<I>): string;
-    toCache?(opts: CommonCacheOptions<CD, I> & { data: D }): CD;
+    getRequestFactory(opts: CommonRequestOptions<R>): (abortSignal?: AbortSignal) => Promise<D | E>;
+    getRequestId(opts: CommonRequestOptions<R>): string;
+    toCache?(opts: CommonCacheOptions<C, R> & { data: D }): C;
 }
 
-export interface BaseQuery<CD extends NonUndefined, D extends NonUndefined, E extends Error, I>
-    extends BaseRequest<CD, D, E, I> {
+export interface BaseQuery<C extends NonUndefined, D extends NonUndefined, E extends Error, R>
+    extends BaseRequest<C, D, E, R> {
     fetchPolicy: FetchPolicy;
     disableSsr?: boolean;
     preventExcessRequestOnHydrate?: boolean;
-    fromCache?(opts: CommonCacheOptions<CD, I>): D | undefined;
+    fromCache?(opts: CommonCacheOptions<C, R>): D | undefined;
 }
 
-export interface BaseMutation<CD extends NonUndefined, D extends NonUndefined, E extends Error, I>
-    extends BaseRequest<CD, D, E, I> {
+export interface BaseMutation<C extends NonUndefined, D extends NonUndefined, E extends Error, R>
+    extends BaseRequest<C, D, E, R> {
     optimisticData?: D;
-    removeOptimisticData?(opts: CommonCacheOptions<CD, I> & { data: D }): CD;
+    removeOptimisticData?(opts: CommonCacheOptions<C, R> & { data: D }): C;
 }

@@ -3,10 +3,10 @@ import { logger } from '../logger';
 import { NonUndefined, BaseRequest } from '../types';
 
 export class BaseRequestHelper {
-    public static getPromiseFactory<C extends NonUndefined, R extends NonUndefined, E extends Error, I>(
-        request: BaseRequest<C, R, E, I>,
+    public static getPromiseFactory<C extends NonUndefined, D extends NonUndefined, E extends Error, R>(
+        request: BaseRequest<C, D, E, R>,
         signals: Signals = {},
-    ): (enableSignal?: EnableSignal) => Promise<R> {
+    ): (enableSignal?: EnableSignal) => Promise<D> {
         return (enableSignal?: EnableSignal) =>
             delayedPromise(request.getRequestFactory(request), {
                 ...signals,

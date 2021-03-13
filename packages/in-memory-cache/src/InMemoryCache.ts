@@ -2,26 +2,26 @@ import { devTools, ReduxDevTools } from './devTools';
 import { Cache, NonUndefined, UpdateStateOpts } from '@fetcher/core';
 import { serializeError, deserializeError } from 'serialize-error';
 
-interface CacheState<D extends NonUndefined, E = Error> {
-    data: D;
+interface CacheState<C extends NonUndefined, E = Error> {
+    data: C;
     error: { [id: string]: E | undefined };
 }
 
-interface CacheOptions<D extends NonUndefined> {
-    emptyData: D;
+interface CacheOptions<C extends NonUndefined> {
+    emptyData: C;
     initialState?: unknown;
     enableDevTools?: boolean;
 }
 
-class InMemoryCache<D extends NonUndefined> implements Cache<D> {
+class InMemoryCache<C extends NonUndefined> implements Cache<C> {
     private readonly devtools: ReduxDevTools | null;
 
-    private _state: CacheState<D>;
-    private emptyData: D;
+    private _state: CacheState<C>;
+    private emptyData: C;
 
-    private subscribers: ((state: CacheState<D>) => void)[] = [];
+    private subscribers: ((state: CacheState<C>) => void)[] = [];
 
-    constructor({ emptyData, initialState, enableDevTools }: CacheOptions<D>) {
+    constructor({ emptyData, initialState, enableDevTools }: CacheOptions<C>) {
         this.emptyData = emptyData;
 
         this._state = {
@@ -44,7 +44,7 @@ class InMemoryCache<D extends NonUndefined> implements Cache<D> {
         }
     }
 
-    private set state(newState: CacheState<D>) {
+    private set state(newState: CacheState<C>) {
         this._state = newState;
         this.subscribers.forEach((subscriber) => subscriber(newState));
     }
@@ -72,7 +72,7 @@ class InMemoryCache<D extends NonUndefined> implements Cache<D> {
         };
     }
 
-    private deserializeState(serializableState: any): CacheState<D> {
+    private deserializeState(serializableState: any): CacheState<C> {
         const deserializedErrors = Object.fromEntries(
             Object.entries(serializableState.error).map(([id, error]) => [
                 id,
@@ -86,7 +86,7 @@ class InMemoryCache<D extends NonUndefined> implements Cache<D> {
         };
     }
 
-    public subscribe(callback: (state: CacheState<D>) => void) {
+    public subscribe(callback: (state: CacheState<C>) => void) {
         this.subscribers.push(callback);
 
         return () => {
@@ -101,12 +101,12 @@ class InMemoryCache<D extends NonUndefined> implements Cache<D> {
         };
     }
 
-    public updateState(opts: UpdateStateOpts<D>) {
+    public updateState(opts: UpdateStateOpts<C>) {
         this.updateStateInner(opts);
         this.devtools?.send({ type: 'UPDATE', ...opts }, this.state);
     }
 
-    private updateStateInner({ updateCacheData, updateRequestError }: UpdateStateOpts<D>) {
+    private updateStateInner({ updateCacheData, updateRequestError }: UpdateStateOpts<C>) {
         const newData = updateCacheData ? updateCacheData(this.state.data) : this.state.data;
         const currentRequestError = updateRequestError ? this.getRequestError(updateRequestError.requestId) : undefined;
         const newRequestError = updateRequestError ? updateRequestError.update(currentRequestError) : undefined;

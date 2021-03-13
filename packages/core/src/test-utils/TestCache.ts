@@ -1,16 +1,16 @@
 import { NonUndefined, Cache, UpdateStateOpts } from '../types';
 
-interface CacheState<D extends NonUndefined = null> {
-    data: D;
+interface CacheState<C extends NonUndefined = null> {
+    data: C;
     requestErrors: { [id: string]: Error | undefined };
 }
 
-export class TestCache<D extends NonUndefined> implements Cache<D> {
-    private _state: CacheState<D>;
+export class TestCache<C extends NonUndefined> implements Cache<C> {
+    private _state: CacheState<C>;
     private subscribers: (() => void)[] = [];
-    private emptyData: D;
+    private emptyData: C;
 
-    constructor(opts: { initialData: D; emptyData: D }) {
+    constructor(opts: { initialData: C; emptyData: C }) {
         this.emptyData = opts.emptyData;
 
         this._state = {
@@ -19,7 +19,7 @@ export class TestCache<D extends NonUndefined> implements Cache<D> {
         };
     }
 
-    private set state(newState: CacheState<D>) {
+    private set state(newState: CacheState<C>) {
         this._state = newState;
         this.subscribers.forEach((subscriber) => subscriber());
     }
@@ -51,7 +51,7 @@ export class TestCache<D extends NonUndefined> implements Cache<D> {
         };
     }
 
-    public updateState({ updateCacheData, updateRequestError }: UpdateStateOpts<D>) {
+    public updateState({ updateCacheData, updateRequestError }: UpdateStateOpts<C>) {
         const newData = updateCacheData ? updateCacheData(this.state.data) : this.state.data;
         const currentRequestError = updateRequestError ? this.getRequestError(updateRequestError.requestId) : undefined;
         const newRequestError = updateRequestError ? updateRequestError.update(currentRequestError) : undefined;

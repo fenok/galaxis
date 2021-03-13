@@ -5,8 +5,8 @@ export type DefaultRequest<
     C extends NonUndefined = any,
     D extends NonUndefined = any,
     E extends Error = any,
-    I = any
-> = BaseRequest<C, D, E, I>;
+    R = any
+> = BaseRequest<C, D, E, R>;
 
 export const initialDefaultRequest: DefaultRequest = {
     requestParams: {},
@@ -24,19 +24,19 @@ export interface DefaultRequestProviderOptions<
     C extends NonUndefined = any,
     D extends NonUndefined = any,
     E extends Error = any,
-    I = any
+    R = any
 > {
-    request: DefaultRequest<C, D, E, I>;
+    request: DefaultRequest<C, D, E, R>;
 }
 
 export const DefaultRequestProvider = <
     C extends NonUndefined = any,
     D extends NonUndefined = any,
     E extends Error = any,
-    I = any
+    R = any
 >({
     request,
     children,
-}: PropsWithChildren<DefaultRequestProviderOptions<C, D, E, I>>) => {
+}: PropsWithChildren<DefaultRequestProviderOptions<C, D, E, R>>) => {
     return createElement(DefaultRequestContext.Provider, { value: request }, children);
 };

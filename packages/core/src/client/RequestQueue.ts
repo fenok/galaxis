@@ -10,10 +10,10 @@ export interface QueueSection {
 export class RequestQueue {
     private queue: (QueueSection | undefined)[] = [];
 
-    public addPromise<R extends NonUndefined>(
-        promiseFactory: (enableSignal: EnableSignal) => Promise<R>,
+    public addPromise<D extends NonUndefined>(
+        promiseFactory: (enableSignal: EnableSignal) => Promise<D>,
         type: 'query' | 'mutation',
-    ): Promise<R> {
+    ): Promise<D> {
         const lastQueueSection = this.queue[this.queue.length - 1];
 
         const noMerge = lastQueueSection?.type === 'mutation' || type === 'mutation';

@@ -6,7 +6,7 @@ export function useBaseMutation() {
     const client = useClient();
 
     const mutate = useCallback(
-        <C extends NonUndefined, R extends NonUndefined, E extends Error, I>(mutation: BaseMutation<C, R, E, I>) => {
+        <C extends NonUndefined, D extends NonUndefined, E extends Error, R>(mutation: BaseMutation<C, D, E, R>) => {
             return client.mutate({ ...mutation });
         },
         [client],

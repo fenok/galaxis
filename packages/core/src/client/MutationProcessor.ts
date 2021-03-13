@@ -29,7 +29,7 @@ export class MutationProcessor<C extends NonUndefined> {
         this.ongoingRequests.clear();
     }
 
-    public mutate<R extends NonUndefined, E extends Error, I>(mutation: BaseMutation<C, R, E, I>): Promise<R> {
+    public mutate<D extends NonUndefined, E extends Error, R>(mutation: BaseMutation<C, D, E, R>): Promise<D> {
         const requestId = mutation.getRequestId(mutation);
 
         if (mutation.optimisticData && mutation.toCache) {

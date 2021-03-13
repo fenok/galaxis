@@ -1,9 +1,9 @@
-class ResponseError<R> extends Error {
+class ResponseError<T> extends Error {
     public readonly name = 'ResponseError';
-    public readonly response: R;
+    public readonly response: T;
     public readonly code: number;
 
-    constructor(response: R, code: number, message?: string) {
+    constructor(response: T, code: number, message?: string) {
         super(message);
 
         this.response = response;
