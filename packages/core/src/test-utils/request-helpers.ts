@@ -1,5 +1,5 @@
 import { RequestQueue } from '../client/RequestQueue';
-import { BaseQuery, BaseRequest, CommonRequestOptions } from '../types';
+import { BaseQuery, BaseRequest, RequestOptions } from '../types';
 import { QueryProcessor } from '../client/QueryProcessor';
 import { TestCache } from './TestCache';
 import { wait } from '../promise';
@@ -51,7 +51,7 @@ export function getNetworkError() {
 export function getGetRequestFactory() {
     const state: Record<string, ItemEntity> = { '1': FIRST_ITEM, '2': SECOND_ITEM };
 
-    return ({ requestParams }: CommonRequestOptions<TestRequestInit>) => {
+    return ({ requestParams }: RequestOptions<TestRequestInit>) => {
         let freshness = 0;
 
         return (abortSignal?: AbortSignal) => {
@@ -89,7 +89,7 @@ export const INITIAL_CACHE_DATA: TestCacheData = {
 };
 
 export const BASE_REQUEST: Pick<BaseRequest<TestCacheData, ItemEntity, Error, TestRequestInit>, 'getRequestId'> = {
-    getRequestId({ requestParams }: CommonRequestOptions<TestRequestInit>): string {
+    getRequestId({ requestParams }: RequestOptions<TestRequestInit>): string {
         return Buffer.from(JSON.stringify(requestParams)).toString('base64');
     },
 };
