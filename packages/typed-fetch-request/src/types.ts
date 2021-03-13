@@ -7,10 +7,10 @@ export type HeadersConstraint = HeadersInit;
 export type BodyConstraint = CustomData<any> | BodyInit | null;
 
 export type RequestParamsConstraint = {
-    pathParams?: PathConstraint | undefined;
-    queryParams?: QueryConstraint | undefined;
-    headers?: HeadersConstraint | undefined;
-    body?: BodyConstraint | undefined;
+    pathParams?: PathConstraint;
+    queryParams?: QueryConstraint;
+    headers?: HeadersConstraint;
+    body?: BodyConstraint;
 };
 
 export type DynamicRequestParams<C extends RequestParamsConstraint = RequestParamsConstraint> = C &
