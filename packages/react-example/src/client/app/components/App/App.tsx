@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Client, DefaultsProvider } from '@fetcher/react';
+import { Client, Provider } from '@fetcher/react';
 import { UserDisplay } from '../UserDisplay';
 import { getRequestFactory, getRequestId } from '@fetcher/typed-fetch-request';
 
@@ -11,22 +11,24 @@ interface Props {
 const App: React.FC<Props> = ({ client, fetch }) => {
     console.log('APP_RENDER');
     return (
-        <DefaultsProvider
+        <Provider
             client={client}
-            query={{
-                preventExcessRequestOnHydrate: true,
+            request={{
                 requestInit: {
                     root: 'https://jsonplaceholder.typicode.com',
                 },
-                fetchPolicy: 'cache-and-network',
                 getRequestFactory: getRequestFactory({ fetch }),
                 getRequestId: getRequestId,
+            }}
+            query={{
+                preventExcessRequestOnHydrate: true,
+                fetchPolicy: 'cache-and-network',
             }}
         >
             <UserDisplay variant={1} />
             <UserDisplay variant={2} />
             <UserDisplay variant={3} />
-        </DefaultsProvider>
+        </Provider>
     );
 };
 

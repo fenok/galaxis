@@ -1,6 +1,6 @@
-import { NonUndefined, Query, useQuery } from '@fetcher/react-core';
+import { NonUndefined, Query, useBaseQuery } from '@fetcher/react-core';
 import { getHashBase64 } from '@fetcher/utils';
-import { useCompleteQuery } from './commonQuery';
+import { useDefaultQueryMerger } from './useDefaultQueryMerger';
 
 export type RichQuery<C extends NonUndefined, D extends NonUndefined, E extends Error, I> = Query<C, D, E, I> &
     UseRichQueryOptions;
@@ -10,10 +10,10 @@ export interface UseRichQueryOptions {
     lazy?: boolean;
 }
 
-export function useRichQuery<C extends NonUndefined, R extends NonUndefined, E extends Error, I>(
+export function useQuery<C extends NonUndefined, R extends NonUndefined, E extends Error, I>(
     query: Partial<RichQuery<C, R, E, I>>,
 ) {
-    return useQuery(useCompleteQuery<C, R, E, I>(query), { getQueryHash: getHashBase64 });
+    return useBaseQuery(useDefaultQueryMerger<C, R, E, I>(query), { getQueryHash: getHashBase64 });
 }
 
 export function getRichQuery<C extends NonUndefined, D extends NonUndefined, E extends Error, I, P>(

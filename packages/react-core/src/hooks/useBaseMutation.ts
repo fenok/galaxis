@@ -1,8 +1,8 @@
-import { useClient } from '../Provider';
+import { useClient } from '../ClientProvider';
 import { NonUndefined, Mutation } from '@fetcher/core';
 import { useCallback } from 'react';
 
-export function useMutation() {
+export function useBaseMutation() {
     const client = useClient();
 
     const mutate = useCallback(

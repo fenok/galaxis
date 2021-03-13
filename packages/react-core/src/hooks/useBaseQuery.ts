@@ -1,14 +1,14 @@
 import { NonUndefined, Query } from '@fetcher/core';
 import { useContext, useReducer, useRef } from 'react';
 import { QueryProcessor } from './QueryProcessor';
-import { useClient } from '../Provider';
+import { useClient } from '../ClientProvider';
 import { SsrPromisesManagerContext } from '../ssr';
 
 export interface UseQueryOptions<C extends NonUndefined, R extends NonUndefined, E extends Error, I> {
     getQueryHash(query: Query<C, R, E, I>): string | number;
 }
 
-export function useQuery<C extends NonUndefined, R extends NonUndefined, E extends Error, I>(
+export function useBaseQuery<C extends NonUndefined, R extends NonUndefined, E extends Error, I>(
     query: Query<C, R, E, I>,
     { getQueryHash }: UseQueryOptions<C, R, E, I>,
 ) {

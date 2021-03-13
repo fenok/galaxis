@@ -8,7 +8,7 @@ interface ProviderProps {
     client: Client<any>;
 }
 
-const Provider: FC<ProviderProps> = ({ children, client }) => {
+const ClientProvider: FC<ProviderProps> = ({ children, client }) => {
     useEffect(() => {
         client.onHydrateComplete();
     }, [client]);
@@ -24,4 +24,4 @@ const useClient = <T extends NonUndefined>() => {
     return client as Client<T>;
 };
 
-export { Provider, useClient };
+export { ClientProvider, useClient };

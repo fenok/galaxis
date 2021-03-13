@@ -1,4 +1,4 @@
 export * from './hooks';
-export * from './Provider';
+export * from './ClientProvider';
 export * from './ssr';
 export * from '@fetcher/core';

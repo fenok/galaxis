@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { useState } from 'react';
 import { userQuery } from '../../requests/user';
-import { useRichQuery } from '@fetcher/react';
+import { useQuery } from '@fetcher/react';
 
 interface Props {
     variant: number;
@@ -10,7 +10,7 @@ interface Props {
 const UserDisplay: React.FC<Props> = ({ variant }) => {
     const [userId, setUserId] = useState(1);
 
-    const { data, error, loading, refetch, abort } = useRichQuery(
+    const { data, error, loading, refetch, abort } = useQuery(
         userQuery({
             requestInit: { pathParams: { id: userId } },
             fetchPolicy: variant === 1 ? 'cache-and-network' : variant === 2 ? 'cache-only' : 'no-cache',
