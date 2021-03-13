@@ -1,6 +1,6 @@
 import { NonUndefined } from './helpers';
 
-export interface UpdateStateOpts<C extends NonUndefined> {
+export interface UpdateStateOptions<C extends NonUndefined> {
     updateCacheData?(prevCacheData: C): C;
     updateRequestError?: {
         requestId: string;
@@ -10,7 +10,7 @@ export interface UpdateStateOpts<C extends NonUndefined> {
 
 export interface Cache<C extends NonUndefined> {
     subscribe(callback: () => void): () => void;
-    updateState(opts: UpdateStateOpts<C>): void;
+    updateState(opts: UpdateStateOptions<C>): void;
     getCacheData(): C;
     getRequestError(requestId: string): Error | undefined;
     purge(): void;

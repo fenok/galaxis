@@ -1,4 +1,4 @@
-import { NonUndefined, Cache, UpdateStateOpts } from '../types';
+import { NonUndefined, Cache, UpdateStateOptions } from '../types';
 
 interface CacheState<C extends NonUndefined = null> {
     data: C;
@@ -51,7 +51,7 @@ export class TestCache<C extends NonUndefined> implements Cache<C> {
         };
     }
 
-    public updateState({ updateCacheData, updateRequestError }: UpdateStateOpts<C>) {
+    public updateState({ updateCacheData, updateRequestError }: UpdateStateOptions<C>) {
         const newData = updateCacheData ? updateCacheData(this.state.data) : this.state.data;
         const currentRequestError = updateRequestError ? this.getRequestError(updateRequestError.requestId) : undefined;
         const newRequestError = updateRequestError ? updateRequestError.update(currentRequestError) : undefined;
