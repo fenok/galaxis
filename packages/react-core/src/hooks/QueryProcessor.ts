@@ -89,7 +89,7 @@ export class QueryProcessor<C extends NonUndefined, D extends NonUndefined, E ex
                     this.forceUpdate();
                 }
             })
-            .catch((error) => {
+            .catch((error: Error) => {
                 if (this.queryPromise === queryResult.request) {
                     this.loading = false;
                     if (!this.unsubscribe) {
