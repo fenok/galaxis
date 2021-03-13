@@ -20,7 +20,7 @@ export interface BaseRequest<CD extends NonUndefined, D extends NonUndefined, E 
     toCache?(opts: CommonCacheOptions<CD, I> & { data: D }): CD;
 }
 
-export interface Query<CD extends NonUndefined, D extends NonUndefined, E extends Error, I>
+export interface BaseQuery<CD extends NonUndefined, D extends NonUndefined, E extends Error, I>
     extends BaseRequest<CD, D, E, I> {
     fetchPolicy: FetchPolicy;
     disableSsr?: boolean;
@@ -28,7 +28,7 @@ export interface Query<CD extends NonUndefined, D extends NonUndefined, E extend
     fromCache?(opts: CommonCacheOptions<CD, I>): D | undefined;
 }
 
-export interface Mutation<CD extends NonUndefined, D extends NonUndefined, E extends Error, I>
+export interface BaseMutation<CD extends NonUndefined, D extends NonUndefined, E extends Error, I>
     extends BaseRequest<CD, D, E, I> {
     optimisticData?: D;
     removeOptimisticData?(opts: CommonCacheOptions<CD, I> & { data: D }): CD;

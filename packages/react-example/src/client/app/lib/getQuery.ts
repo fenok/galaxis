@@ -1,4 +1,4 @@
-import { NonUndefined, getRichQuery, RichQuery } from '@fetcher/react';
+import { NonUndefined, getParametrizedQuery, Query } from '@fetcher/react';
 import {
     FetchRequestInit,
     ResponseError,
@@ -12,6 +12,6 @@ export function getQuery<
     D extends NonUndefined,
     R extends FetchRequestInitParams = FetchRequestInitParams,
     P = DynamicFetchRequestInit<R>
->(factory: (params: P) => Partial<RichQuery<CacheData, D, ResponseError<ErrorResponse>, FetchRequestInit<R>>>) {
-    return getRichQuery(factory);
+>(factory: (params: P) => Partial<Query<CacheData, D, ResponseError<ErrorResponse>, FetchRequestInit<R>>>) {
+    return getParametrizedQuery(factory);
 }

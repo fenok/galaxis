@@ -1,7 +1,7 @@
 import { wireAbortSignals, getAbortController } from '../promise';
 import { RequestQueue } from './RequestQueue';
 import { BaseRequestHelper } from './BaseRequestHelper';
-import { NonUndefined, Cache, Mutation } from '../types';
+import { NonUndefined, Cache, BaseMutation } from '../types';
 
 export interface MutationRequest {
     promise: Promise<any>;
@@ -29,7 +29,7 @@ export class MutationProcessor<C extends NonUndefined> {
         this.ongoingRequests.clear();
     }
 
-    public mutate<R extends NonUndefined, E extends Error, I>(mutation: Mutation<C, R, E, I>): Promise<R> {
+    public mutate<R extends NonUndefined, E extends Error, I>(mutation: BaseMutation<C, R, E, I>): Promise<R> {
         const requestId = mutation.getRequestId(mutation);
 
         if (mutation.optimisticData && mutation.toCache) {

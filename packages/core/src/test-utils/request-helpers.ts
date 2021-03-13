@@ -1,5 +1,5 @@
 import { RequestQueue } from '../client/RequestQueue';
-import { Query, BaseRequest, CommonRequestOptions } from '../types';
+import { BaseQuery, BaseRequest, CommonRequestOptions } from '../types';
 import { QueryProcessor } from '../client/QueryProcessor';
 import { TestCache } from './TestCache';
 import { wait } from '../promise';
@@ -95,13 +95,13 @@ export const BASE_REQUEST: Pick<BaseRequest<TestCacheData, ItemEntity, Error, Te
 };
 
 export const BASE_QUERY: typeof BASE_REQUEST &
-    Pick<Query<TestCacheData, ItemEntity, Error, TestRequestInit>, 'fetchPolicy'> = {
+    Pick<BaseQuery<TestCacheData, ItemEntity, Error, TestRequestInit>, 'fetchPolicy'> = {
     ...BASE_REQUEST,
     fetchPolicy: 'cache-and-network',
 };
 
 export const ITEM_REQUEST: Omit<
-    Query<TestCacheData, ItemEntity, Error, TestRequestInit>,
+    BaseQuery<TestCacheData, ItemEntity, Error, TestRequestInit>,
     'requestInit' | 'getRequestFactory'
 > = {
     ...BASE_QUERY,
@@ -115,7 +115,7 @@ export const ITEM_REQUEST: Omit<
 
 export function getFirstItemRequest(
     getRequestFactory = getGetRequestFactory(),
-): Query<TestCacheData, ItemEntity, Error, TestRequestInit> {
+): BaseQuery<TestCacheData, ItemEntity, Error, TestRequestInit> {
     return {
         ...ITEM_REQUEST,
         getRequestFactory,
@@ -123,7 +123,7 @@ export function getFirstItemRequest(
     };
 }
 
-export function getFailingFirstItemRequest(): Query<TestCacheData, ItemEntity, Error, TestRequestInit> {
+export function getFailingFirstItemRequest(): BaseQuery<TestCacheData, ItemEntity, Error, TestRequestInit> {
     return {
         ...ITEM_REQUEST,
         getRequestFactory: () => () => Promise.reject(getNetworkError()),
@@ -133,7 +133,7 @@ export function getFailingFirstItemRequest(): Query<TestCacheData, ItemEntity, E
 
 export function getSecondItemRequest(
     getRequestFactory = getGetRequestFactory(),
-): Query<TestCacheData, ItemEntity, Error, TestRequestInit> {
+): BaseQuery<TestCacheData, ItemEntity, Error, TestRequestInit> {
     return {
         ...ITEM_REQUEST,
         getRequestFactory,

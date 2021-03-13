@@ -1,5 +1,5 @@
 import { DefaultRequest } from './DefaultRequestProvider';
-import { NonUndefined, Mutation } from '@fetcher/react-core';
+import { NonUndefined, BaseMutation } from '@fetcher/react-core';
 import { createContext, createElement, PropsWithChildren } from 'react';
 
 export type DefaultMutation<
@@ -7,7 +7,7 @@ export type DefaultMutation<
     D extends NonUndefined = any,
     E extends Error = any,
     I = any
-> = Partial<DefaultRequest<C, D, E, I>> & Omit<Mutation<C, D, E, I>, keyof DefaultRequest<C, D, E, I>>;
+> = Partial<DefaultRequest<C, D, E, I>> & Omit<BaseMutation<C, D, E, I>, keyof DefaultRequest<C, D, E, I>>;
 
 export const initialDefaultMutation: DefaultMutation = {};
 

@@ -1,4 +1,4 @@
-import { Client, NonUndefined, Query, QueryState, SsrPromisesManager, logger, QueryCache } from '@fetcher/core';
+import { Client, NonUndefined, BaseQuery, QueryState, SsrPromisesManager, logger, QueryCache } from '@fetcher/core';
 
 export interface QueryProcessorOptions {
     forceUpdate(): void;
@@ -7,7 +7,7 @@ export interface QueryProcessorOptions {
 export class QueryProcessor<C extends NonUndefined, R extends NonUndefined, E extends Error, I> {
     private forceUpdate: () => void;
     private queryHash?: string | number;
-    private query!: Query<C, R, E, I>;
+    private query!: BaseQuery<C, R, E, I>;
     private client!: Client<C>;
     private ssrPromisesManager?: SsrPromisesManager;
     private loading = false;
@@ -21,7 +21,7 @@ export class QueryProcessor<C extends NonUndefined, R extends NonUndefined, E ex
     }
 
     public onRender(
-        query: Query<C, R, E, I>,
+        query: BaseQuery<C, R, E, I>,
         queryHash: string | number,
         client: Client<C>,
         ssrPromisesManager: SsrPromisesManager | null,

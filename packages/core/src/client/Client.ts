@@ -1,7 +1,7 @@
 import { QueryProcessor, QueryResult, QueryState, QueryRequestFlags } from './QueryProcessor';
 import { MutationProcessor } from './MutationProcessor';
 import { RequestQueue } from './RequestQueue';
-import { NonUndefined, Cache, Query, Mutation } from '../types';
+import { NonUndefined, Cache, BaseQuery, BaseMutation } from '../types';
 
 interface ClientOptions<C extends NonUndefined, CACHE extends Cache<C> = Cache<C>> {
     cache: CACHE;
@@ -30,7 +30,7 @@ class Client<C extends NonUndefined, CACHE extends Cache<C> = Cache<C>> {
     }
 
     public subscribe<R extends NonUndefined, E extends Error, I>(
-        query: Query<C, R, E, I>,
+        query: BaseQuery<C, R, E, I>,
         onChange: (state: QueryState<R, E>) => void,
     ) {
         if (query.fetchPolicy !== 'no-cache') {
@@ -56,18 +56,18 @@ class Client<C extends NonUndefined, CACHE extends Cache<C> = Cache<C>> {
         this.queryProcessor.onHydrateComplete();
     }
 
-    public getQueryState<R extends NonUndefined, E extends Error, I>(query: Query<C, R, E, I>): QueryState<R, E> {
+    public getQueryState<R extends NonUndefined, E extends Error, I>(query: BaseQuery<C, R, E, I>): QueryState<R, E> {
         return this.queryProcessor.getQueryState(query);
     }
 
     public query<R extends NonUndefined, E extends Error, I>(
-        query: Query<C, R, E, I>,
+        query: BaseQuery<C, R, E, I>,
         requestFlags?: Partial<QueryRequestFlags>,
     ): QueryResult<R, E> {
         return this.queryProcessor.query(query, requestFlags);
     }
 
-    public async mutate<R extends NonUndefined, E extends Error, I>(mutation: Mutation<C, R, E, I>): Promise<R> {
+    public async mutate<R extends NonUndefined, E extends Error, I>(mutation: BaseMutation<C, R, E, I>): Promise<R> {
         return this.mutationProcessor.mutate(mutation);
     }
 
