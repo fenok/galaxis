@@ -13,11 +13,8 @@ export type RequestParamsConstraint = {
     body?: BodyConstraint | undefined;
 };
 
-export type DynamicRequestParams<C extends RequestParamsConstraint = RequestParamsConstraint> = Omit<
-    RequestInit,
-    'body' | 'headers'
-> &
-    C;
+export type DynamicRequestParams<C extends RequestParamsConstraint = RequestParamsConstraint> = C &
+    Omit<RequestInit, 'body' | 'headers'>;
 
 export type StaticRequestParams = {
     root?: string;
