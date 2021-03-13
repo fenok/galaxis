@@ -1,7 +1,7 @@
 import { compile } from 'path-to-regexp';
 import { stringifyQuery } from './stringifyQuery';
-import { FetchRequestParams } from '../types';
+import { RequestParams } from '../types';
 
-export function getUrl({ root, path, pathParams, queryParams }: FetchRequestParams) {
+export function getUrl({ root, path, pathParams, queryParams }: RequestParams) {
     return `${root || ''}${compile(path)(pathParams)}${stringifyQuery(queryParams)}`;
 }
