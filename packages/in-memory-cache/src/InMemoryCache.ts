@@ -1,6 +1,6 @@
 import { devTools, ReduxDevTools } from './devTools';
 import { Cache, NonUndefined, UpdateStateOptions } from '@fetcher/core';
-import { serializeError, deserializeError } from 'serialize-error';
+import { serializeError, deserializeError, ErrorObject } from 'serialize-error';
 
 interface CacheState<C extends NonUndefined, E = Error> {
     data: C;
@@ -9,7 +9,7 @@ interface CacheState<C extends NonUndefined, E = Error> {
 
 interface CacheOptions<C extends NonUndefined> {
     emptyData: C;
-    initialState?: unknown;
+    initialState?: CacheState<C, ErrorObject>;
     enableDevTools?: boolean;
 }
 
@@ -61,7 +61,7 @@ class InMemoryCache<C extends NonUndefined> implements Cache<C> {
         return this.state.error[requestId];
     }
 
-    public extract(): unknown {
+    public extract(): CacheState<C, ErrorObject> {
         const serializableErrors = Object.fromEntries(
             Object.entries(this.state.error).map(([id, error]) => [id, error ? serializeError(error) : undefined]),
         );
@@ -72,7 +72,7 @@ class InMemoryCache<C extends NonUndefined> implements Cache<C> {
         };
     }
 
-    private deserializeState(serializableState: any): CacheState<C> {
+    private deserializeState(serializableState: CacheState<C, ErrorObject>): CacheState<C> {
         const deserializedErrors = Object.fromEntries(
             Object.entries(serializableState.error).map(([id, error]) => [
                 id,
@@ -128,7 +128,7 @@ class InMemoryCache<C extends NonUndefined> implements Cache<C> {
         // TODO: React to all messages
         this.devtools?.subscribe((message) => {
             if (message.type === 'DISPATCH' && message.payload.type === 'JUMP_TO_ACTION') {
-                this.state = JSON.parse(message.state);
+                this.state = JSON.parse(message.state) as CacheState<C>;
             }
         });
     }
