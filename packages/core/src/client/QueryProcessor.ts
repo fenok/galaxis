@@ -26,7 +26,7 @@ export interface QueryResult<D extends NonUndefined, E extends Error> {
 
 export interface QueryRequest {
     cacheableQuery?: unknown;
-    promise: Promise<any>;
+    promise: Promise<unknown>;
     loading: number;
     aborted: boolean;
     abort(): void;
@@ -113,7 +113,7 @@ export class QueryProcessor<C extends NonUndefined> {
 
         wireAbortSignals(onAbort, query.abortSignal);
 
-        return queryRequest.promise;
+        return queryRequest.promise as Promise<D>;
     }
 
     private ensureQueryRequest<D extends NonUndefined, E extends Error, R>(
@@ -156,7 +156,7 @@ export class QueryProcessor<C extends NonUndefined> {
                         }
                         return data;
                     })
-                    .catch((error) => {
+                    .catch((error: Error) => {
                         if (this.ongoingRequests[requestId] === queryRequest) {
                             this.ongoingRequests[requestId] = undefined;
 

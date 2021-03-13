@@ -68,7 +68,7 @@ export function getGetRequestFactory() {
                     abortSignal?.addEventListener('abort', onAbort);
                 }
 
-                wait(requestParams.time ?? 200).then(() => {
+                void wait(requestParams.time ?? 200).then(() => {
                     if (requestParams.updateItem) {
                         state[requestParams.id] = { ...state[requestParams.id], ...requestParams.updateItem };
                     }

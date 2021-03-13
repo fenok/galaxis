@@ -4,7 +4,7 @@ import { BaseRequestHelper } from './BaseRequestHelper';
 import { NonUndefined, Cache, BaseMutation } from '../types';
 
 export interface MutationRequest {
-    promise: Promise<any>;
+    promise: Promise<unknown>;
     aborted: boolean;
     abort(): void;
 }
@@ -111,6 +111,6 @@ export class MutationProcessor<C extends NonUndefined> {
 
         this.ongoingRequests.add(mutationRequest);
 
-        return mutationRequest.promise;
+        return mutationRequest.promise as Promise<D>;
     }
 }
