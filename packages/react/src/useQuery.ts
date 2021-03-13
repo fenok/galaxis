@@ -18,9 +18,9 @@ export function useQuery<C extends NonUndefined, R extends NonUndefined, E exten
 
 export function getParametrizedQuery<C extends NonUndefined, D extends NonUndefined, E extends Error, I, P>(
     factory: (params: P) => Partial<Query<C, D, E, I>>,
-): (query: Omit<Partial<Query<C, D, E, I>>, 'requestInit'> & { requestInit: P }) => Partial<Query<C, D, E, I>> {
-    return ({ requestInit, ...query }) => ({
-        ...factory(requestInit),
+): (query: Omit<Partial<Query<C, D, E, I>>, 'requestParams'> & { requestParams: P }) => Partial<Query<C, D, E, I>> {
+    return ({ requestParams, ...query }) => ({
+        ...factory(requestParams),
         ...query,
     });
 }

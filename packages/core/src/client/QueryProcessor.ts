@@ -82,7 +82,7 @@ export class QueryProcessor<C extends NonUndefined> {
                       error: this.cache.getRequestError(requestId),
                       data: query.fromCache?.({
                           cacheData: this.cache.getCacheData(),
-                          requestInit: query.requestInit,
+                          requestParams: query.requestParams,
                           requestId,
                       }),
                   }
@@ -200,7 +200,7 @@ export class QueryProcessor<C extends NonUndefined> {
                         ? query.toCache({
                               cacheData,
                               data: action.data,
-                              requestInit: query.requestInit,
+                              requestParams: query.requestParams,
                               requestId,
                           })
                         : cacheData;

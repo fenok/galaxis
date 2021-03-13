@@ -51,7 +51,7 @@ export function getNetworkError() {
 export function getGetRequestFactory() {
     const state: Record<string, ItemEntity> = { '1': FIRST_ITEM, '2': SECOND_ITEM };
 
-    return ({ requestInit }: CommonRequestOptions<TestRequestInit>) => {
+    return ({ requestParams }: CommonRequestOptions<TestRequestInit>) => {
         let freshness = 0;
 
         return (abortSignal?: AbortSignal) => {
@@ -68,12 +68,12 @@ export function getGetRequestFactory() {
                     abortSignal?.addEventListener('abort', onAbort);
                 }
 
-                wait(requestInit.time ?? 200).then(() => {
-                    if (requestInit.updateItem) {
-                        state[requestInit.id] = { ...state[requestInit.id], ...requestInit.updateItem };
+                wait(requestParams.time ?? 200).then(() => {
+                    if (requestParams.updateItem) {
+                        state[requestParams.id] = { ...state[requestParams.id], ...requestParams.updateItem };
                     }
 
-                    resolve({ ...state[requestInit.id], freshness });
+                    resolve({ ...state[requestParams.id], freshness });
                 });
             });
         };
@@ -89,8 +89,8 @@ export const INITIAL_CACHE_DATA: TestCacheData = {
 };
 
 export const BASE_REQUEST: Pick<BaseRequest<TestCacheData, ItemEntity, Error, TestRequestInit>, 'getRequestId'> = {
-    getRequestId({ requestInit }: CommonRequestOptions<TestRequestInit>): string {
-        return Buffer.from(JSON.stringify(requestInit)).toString('base64');
+    getRequestId({ requestParams }: CommonRequestOptions<TestRequestInit>): string {
+        return Buffer.from(JSON.stringify(requestParams)).toString('base64');
     },
 };
 
@@ -102,14 +102,14 @@ export const BASE_QUERY: typeof BASE_REQUEST &
 
 export const ITEM_REQUEST: Omit<
     BaseQuery<TestCacheData, ItemEntity, Error, TestRequestInit>,
-    'requestInit' | 'getRequestFactory'
+    'requestParams' | 'getRequestFactory'
 > = {
     ...BASE_QUERY,
     toCache({ cacheData, data }) {
         return { ...cacheData, items: { ...cacheData.items, [data.id]: data } };
     },
-    fromCache({ cacheData, requestInit }) {
-        return cacheData.items[requestInit.id];
+    fromCache({ cacheData, requestParams }) {
+        return cacheData.items[requestParams.id];
     },
 };
 
@@ -119,7 +119,7 @@ export function getFirstItemRequest(
     return {
         ...ITEM_REQUEST,
         getRequestFactory,
-        requestInit: { id: '1' },
+        requestParams: { id: '1' },
     };
 }
 
@@ -127,7 +127,7 @@ export function getFailingFirstItemRequest(): BaseQuery<TestCacheData, ItemEntit
     return {
         ...ITEM_REQUEST,
         getRequestFactory: () => () => Promise.reject(getNetworkError()),
-        requestInit: { id: '1' },
+        requestParams: { id: '1' },
     };
 }
 
@@ -137,7 +137,7 @@ export function getSecondItemRequest(
     return {
         ...ITEM_REQUEST,
         getRequestFactory,
-        requestInit: { id: '2' },
+        requestParams: { id: '2' },
     };
 }
 

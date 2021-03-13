@@ -4,16 +4,16 @@ export type FetchPolicy = 'cache-only' | 'cache-first' | 'cache-and-network' | '
 
 export interface CommonCacheOptions<CD extends NonUndefined, I> {
     cacheData: CD;
-    requestInit: I;
+    requestParams: I;
     requestId: string;
 }
 
 export interface CommonRequestOptions<I> {
-    requestInit: I;
+    requestParams: I;
 }
 
 export interface BaseRequest<CD extends NonUndefined, D extends NonUndefined, E extends Error, I> {
-    requestInit: I;
+    requestParams: I;
     abortSignal?: AbortSignal;
     getRequestFactory(opts: CommonRequestOptions<I>): (abortSignal?: AbortSignal) => Promise<D | E>;
     getRequestId(opts: CommonRequestOptions<I>): string;

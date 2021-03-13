@@ -12,14 +12,16 @@ export type QueryConstraint = StringifiableRecord | undefined;
 export type HeadersConstraint = HeadersInit | undefined;
 export type BodyConstraint = CustomData<any> | BodyInit | null | undefined;
 
-export type FetchRequestInitParams = {
+export type FetchRequestParamsConstraint = {
     P?: PathConstraint | undefined;
     Q?: QueryConstraint | undefined;
     H?: HeadersConstraint | undefined;
     B?: BodyConstraint | undefined;
 };
 
-export type DynamicFetchRequestInit<C extends FetchRequestInitParams = FetchRequestInitParams> = PartialUndefined<
+export type DynamicFetchRequestParams<
+    C extends FetchRequestParamsConstraint = FetchRequestParamsConstraint
+> = PartialUndefined<
     Omit<RequestInit, 'body' | 'headers'> & {
         pathParams: unknown extends C['P'] ? PathConstraint : C['P'];
         queryParams: unknown extends C['Q'] ? QueryConstraint : C['Q'];
@@ -28,10 +30,11 @@ export type DynamicFetchRequestInit<C extends FetchRequestInitParams = FetchRequ
     }
 >;
 
-export type StaticFetchRequestInit = {
+export type StaticFetchRequestParams = {
     root?: string;
     path: string;
 };
 
-export type FetchRequestInit<C extends FetchRequestInitParams = FetchRequestInitParams> = DynamicFetchRequestInit<C> &
-    StaticFetchRequestInit;
+export type FetchRequestParams<
+    C extends FetchRequestParamsConstraint = FetchRequestParamsConstraint
+> = DynamicFetchRequestParams<C> & StaticFetchRequestParams;

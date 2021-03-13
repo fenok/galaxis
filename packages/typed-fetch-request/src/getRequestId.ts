@@ -1,9 +1,9 @@
-import { FetchRequestInit } from './types';
+import { FetchRequestParams } from './types';
 import { getUrl } from './getUrl';
 import { CommonRequestOptions } from '@fetcher/core';
 import { getHashBase64 } from '@fetcher/utils';
 
-export function getRequestId({ requestInit }: CommonRequestOptions<FetchRequestInit>) {
-    const { root, ...restRequestInit } = requestInit;
-    return `${getUrl(restRequestInit)}:${getHashBase64(restRequestInit)}`;
+export function getRequestId({ requestParams }: CommonRequestOptions<FetchRequestParams>) {
+    const { root, ...restRequestParams } = requestParams;
+    return `${getUrl(restRequestParams)}:${getHashBase64(restRequestParams)}`;
 }

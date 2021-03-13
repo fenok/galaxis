@@ -14,6 +14,11 @@ export function useDefaultQueryMerger<C extends NonUndefined, R extends NonUndef
         ...defaultRequest,
         ...defaultQuery,
         ...query,
-        requestInit: mergeDeepNonUndefined({}, defaultRequest.requestInit, defaultQuery.requestInit, query.requestInit),
+        requestParams: mergeDeepNonUndefined(
+            {},
+            defaultRequest.requestParams,
+            defaultQuery.requestParams,
+            query.requestParams,
+        ),
     };
 }

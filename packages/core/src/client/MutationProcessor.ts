@@ -38,7 +38,7 @@ export class MutationProcessor<C extends NonUndefined> {
                     mutation.toCache!({
                         cacheData,
                         data: mutation.optimisticData!,
-                        requestInit: mutation.requestInit,
+                        requestParams: mutation.requestParams,
                         requestId,
                     }),
             });
@@ -65,12 +65,12 @@ export class MutationProcessor<C extends NonUndefined> {
                                                 ? mutation.removeOptimisticData({
                                                       cacheData: cacheData,
                                                       data: mutation.optimisticData,
-                                                      requestInit: mutation.requestInit,
+                                                      requestParams: mutation.requestParams,
                                                       requestId,
                                                   })
                                                 : cacheData,
                                         data,
-                                        requestInit: mutation.requestInit,
+                                        requestParams: mutation.requestParams,
                                         requestId,
                                     }),
                             });
@@ -89,7 +89,7 @@ export class MutationProcessor<C extends NonUndefined> {
                                     mutation.removeOptimisticData!({
                                         cacheData,
                                         data: mutation.optimisticData!,
-                                        requestInit: mutation.requestInit,
+                                        requestParams: mutation.requestParams,
                                         requestId,
                                     }),
                             });

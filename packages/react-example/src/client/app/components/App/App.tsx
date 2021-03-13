@@ -14,7 +14,7 @@ const App: React.FC<Props> = ({ client, fetch }) => {
         <Provider
             client={client}
             request={{
-                requestInit: {
+                requestParams: {
                     root: 'https://jsonplaceholder.typicode.com',
                 },
                 getRequestFactory: getRequestFactory({ fetch }),

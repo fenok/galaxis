@@ -12,17 +12,17 @@ it('guarantees that mutation waits for loading queries', async () => {
 
     const queryResult = client.query({
         ...firstItemRequest,
-        requestInit: { ...firstItemRequest.requestInit, time: 400 },
+        requestParams: { ...firstItemRequest.requestParams, time: 400 },
     });
 
     const mutationResult = client.mutate({
         ...firstItemRequest,
-        requestInit: { ...firstItemRequest.requestInit, time: 100, updateItem: FIRST_ITEM_UPDATE_DTO },
+        requestParams: { ...firstItemRequest.requestParams, time: 100, updateItem: FIRST_ITEM_UPDATE_DTO },
     });
 
     const finalQueryResult = client.query({
         ...firstItemRequest,
-        requestInit: { ...firstItemRequest.requestInit, time: 100 },
+        requestParams: { ...firstItemRequest.requestParams, time: 100 },
     });
 
     await expect(queryResult.request).resolves.toEqual(FIRST_ITEM);

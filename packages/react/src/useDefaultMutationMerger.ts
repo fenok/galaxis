@@ -14,11 +14,11 @@ export function useDefaultMutationMerger<C extends NonUndefined, R extends NonUn
         ...defaultRequest,
         ...defaultMutation,
         ...mutation,
-        requestInit: mergeDeepNonUndefined(
+        requestParams: mergeDeepNonUndefined(
             {},
-            defaultRequest.requestInit,
-            defaultMutation.requestInit,
-            mutation.requestInit,
+            defaultRequest.requestParams,
+            defaultMutation.requestParams,
+            mutation.requestParams,
         ),
     };
 }

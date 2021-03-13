@@ -9,7 +9,7 @@ export type DefaultRequest<
 > = BaseRequest<C, D, E, I>;
 
 export const initialDefaultRequest: DefaultRequest = {
-    requestInit: {},
+    requestParams: {},
     getRequestId() {
         return '';
     },

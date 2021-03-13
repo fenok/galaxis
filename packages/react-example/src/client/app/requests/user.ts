@@ -11,7 +11,7 @@ export interface User {
 export type UserQueryRequestParams = { P: { id: number } };
 
 export const userQuery = getQuery<User, UserQueryRequestParams>((params) => ({
-    requestInit: {
+    requestParams: {
         path: '/users/:id',
         ...params,
     },
@@ -27,15 +27,15 @@ export const userQuery = getQuery<User, UserQueryRequestParams>((params) => ({
         };
     }),
     fromCache: memoize(
-        ({ cacheData, requestInit }) => {
-            const user = cacheData.users[requestInit.pathParams.id];
-            const email = cacheData.emails[requestInit.pathParams.id];
+        ({ cacheData, requestParams }) => {
+            const user = cacheData.users[requestParams.pathParams.id];
+            const email = cacheData.emails[requestParams.pathParams.id];
 
             return user && email ? { ...user, ...email } : undefined;
         },
-        ({ cacheData, requestInit }) => [
-            cacheData.users[requestInit.pathParams.id],
-            cacheData.emails[requestInit.pathParams.id],
+        ({ cacheData, requestParams }) => [
+            cacheData.users[requestParams.pathParams.id],
+            cacheData.emails[requestParams.pathParams.id],
         ],
     ),
 }));

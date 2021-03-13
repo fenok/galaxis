@@ -12,7 +12,7 @@ const UserDisplay: React.FC<Props> = ({ variant }) => {
 
     const { data, error, loading, refetch, abort } = useQuery(
         userQuery({
-            requestInit: { pathParams: { id: userId } },
+            requestParams: { pathParams: { id: userId } },
             fetchPolicy: variant === 1 ? 'cache-and-network' : variant === 2 ? 'cache-only' : 'no-cache',
             pollInterval: 100,
             lazy: false,

@@ -1,4 +1,4 @@
-import { FetchRequestInit } from './types';
+import { FetchRequestParams } from './types';
 import { getUrl } from './getUrl';
 import { processResponseJson } from './processResponse';
 import { CommonRequestOptions } from '@fetcher/core';
@@ -10,10 +10,10 @@ export interface GetRequestFactoryOptions {
 }
 
 export function getRequestFactory({ fetch: fetchFn, processResponse }: GetRequestFactoryOptions) {
-    return ({ requestInit }: CommonRequestOptions<FetchRequestInit>) => {
+    return ({ requestParams }: CommonRequestOptions<FetchRequestParams>) => {
         return (abortSignal?: AbortSignal) => {
-            return (fetchFn || fetch)(getUrl(requestInit), {
-                ...getRequestInit(requestInit),
+            return (fetchFn || fetch)(getUrl(requestParams), {
+                ...getRequestInit(requestParams),
                 signal: abortSignal,
             }).then(processResponse || processResponseJson);
         };
