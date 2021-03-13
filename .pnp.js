@@ -45,6 +45,10 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
       {
         "name": "@fetcher/typed-fetch-request",
         "reference": "workspace:packages/typed-fetch-request"
+      },
+      {
+        "name": "@fetcher/utils",
+        "reference": "workspace:packages/utils"
       }
     ],
     "enableTopLevelFallback": true,
@@ -56,6 +60,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
       ["@fetcher/react-core", ["virtual:7d0e81df316b60d3846168366d17c43abedaa9b6b7dc2b475b1bfdd24865614794d5b5ab7204005630e415857904f82adbe65c0874776a7af5ab0de94c10aca7#workspace:packages/react-core", "workspace:packages/react-core"]],
       ["@fetcher/react-example", ["workspace:packages/react-example"]],
       ["@fetcher/typed-fetch-request", ["virtual:39adb0faa57969db6c58a50f46bb945c04a047b71dac39a622bd25be10980d4a8674c24033f2c15cfe66b4a5d4f0afd0f53a8a37311cf79d0b3977ef90bb2b3b#workspace:packages/typed-fetch-request", "workspace:packages/typed-fetch-request"]],
+      ["@fetcher/utils", ["virtual:7d0e81df316b60d3846168366d17c43abedaa9b6b7dc2b475b1bfdd24865614794d5b5ab7204005630e415857904f82adbe65c0874776a7af5ab0de94c10aca7#workspace:packages/utils", "workspace:packages/utils"]],
       ["fetcher", ["workspace:."]]
     ],
     "fallbackPool": [
@@ -2201,7 +2206,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageDependencies": [
             ["@fetcher/react", "virtual:39adb0faa57969db6c58a50f46bb945c04a047b71dac39a622bd25be10980d4a8674c24033f2c15cfe66b4a5d4f0afd0f53a8a37311cf79d0b3977ef90bb2b3b#workspace:packages/react"],
             ["@fetcher/react-core", "virtual:7d0e81df316b60d3846168366d17c43abedaa9b6b7dc2b475b1bfdd24865614794d5b5ab7204005630e415857904f82adbe65c0874776a7af5ab0de94c10aca7#workspace:packages/react-core"],
-            ["@types/lodash.merge", "npm:4.6.6"],
+            ["@fetcher/utils", "virtual:7d0e81df316b60d3846168366d17c43abedaa9b6b7dc2b475b1bfdd24865614794d5b5ab7204005630e415857904f82adbe65c0874776a7af5ab0de94c10aca7#workspace:packages/utils"],
             ["@types/node", "npm:13.9.0"],
             ["@types/react", "npm:16.9.23"],
             ["@types/react-dom", "npm:16.9.5"],
@@ -2209,15 +2214,10 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@types/types__react-dom", null],
             ["@typescript-eslint/eslint-plugin", "virtual:f779e5e0cc38834fa930f15ec8a4725df917eb76996fdb6c7229e819595ad2611f25dad7193bcaad659832cf3ae75cf76fd69137c1031c37b919da1909c5fbe3#npm:2.22.0"],
             ["@typescript-eslint/parser", "virtual:f779e5e0cc38834fa930f15ec8a4725df917eb76996fdb6c7229e819595ad2611f25dad7193bcaad659832cf3ae75cf76fd69137c1031c37b919da1909c5fbe3#npm:2.22.0"],
-            ["buffer", "npm:5.6.0"],
             ["eslint", "npm:7.11.0"],
             ["eslint-config-prettier", "virtual:c1fde0c38ec1424cff1aa573370869dd10639d73765698008e2f898ea742a371da1723302503adc59a9e0ccdfbd193dd16f26475486c07386c0dd5483ed2cf6e#npm:6.13.0"],
             ["eslint-plugin-react-hooks", "virtual:f779e5e0cc38834fa930f15ec8a4725df917eb76996fdb6c7229e819595ad2611f25dad7193bcaad659832cf3ae75cf76fd69137c1031c37b919da1909c5fbe3#npm:4.1.2"],
-            ["immer", "npm:8.0.1"],
-            ["lodash.merge", "npm:4.6.2"],
-            ["path-to-regexp", "npm:6.2.0"],
             ["prettier", "npm:2.1.2"],
-            ["query-string", "npm:6.13.6"],
             ["react", "npm:16.14.0"],
             ["react-dom", "virtual:7d0e81df316b60d3846168366d17c43abedaa9b6b7dc2b475b1bfdd24865614794d5b5ab7204005630e415857904f82adbe65c0874776a7af5ab0de94c10aca7#npm:16.14.0"],
             ["rimraf", "npm:3.0.2"],
@@ -2238,21 +2238,16 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageDependencies": [
             ["@fetcher/react", "workspace:packages/react"],
             ["@fetcher/react-core", "virtual:7d0e81df316b60d3846168366d17c43abedaa9b6b7dc2b475b1bfdd24865614794d5b5ab7204005630e415857904f82adbe65c0874776a7af5ab0de94c10aca7#workspace:packages/react-core"],
-            ["@types/lodash.merge", "npm:4.6.6"],
+            ["@fetcher/utils", "virtual:7d0e81df316b60d3846168366d17c43abedaa9b6b7dc2b475b1bfdd24865614794d5b5ab7204005630e415857904f82adbe65c0874776a7af5ab0de94c10aca7#workspace:packages/utils"],
             ["@types/node", "npm:13.9.0"],
             ["@types/react", "npm:16.9.23"],
             ["@types/react-dom", "npm:16.9.5"],
             ["@typescript-eslint/eslint-plugin", "virtual:f779e5e0cc38834fa930f15ec8a4725df917eb76996fdb6c7229e819595ad2611f25dad7193bcaad659832cf3ae75cf76fd69137c1031c37b919da1909c5fbe3#npm:2.22.0"],
             ["@typescript-eslint/parser", "virtual:f779e5e0cc38834fa930f15ec8a4725df917eb76996fdb6c7229e819595ad2611f25dad7193bcaad659832cf3ae75cf76fd69137c1031c37b919da1909c5fbe3#npm:2.22.0"],
-            ["buffer", "npm:5.6.0"],
             ["eslint", "npm:7.11.0"],
             ["eslint-config-prettier", "virtual:c1fde0c38ec1424cff1aa573370869dd10639d73765698008e2f898ea742a371da1723302503adc59a9e0ccdfbd193dd16f26475486c07386c0dd5483ed2cf6e#npm:6.13.0"],
             ["eslint-plugin-react-hooks", "virtual:f779e5e0cc38834fa930f15ec8a4725df917eb76996fdb6c7229e819595ad2611f25dad7193bcaad659832cf3ae75cf76fd69137c1031c37b919da1909c5fbe3#npm:4.1.2"],
-            ["immer", "npm:8.0.1"],
-            ["lodash.merge", "npm:4.6.2"],
-            ["path-to-regexp", "npm:6.2.0"],
             ["prettier", "npm:2.1.2"],
-            ["query-string", "npm:6.13.6"],
             ["react", "npm:16.14.0"],
             ["react-dom", "virtual:7d0e81df316b60d3846168366d17c43abedaa9b6b7dc2b475b1bfdd24865614794d5b5ab7204005630e415857904f82adbe65c0874776a7af5ab0de94c10aca7#npm:16.14.0"],
             ["rimraf", "npm:3.0.2"],
@@ -2365,7 +2360,9 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageDependencies": [
             ["@fetcher/typed-fetch-request", "virtual:39adb0faa57969db6c58a50f46bb945c04a047b71dac39a622bd25be10980d4a8674c24033f2c15cfe66b4a5d4f0afd0f53a8a37311cf79d0b3977ef90bb2b3b#workspace:packages/typed-fetch-request"],
             ["@fetcher/core", "workspace:packages/core"],
+            ["@fetcher/utils", "virtual:7d0e81df316b60d3846168366d17c43abedaa9b6b7dc2b475b1bfdd24865614794d5b5ab7204005630e415857904f82adbe65c0874776a7af5ab0de94c10aca7#workspace:packages/utils"],
             ["@types/fetcher__core", null],
+            ["@types/fetcher__utils", null],
             ["@types/node", "npm:13.9.0"],
             ["@typescript-eslint/eslint-plugin", "virtual:f779e5e0cc38834fa930f15ec8a4725df917eb76996fdb6c7229e819595ad2611f25dad7193bcaad659832cf3ae75cf76fd69137c1031c37b919da1909c5fbe3#npm:2.22.0"],
             ["@typescript-eslint/parser", "virtual:f779e5e0cc38834fa930f15ec8a4725df917eb76996fdb6c7229e819595ad2611f25dad7193bcaad659832cf3ae75cf76fd69137c1031c37b919da1909c5fbe3#npm:2.22.0"],
@@ -2379,7 +2376,8 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["typescript", "patch:typescript@npm%3A4.0.3#builtin<compat/typescript>::version=4.0.3&hash=5bf698"]
           ],
           "packagePeers": [
-            "@types/fetcher__core"
+            "@types/fetcher__core",
+            "@types/fetcher__utils"
           ],
           "linkType": "SOFT",
         }],
@@ -2388,6 +2386,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageDependencies": [
             ["@fetcher/typed-fetch-request", "workspace:packages/typed-fetch-request"],
             ["@fetcher/core", "workspace:packages/core"],
+            ["@fetcher/utils", "virtual:7d0e81df316b60d3846168366d17c43abedaa9b6b7dc2b475b1bfdd24865614794d5b5ab7204005630e415857904f82adbe65c0874776a7af5ab0de94c10aca7#workspace:packages/utils"],
             ["@types/node", "npm:13.9.0"],
             ["@typescript-eslint/eslint-plugin", "virtual:f779e5e0cc38834fa930f15ec8a4725df917eb76996fdb6c7229e819595ad2611f25dad7193bcaad659832cf3ae75cf76fd69137c1031c37b919da1909c5fbe3#npm:2.22.0"],
             ["@typescript-eslint/parser", "virtual:f779e5e0cc38834fa930f15ec8a4725df917eb76996fdb6c7229e819595ad2611f25dad7193bcaad659832cf3ae75cf76fd69137c1031c37b919da1909c5fbe3#npm:2.22.0"],
@@ -2397,6 +2396,54 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["path-to-regexp", "npm:6.2.0"],
             ["prettier", "npm:2.1.2"],
             ["query-string", "npm:6.13.6"],
+            ["rimraf", "npm:3.0.2"],
+            ["typescript", "patch:typescript@npm%3A4.0.3#builtin<compat/typescript>::version=4.0.3&hash=5bf698"]
+          ],
+          "linkType": "SOFT",
+        }]
+      ]],
+      ["@fetcher/utils", [
+        ["virtual:7d0e81df316b60d3846168366d17c43abedaa9b6b7dc2b475b1bfdd24865614794d5b5ab7204005630e415857904f82adbe65c0874776a7af5ab0de94c10aca7#workspace:packages/utils", {
+          "packageLocation": "./.yarn/$$virtual/@fetcher-utils-virtual-d4a4478fed/1/packages/utils/",
+          "packageDependencies": [
+            ["@fetcher/utils", "virtual:7d0e81df316b60d3846168366d17c43abedaa9b6b7dc2b475b1bfdd24865614794d5b5ab7204005630e415857904f82adbe65c0874776a7af5ab0de94c10aca7#workspace:packages/utils"],
+            ["@fetcher/core", "workspace:packages/core"],
+            ["@types/fetcher__core", null],
+            ["@types/lodash.merge", "npm:4.6.6"],
+            ["@types/node", "npm:13.9.0"],
+            ["@typescript-eslint/eslint-plugin", "virtual:f779e5e0cc38834fa930f15ec8a4725df917eb76996fdb6c7229e819595ad2611f25dad7193bcaad659832cf3ae75cf76fd69137c1031c37b919da1909c5fbe3#npm:2.22.0"],
+            ["@typescript-eslint/parser", "virtual:f779e5e0cc38834fa930f15ec8a4725df917eb76996fdb6c7229e819595ad2611f25dad7193bcaad659832cf3ae75cf76fd69137c1031c37b919da1909c5fbe3#npm:2.22.0"],
+            ["buffer", "npm:5.6.0"],
+            ["eslint", "npm:7.11.0"],
+            ["eslint-config-prettier", "virtual:c1fde0c38ec1424cff1aa573370869dd10639d73765698008e2f898ea742a371da1723302503adc59a9e0ccdfbd193dd16f26475486c07386c0dd5483ed2cf6e#npm:6.13.0"],
+            ["eslint-plugin-react-hooks", "virtual:f779e5e0cc38834fa930f15ec8a4725df917eb76996fdb6c7229e819595ad2611f25dad7193bcaad659832cf3ae75cf76fd69137c1031c37b919da1909c5fbe3#npm:4.1.2"],
+            ["immer", "npm:8.0.1"],
+            ["lodash.merge", "npm:4.6.2"],
+            ["prettier", "npm:2.1.2"],
+            ["rimraf", "npm:3.0.2"],
+            ["typescript", "patch:typescript@npm%3A4.0.3#builtin<compat/typescript>::version=4.0.3&hash=5bf698"]
+          ],
+          "packagePeers": [
+            "@types/fetcher__core"
+          ],
+          "linkType": "SOFT",
+        }],
+        ["workspace:packages/utils", {
+          "packageLocation": "./packages/utils/",
+          "packageDependencies": [
+            ["@fetcher/utils", "workspace:packages/utils"],
+            ["@fetcher/core", "workspace:packages/core"],
+            ["@types/lodash.merge", "npm:4.6.6"],
+            ["@types/node", "npm:13.9.0"],
+            ["@typescript-eslint/eslint-plugin", "virtual:f779e5e0cc38834fa930f15ec8a4725df917eb76996fdb6c7229e819595ad2611f25dad7193bcaad659832cf3ae75cf76fd69137c1031c37b919da1909c5fbe3#npm:2.22.0"],
+            ["@typescript-eslint/parser", "virtual:f779e5e0cc38834fa930f15ec8a4725df917eb76996fdb6c7229e819595ad2611f25dad7193bcaad659832cf3ae75cf76fd69137c1031c37b919da1909c5fbe3#npm:2.22.0"],
+            ["buffer", "npm:5.6.0"],
+            ["eslint", "npm:7.11.0"],
+            ["eslint-config-prettier", "virtual:c1fde0c38ec1424cff1aa573370869dd10639d73765698008e2f898ea742a371da1723302503adc59a9e0ccdfbd193dd16f26475486c07386c0dd5483ed2cf6e#npm:6.13.0"],
+            ["eslint-plugin-react-hooks", "virtual:f779e5e0cc38834fa930f15ec8a4725df917eb76996fdb6c7229e819595ad2611f25dad7193bcaad659832cf3ae75cf76fd69137c1031c37b919da1909c5fbe3#npm:4.1.2"],
+            ["immer", "npm:8.0.1"],
+            ["lodash.merge", "npm:4.6.2"],
+            ["prettier", "npm:2.1.2"],
             ["rimraf", "npm:3.0.2"],
             ["typescript", "patch:typescript@npm%3A4.0.3#builtin<compat/typescript>::version=4.0.3&hash=5bf698"]
           ],
@@ -4120,10 +4167,10 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         }]
       ]],
       ["base64-js", [
-        ["npm:1.3.1", {
-          "packageLocation": "./.yarn/cache/base64-js-npm-1.3.1-8625be908e-8a0cc69d7c.zip/node_modules/base64-js/",
+        ["npm:1.5.1", {
+          "packageLocation": "./.yarn/cache/base64-js-npm-1.5.1-b2f7275641-c1b41a26dd.zip/node_modules/base64-js/",
           "packageDependencies": [
-            ["base64-js", "npm:1.3.1"]
+            ["base64-js", "npm:1.5.1"]
           ],
           "linkType": "HARD",
         }]
@@ -4277,8 +4324,8 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageLocation": "./.yarn/cache/buffer-npm-5.6.0-e1494693bf-e18fdf099c.zip/node_modules/buffer/",
           "packageDependencies": [
             ["buffer", "npm:5.6.0"],
-            ["base64-js", "npm:1.3.1"],
-            ["ieee754", "npm:1.1.13"]
+            ["base64-js", "npm:1.5.1"],
+            ["ieee754", "npm:1.2.1"]
           ],
           "linkType": "HARD",
         }]
@@ -6456,10 +6503,10 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         }]
       ]],
       ["ieee754", [
-        ["npm:1.1.13", {
-          "packageLocation": "./.yarn/cache/ieee754-npm-1.1.13-a57522ba12-9ef12932e8.zip/node_modules/ieee754/",
+        ["npm:1.2.1", {
+          "packageLocation": "./.yarn/cache/ieee754-npm-1.2.1-fb63b3caeb-6c1cfab995.zip/node_modules/ieee754/",
           "packageDependencies": [
-            ["ieee754", "npm:1.1.13"]
+            ["ieee754", "npm:1.2.1"]
           ],
           "linkType": "HARD",
         }]

@@ -1,6 +1,6 @@
 import { createContext, createElement, FC, useContext } from 'react';
 import { Query, NonUndefined, Provider, Client } from '@fetcher/react-core';
-import merge from 'lodash.merge';
+import { mergeDeepNonUndefined } from '@fetcher/utils';
 
 export const CommonQueryContext = createContext<Query<any, any, any, any>>({
     requestInit: {},
@@ -42,6 +42,6 @@ export function useCompleteQuery<C extends NonUndefined, R extends NonUndefined,
     return {
         ...commonQuery,
         ...query,
-        requestInit: merge({}, commonQuery.requestInit, query.requestInit),
+        requestInit: mergeDeepNonUndefined({}, commonQuery.requestInit, query.requestInit),
     };
 }

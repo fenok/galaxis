@@ -1,7 +1,6 @@
-import { NonUndefined, Query, useQuery, CommonCacheOptions } from '@fetcher/react-core';
+import { NonUndefined, Query, useQuery } from '@fetcher/react-core';
+import { getHashBase64 } from '@fetcher/utils';
 import { useCompleteQuery } from './commonQuery';
-import { getHashBase64 } from './getHashBase64';
-import produce from 'immer';
 
 export type RichQuery<C extends NonUndefined, D extends NonUndefined, E extends Error, I> = Query<C, D, E, I> &
     UseRichQueryOptions;
@@ -24,35 +23,4 @@ export function getRichQuery<C extends NonUndefined, D extends NonUndefined, E e
         ...factory(requestInit),
         ...query,
     });
-}
-
-const cache: Record<string, { keys: any[]; value: unknown } | undefined> = {};
-
-export function memoize<CD extends NonUndefined, D extends NonUndefined, I>(
-    fromCache: (opts: CommonCacheOptions<CD, I>) => D | undefined,
-    getKeys: (opts: CommonCacheOptions<CD, I>) => any[],
-) {
-    if (typeof window !== 'undefined') {
-        return (opts: CommonCacheOptions<CD, I>) => {
-            const cacheEntry = cache[opts.requestId];
-            const keys = getKeys(opts);
-            if (!cacheEntry || cacheEntry.keys.some((cacheKey, cacheKeyIndex) => cacheKey !== keys[cacheKeyIndex])) {
-                cache[opts.requestId] = { keys, value: fromCache(opts) };
-            }
-
-            return cache[opts.requestId]?.value as D | undefined;
-        };
-    }
-
-    return fromCache;
-}
-
-export function immerify<CD extends NonUndefined, D extends NonUndefined, I>(
-    toCache: (opts: CommonCacheOptions<CD, I> & { data: D }) => void,
-): (opts: CommonCacheOptions<CD, I> & { data: D }) => CD {
-    return ({ cacheData, ...params }) => {
-        return produce(cacheData, (draft) => {
-            toCache({ ...params, cacheData: draft as CD });
-        });
-    };
 }

@@ -1,5 +1,5 @@
 export * from './getRequestFactory';
-export * from './getId';
+export * from './getRequestId';
 export * from './types';
 export * from './errors';
 export * from './getRequestInit';

@@ -1,7 +1,7 @@
 import * as React from 'react';
-import { Client, getHashBase64, DefaultsProvider } from '@fetcher/react';
+import { Client, DefaultsProvider } from '@fetcher/react';
 import { UserDisplay } from '../UserDisplay';
-import { getRequestFactory } from '@fetcher/typed-fetch-request';
+import { getRequestFactory, getRequestId } from '@fetcher/typed-fetch-request';
 
 interface Props {
     client: Client<any>;
@@ -20,9 +20,7 @@ const App: React.FC<Props> = ({ client, fetch }) => {
                 },
                 fetchPolicy: 'cache-and-network',
                 getRequestFactory: getRequestFactory({ fetch }),
-                getRequestId({ requestInit }) {
-                    return getHashBase64(requestInit);
-                },
+                getRequestId: getRequestId,
             }}
         >
             <UserDisplay variant={1} />
