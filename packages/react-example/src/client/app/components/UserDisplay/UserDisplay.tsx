@@ -2,6 +2,7 @@ import * as React from 'react';
 import { useState } from 'react';
 import { userQuery } from '../../requests/user';
 import { useQuery } from '@fetcher/react';
+import { isResponseError } from '../../lib/isResponseError';
 
 interface Props {
     variant: number;
@@ -28,9 +29,13 @@ const UserDisplay: React.FC<Props> = ({ variant }) => {
             <button onClick={() => setUserId((prevId) => prevId + 1)}>Iterate user</button>
             <div>{JSON.stringify(data?.name)}</div>
             <div>{JSON.stringify(loading)}</div>
-            <div>
-                {JSON.stringify(error?.message)}, {JSON.stringify(error?.response)}, {JSON.stringify(error?.code)}
-            </div>
+            {isResponseError(error) ? (
+                <div>
+                    {JSON.stringify(error.message)}, {JSON.stringify(error.response)}, {JSON.stringify(error.code)}
+                </div>
+            ) : (
+                error?.message || 'No error'
+            )}
         </div>
     );
 };
