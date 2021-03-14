@@ -1,1 +1,1 @@
-export { InMemoryCache, CacheState } from './InMemoryCache';
+export { InMemoryCache, CacheState, ErrorObject } from './InMemoryCache';

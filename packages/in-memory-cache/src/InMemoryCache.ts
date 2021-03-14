@@ -134,4 +134,4 @@ class InMemoryCache<C extends NonUndefined> implements Cache<C> {
     }
 }
 
-export { InMemoryCache, CacheState };
+export { InMemoryCache, CacheState, ErrorObject };

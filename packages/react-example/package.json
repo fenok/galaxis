@@ -8,7 +8,7 @@
     "scripts": {
         "build": "webpack",
         "start": "node src/server",
-        "lint": "eslint .",
+        "lint": "tsc && eslint .",
         "prettier:all": "prettier --write \"**/*.{js,ts,tsx,json,md,*rc}\""
     },
     "dependencies": {
