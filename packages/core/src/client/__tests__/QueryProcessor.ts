@@ -76,7 +76,7 @@ it('respects fetch policies', async () => {
     expect(dataFromCache.cache).toMatchObject({ data: FIRST_ITEM, error: undefined });
 });
 
-it('can reuse network lib', async () => {
+it('can reuse network requests', async () => {
     const queryProcessor = getQueryProcessor();
 
     const firstItemRequest = getFirstItemRequest();
@@ -212,7 +212,7 @@ it('correctly aborts previous request when the next one is executed immediately 
     expect(dataFromCache.cache).toMatchObject({ data: SECOND_ITEM, error: undefined });
 });
 
-it('on purge all lib are aborted and do not affect cache anymore', async () => {
+it('on purge all requests are aborted and do not affect cache anymore', async () => {
     const queryProcessor = getQueryProcessor();
 
     const firstItemRequest = getFirstItemRequest();
