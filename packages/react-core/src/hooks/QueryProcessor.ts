@@ -13,7 +13,7 @@ export class QueryProcessor<C extends NonUndefined, D extends NonUndefined, E ex
     private loading = false;
     private queryCache?: QueryCache<D, E>;
     private abortController?: AbortController;
-    private queryPromise: Promise<any> | undefined;
+    private requestCallId = 1;
     private unsubscribe?: () => void;
 
     constructor({ forceUpdate }: QueryProcessorOptions) {
@@ -57,7 +57,11 @@ export class QueryProcessor<C extends NonUndefined, D extends NonUndefined, E ex
         this.ensureAbortController();
 
         const queryResult = this.client.query(
-            { ...this.query, abortSignal: this.abortController?.signal },
+            {
+                ...this.query,
+                abortSignal: this.abortController?.signal,
+                forceNewRequestOnRequestMerge: refetch || this.query.forceNewRequestOnRequestMerge,
+            },
             { required: refetch },
         );
 
@@ -77,11 +81,11 @@ export class QueryProcessor<C extends NonUndefined, D extends NonUndefined, E ex
             this.ssrPromisesManager.addPromise(queryResult.request);
         }
 
-        this.queryPromise = queryResult.request;
+        const callId = ++this.requestCallId;
 
         return queryResult.request
             ?.then((data) => {
-                if (this.queryPromise === queryResult.request) {
+                if (this.requestCallId === callId) {
                     this.loading = false;
                     if (!this.unsubscribe) {
                         this.queryCache = { data, error: undefined };
@@ -90,7 +94,7 @@ export class QueryProcessor<C extends NonUndefined, D extends NonUndefined, E ex
                 }
             })
             .catch((error: Error) => {
-                if (this.queryPromise === queryResult.request) {
+                if (this.requestCallId === callId) {
                     this.loading = false;
                     if (!this.unsubscribe) {
                         this.queryCache = { data: this.queryCache?.data, error };

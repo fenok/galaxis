@@ -1,7 +1,7 @@
 import { getAbortController, wireAbortSignals } from '../promise';
 import { RequestQueue } from './RequestQueue';
 import { BaseRequestHelper } from './BaseRequestHelper';
-import { NonUndefined, BaseQuery, Cache } from '../types';
+import { BaseQuery, Cache, NonUndefined } from '../types';
 
 export interface QueryCache<D extends NonUndefined, E extends Error> {
     error?: E | Error; // Regular error can always slip through
@@ -28,8 +28,8 @@ export interface QueryRequest {
     cacheableQuery?: unknown;
     promise: Promise<unknown>;
     loading: number;
-    aborted: boolean;
-    abort(): void;
+    abortController?: AbortController;
+    shouldRerun?: boolean;
 }
 
 export interface QueryProcessorOptions<C extends NonUndefined> {
@@ -53,7 +53,7 @@ export class QueryProcessor<C extends NonUndefined> {
     }
 
     public purge() {
-        Object.values(this.ongoingRequests).forEach((request) => request?.abort());
+        Object.values(this.ongoingRequests).forEach((request) => request?.abortController?.abort());
         this.ongoingRequests = {};
     }
 
@@ -107,7 +107,8 @@ export class QueryProcessor<C extends NonUndefined> {
             queryRequest.loading--;
 
             if (queryRequest.loading <= 0) {
-                queryRequest.abort();
+                queryRequest.shouldRerun = false;
+                queryRequest.abortController?.abort();
             }
         };
 
@@ -124,52 +125,20 @@ export class QueryProcessor<C extends NonUndefined> {
 
         const currentQueryRequest = this.ongoingRequests[requestId];
 
-        if (!currentQueryRequest || currentQueryRequest.aborted) {
+        if (
+            !currentQueryRequest ||
+            (currentQueryRequest.abortController?.signal.aborted && !currentQueryRequest.shouldRerun)
+        ) {
             const abortController = getAbortController();
 
             const queryRequest: QueryRequest = {
-                abort() {
-                    abortController?.abort();
-                },
-                get aborted() {
-                    return Boolean(abortController?.signal.aborted);
-                },
+                abortController,
                 loading: 1,
                 cacheableQuery: isQueryCacheable ? query : undefined,
-                promise: this.requestQueue
-                    .addPromise(
-                        BaseRequestHelper.getPromiseFactory(query, {
-                            abortSignal: abortController?.signal,
-                        }),
-                        'query',
-                    )
-                    .then((data) => {
-                        if (this.ongoingRequests[requestId] === queryRequest) {
-                            this.ongoingRequests[requestId] = undefined;
-
-                            if (queryRequest.cacheableQuery) {
-                                this.updateCache(queryRequest.cacheableQuery as typeof query, requestId, {
-                                    type: 'success',
-                                    data,
-                                });
-                            }
-                        }
-                        return data;
-                    })
-                    .catch((error: Error) => {
-                        if (this.ongoingRequests[requestId] === queryRequest) {
-                            this.ongoingRequests[requestId] = undefined;
-
-                            if (queryRequest.cacheableQuery) {
-                                this.updateCache(queryRequest.cacheableQuery as typeof query, requestId, {
-                                    type: 'fail',
-                                    error,
-                                });
-                            }
-                        }
-                        throw error;
-                    }),
+                promise: Promise.resolve(),
             };
+
+            queryRequest.promise = this.getQueryPromise(query, requestId, queryRequest);
 
             this.ongoingRequests[requestId] = queryRequest;
         } else {
@@ -177,9 +146,68 @@ export class QueryProcessor<C extends NonUndefined> {
             if (!currentQueryRequest.cacheableQuery && isQueryCacheable) {
                 currentQueryRequest.cacheableQuery = query;
             }
+
+            if (query.forceNewRequestOnRequestMerge) {
+                currentQueryRequest.shouldRerun = true;
+                currentQueryRequest.abortController?.abort();
+            }
         }
 
         return this.ongoingRequests[requestId]!;
+    }
+
+    private getQueryPromise<D extends NonUndefined, E extends Error, R>(
+        query: BaseQuery<C, D, E, R>,
+        requestId: string,
+        queryRequest: QueryRequest,
+    ): Promise<D> {
+        return this.requestQueue
+            .addPromise(
+                BaseRequestHelper.getPromiseFactory(query, {
+                    abortSignal: queryRequest.abortController?.signal,
+                }),
+                'query',
+            )
+            .then((data) => {
+                if (this.ongoingRequests[requestId] === queryRequest) {
+                    if (queryRequest.shouldRerun) {
+                        queryRequest.shouldRerun = false;
+                        queryRequest.abortController = getAbortController();
+
+                        return this.getQueryPromise(query, requestId, queryRequest);
+                    } else {
+                        this.ongoingRequests[requestId] = undefined;
+
+                        if (queryRequest.cacheableQuery) {
+                            this.updateCache(queryRequest.cacheableQuery as BaseQuery<C, D, E, R>, requestId, {
+                                type: 'success',
+                                data,
+                            });
+                        }
+                    }
+                }
+                return data;
+            })
+            .catch((error: Error) => {
+                if (this.ongoingRequests[requestId] === queryRequest) {
+                    if (queryRequest.shouldRerun) {
+                        queryRequest.shouldRerun = false;
+                        queryRequest.abortController = getAbortController();
+
+                        return this.getQueryPromise(query, requestId, queryRequest);
+                    } else {
+                        this.ongoingRequests[requestId] = undefined;
+
+                        if (queryRequest.cacheableQuery) {
+                            this.updateCache(queryRequest.cacheableQuery as BaseQuery<C, D, E, R>, requestId, {
+                                type: 'fail',
+                                error,
+                            });
+                        }
+                    }
+                }
+                throw error;
+            });
     }
 
     private updateCache<D extends NonUndefined, E extends Error, R>(
