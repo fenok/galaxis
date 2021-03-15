@@ -5,6 +5,7 @@ export interface QueueSection {
     promise: Promise<unknown>;
     type: 'query' | 'mutation';
     enableController: EnableController;
+    resolvedEarly: boolean;
 }
 
 export class RequestQueue {
@@ -28,14 +29,19 @@ export class RequestQueue {
                 noMerge || !lastQueueSection ? promise : onResolve(lastQueueSection.promise, () => promise),
                 () => {
                     if (newQueueSection === this.queue[0]) {
-                        this.queue.shift();
-                        /* eslint-disable @typescript-eslint/no-unnecessary-condition */
+                        do {
+                            this.queue.shift();
+                        } while (this.queue[0]?.resolvedEarly);
+
                         this.queue[0]?.enableController.enable();
+                    } else {
+                        newQueueSection.resolvedEarly = true;
                     }
                 },
             ),
             enableController,
             type,
+            resolvedEarly: false,
         };
 
         if (noMerge || !lastQueueSection) {
