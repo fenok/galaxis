@@ -1,10 +1,10 @@
-import { EnableController, EnableSignal, onResolve } from '../promise';
+import { getAbortController, onResolve } from '../promise';
 import { NonUndefined } from '../types';
 
 export interface QueueSection {
     promise: Promise<unknown>;
     type: 'query' | 'mutation';
-    enableController: EnableController;
+    abortDelayController?: AbortController;
     resolvedEarly: boolean;
 }
 
@@ -12,19 +12,19 @@ export class RequestQueue {
     private queue: (QueueSection | undefined)[] = [];
 
     public addPromise<D extends NonUndefined>(
-        promiseFactory: (enableSignal: EnableSignal) => Promise<D>,
+        promiseFactory: (abortDelaySignal?: AbortSignal) => Promise<D>,
         type: 'query' | 'mutation',
     ): Promise<D> {
         const lastQueueSection = this.queue[this.queue.length - 1];
 
         const noMerge = lastQueueSection?.type === 'mutation' || type === 'mutation';
 
-        const enableController =
-            noMerge || !lastQueueSection ? new EnableController() : lastQueueSection.enableController;
+        const abortDelayController =
+            noMerge || !lastQueueSection ? getAbortController() : lastQueueSection.abortDelayController;
 
-        const promise = promiseFactory(enableController.signal);
+        const promise = promiseFactory(abortDelayController?.signal);
 
-        const newQueueSection = {
+        const newQueueSection: QueueSection = {
             promise: onResolve(
                 noMerge || !lastQueueSection ? promise : onResolve(lastQueueSection.promise, () => promise),
                 () => {
@@ -33,13 +33,13 @@ export class RequestQueue {
                             this.queue.shift();
                         } while (this.queue[0]?.resolvedEarly);
 
-                        this.queue[0]?.enableController.enable();
+                        this.queue[0]?.abortDelayController?.abort();
                     } else {
                         newQueueSection.resolvedEarly = true;
                     }
                 },
             ),
-            enableController,
+            abortDelayController,
             type,
             resolvedEarly: false,
         };
@@ -47,7 +47,7 @@ export class RequestQueue {
         if (noMerge || !lastQueueSection) {
             this.queue.push(newQueueSection);
             if (!lastQueueSection) {
-                newQueueSection.enableController.enable();
+                newQueueSection.abortDelayController?.abort();
             }
         } else {
             this.queue.pop();

@@ -1,31 +1,28 @@
-import { EnableSignal } from '../controllers';
 import { wireAbortSignals } from '../controller-helpers';
 
 export interface Signals {
     abortSignal?: AbortSignal;
-    enableSignal?: EnableSignal;
+    abortDelaySignal?: AbortSignal;
 }
 
 export function delayedPromise<T>(
     promiseFactory: (abortSignal?: AbortSignal) => Promise<T>,
-    { abortSignal, enableSignal }: Signals = {},
+    { abortSignal, abortDelaySignal }: Signals = {},
 ): Promise<T> {
     return new Promise((resolve) => {
         let enabled = false;
         const onEnable = () => {
             if (!enabled) {
                 enabled = true;
-                enableSignal?.removeEventListener('enable', onEnable);
                 resolve(promiseFactory(abortSignal));
             }
         };
 
         wireAbortSignals(onEnable, abortSignal);
+        wireAbortSignals(onEnable, abortDelaySignal);
 
-        if (enableSignal?.enabled) {
+        if (!abortDelaySignal) {
             onEnable();
-        } else {
-            enableSignal?.addEventListener('enable', onEnable);
         }
     });
 }

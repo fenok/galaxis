@@ -1,8 +1,8 @@
 import { RequestQueue } from '../RequestQueue';
-import { resolveAfter, delayedPromise, EnableSignal, wireAbortSignals } from '../../promise';
+import { resolveAfter, delayedPromise, wireAbortSignals } from '../../promise';
 
 function getPromiseFactory(value: string, timeout?: number, abortSignal?: AbortSignal) {
-    return (enableSignal: EnableSignal) =>
+    return (abortDelaySignal?: AbortSignal) =>
         delayedPromise(
             (abortSignal) => {
                 return new Promise((resolve, reject) => {
@@ -15,7 +15,7 @@ function getPromiseFactory(value: string, timeout?: number, abortSignal?: AbortS
                 });
             },
             {
-                enableSignal,
+                abortDelaySignal,
                 abortSignal,
             },
         );
@@ -25,7 +25,7 @@ function getOpts(
     time: 'instant' | 'short' | 'long',
     type: 'query' | 'mutation',
     abortSignal?: AbortSignal,
-): [(enableSignal: EnableSignal) => Promise<any>, 'query' | 'mutation'] {
+): [(abortDelaySignal?: AbortSignal) => Promise<any>, 'query' | 'mutation'] {
     return [getPromiseFactory(`${time}:${type}`, time === 'short' ? 10 : time === 'long' ? 20 : 0, abortSignal), type];
 }
 

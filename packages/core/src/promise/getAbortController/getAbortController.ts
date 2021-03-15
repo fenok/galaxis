@@ -11,3 +11,11 @@ export function getAbortController(): AbortController | undefined {
 
     return undefined;
 }
+
+export function assertAbortController(
+    abortController: AbortController | undefined,
+): asserts abortController is AbortController {
+    if (!abortController) {
+        throw new Error('No AbortController detected, polyfill is required');
+    }
+}

@@ -1,4 +1,4 @@
-import { EnableSignal, Signals, delayedPromise } from '../promise';
+import { Signals, delayedPromise } from '../promise';
 import { logger } from '../logger';
 import { NonUndefined, BaseRequest } from '../types';
 
@@ -6,11 +6,11 @@ export class BaseRequestHelper {
     public static getPromiseFactory<C extends NonUndefined, D extends NonUndefined, E extends Error, R>(
         request: BaseRequest<C, D, E, R>,
         signals: Signals = {},
-    ): (enableSignal?: EnableSignal) => Promise<D> {
-        return (enableSignal?: EnableSignal) =>
+    ): (abortDelaySignal?: AbortSignal) => Promise<D> {
+        return (abortDelaySignal?: AbortSignal) =>
             delayedPromise(request.getRequestFactory(request), {
                 ...signals,
-                enableSignal,
+                abortDelaySignal,
             }).then((dataOrError) => {
                 if (dataOrError instanceof Error) {
                     logger.warn(

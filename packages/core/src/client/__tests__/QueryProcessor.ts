@@ -168,7 +168,7 @@ it('does not abort network request if not all requesters asked so', async () => 
 
     const firstQueryResult = queryProcessor.query({
         ...firstItemRequest,
-        abortSignal: abortController.signal,
+        softAbortSignal: abortController.signal,
     });
 
     const secondQueryResult = queryProcessor.query({ ...firstItemRequest });
