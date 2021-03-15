@@ -13,6 +13,7 @@ export class QueryProcessor<C extends NonUndefined, D extends NonUndefined, E ex
     private loading = false;
     private queryCache?: QueryCache<D, E>;
     private abortController?: AbortController;
+    private softAbortController?: AbortController;
     private requestCallId = 1;
     private unsubscribe?: () => void;
 
@@ -50,16 +51,17 @@ export class QueryProcessor<C extends NonUndefined, D extends NonUndefined, E ex
     public cleanup() {
         this.unsubscribe?.();
         this.unsubscribe = undefined;
-        this.abort();
+        this.softAbort();
     }
 
     private performRequest(refetch?: boolean) {
-        this.ensureAbortController();
+        this.ensureAbortControllers();
 
         const queryResult = this.client.query(
             {
                 ...this.query,
                 abortSignal: this.abortController?.signal,
+                softAbortSignal: this.softAbortController?.signal,
                 forceNewRequestOnRequestMerge: refetch || this.query.forceNewRequestOnRequestMerge,
             },
             { required: refetch },
@@ -111,10 +113,14 @@ export class QueryProcessor<C extends NonUndefined, D extends NonUndefined, E ex
             });
     }
 
-    private ensureAbortController() {
-        if (!this.abortController || this.abortController.signal.aborted) {
-            if (typeof AbortController !== 'undefined') {
+    private ensureAbortControllers() {
+        if (typeof AbortController !== 'undefined') {
+            if (!this.abortController || this.abortController.signal.aborted) {
                 this.abortController = new AbortController();
+            }
+
+            if (!this.softAbortController || this.softAbortController.signal.aborted) {
+                this.softAbortController = new AbortController();
             }
         }
     }
@@ -123,8 +129,12 @@ export class QueryProcessor<C extends NonUndefined, D extends NonUndefined, E ex
         this.abortController?.abort();
     }
 
+    private softAbort() {
+        this.softAbortController?.abort();
+    }
+
     private refetch() {
-        this.abort();
+        this.softAbort();
         const request = this.performRequest(true);
         this.forceUpdate();
 

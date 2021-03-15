@@ -104,14 +104,19 @@ export class QueryProcessor<C extends NonUndefined> {
         const queryRequest = this.ensureQueryRequest(query, requestId);
 
         const onAbort = () => {
+            queryRequest.shouldRerun = false;
+            queryRequest.abortController?.abort();
+        };
+
+        const onSoftAbort = () => {
             queryRequest.loading--;
 
             if (queryRequest.loading <= 0) {
-                queryRequest.shouldRerun = false;
-                queryRequest.abortController?.abort();
+                onAbort();
             }
         };
 
+        wireAbortSignals(onSoftAbort, query.softAbortSignal);
         wireAbortSignals(onAbort, query.abortSignal);
 
         return queryRequest.promise as Promise<D>;
