@@ -12,7 +12,7 @@ Queries are requests that **do not** change system state. They are described as 
 
 ### Mutations
 
-Mutations are requests that **do** change system state. The are described as <code>[BaseMutation](#basemutation)</code> objects.
+Mutations are requests that **do** change system state. They are described as <code>[BaseMutation](#basemutation)</code> objects.
 
 ### Fetch Policies
 
@@ -319,10 +319,10 @@ This type describes base mutation. It extends [BaseRequest](#baserequest).
 
 #### QueryCache
 
-| Name  | Type                                                                | Description                                   |
-| ----- | ------------------------------------------------------------------- | --------------------------------------------- |
-| error | <code>Error &#124; [E](#user-defined-types) &#124; undefined</code> | Error from cache. `undefined` means no error. |
-| data  | <code>[D](#user-defined-types) &#124; undefined</code>              | Data from cache. `undefined` means no data.   |
+| Name  | Type                                                                | Description                                                                                                                                                               |
+| ----- | ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| data  | <code>[D](#user-defined-types) &#124; undefined</code>              | Data from cache. `undefined` means no data. Unsuccessful request **will not** overwrite this field. It can be thought of as "the last known data".                        |
+| error | <code>Error &#124; [E](#user-defined-types) &#124; undefined</code> | Error from cache. `undefined` means no error. Successful request **will** overwrite this field to `undefined`. It can be thought of as "the error from the last request". |
 
 #### Cache
 
