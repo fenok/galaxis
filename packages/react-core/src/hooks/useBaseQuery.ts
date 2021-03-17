@@ -1,6 +1,5 @@
-import { NonUndefined, BaseQuery } from '@fetcher/core';
-import { useContext, useReducer, useRef } from 'react';
-import { QueryProcessor } from './QueryProcessor';
+import { BaseQuery, QueryManager, NonUndefined } from '@fetcher/core';
+import { useContext, useEffect, useReducer, useRef } from 'react';
 import { useClient } from '../ClientProvider';
 import { SsrPromisesManagerContext } from '../ssr';
 
@@ -17,15 +16,18 @@ export function useBaseQuery<C extends NonUndefined, D extends NonUndefined, E e
 
     const [, forceUpdate] = useReducer((i: number) => i + 1, 0);
 
-    const queryProcessor = useRef<QueryProcessor<C, D, E, R>>();
-    queryProcessor.current = queryProcessor.current || new QueryProcessor({ forceUpdate });
+    const queryManager = useRef<QueryManager<C, D, E, R>>();
+    queryManager.current = queryManager.current || new QueryManager({ forceUpdate });
 
-    const { loading, data, error, refetch, abort } = queryProcessor.current.onRender(
-        query,
-        getQueryHash(query),
-        client,
-        ssrPromisesManager,
-    );
+    const currentQueryHash = getQueryHash(query);
+    const savedQuery = useRef<[string | number, BaseQuery<C, D, E, R>]>();
+    savedQuery.current = savedQuery.current?.[0] === currentQueryHash ? savedQuery.current : [currentQueryHash, query];
 
-    return { loading, data, error, refetch, abort };
+    useEffect(() => {
+        return () => {
+            queryManager.current?.cleanup();
+        };
+    }, []);
+
+    return queryManager.current.process(savedQuery.current[1], client, ssrPromisesManager ?? undefined);
 }

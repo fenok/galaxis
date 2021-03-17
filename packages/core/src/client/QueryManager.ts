@@ -1,12 +1,15 @@
-import { Client, NonUndefined, BaseQuery, QueryState, SsrPromisesManager, logger, QueryCache } from '@fetcher/core';
+import { BaseQuery, NonUndefined } from '../types';
+import { Client } from './Client';
+import { SsrPromisesManager } from './SsrPromisesManager';
+import { QueryCache, QueryState } from './QueryProcessor';
+import { logger } from '../logger';
 
-export interface QueryProcessorOptions {
+export interface QueryManagerOptions {
     forceUpdate(): void;
 }
 
-export class QueryProcessor<C extends NonUndefined, D extends NonUndefined, E extends Error, R> {
+export class QueryManager<C extends NonUndefined, D extends NonUndefined, E extends Error, R> {
     private forceUpdate: () => void;
-    private queryHash?: string | number;
     private query!: BaseQuery<C, D, E, R>;
     private client!: Client<C>;
     private ssrPromisesManager?: SsrPromisesManager;
@@ -16,35 +19,39 @@ export class QueryProcessor<C extends NonUndefined, D extends NonUndefined, E ex
     private softAbortController?: AbortController;
     private requestCallId = 1;
     private unsubscribe?: () => void;
+    private boundRefetch: () => Promise<D>;
+    private boundAbort: () => void;
 
-    constructor({ forceUpdate }: QueryProcessorOptions) {
+    constructor({ forceUpdate }: QueryManagerOptions) {
         this.forceUpdate = forceUpdate;
+        this.boundRefetch = this.refetch.bind(this);
+        this.boundAbort = this.abort.bind(this);
     }
 
-    public onRender(
-        query: BaseQuery<C, D, E, R>,
-        queryHash: string | number,
-        client: Client<C>,
-        ssrPromisesManager: SsrPromisesManager | null,
-    ) {
-        this.ssrPromisesManager = ssrPromisesManager ?? undefined;
-
-        if (this.queryHash !== queryHash || this.client !== client) {
+    public process(query: BaseQuery<C, D, E, R>, client: Client<C>, ssrPromisesManager?: SsrPromisesManager) {
+        if (this.query !== query || this.client !== client || this.ssrPromisesManager !== ssrPromisesManager) {
             this.cleanup();
 
-            this.queryHash = queryHash;
             this.query = query;
             this.client = client;
+            this.ssrPromisesManager = ssrPromisesManager;
 
-            void this.performRequest();
+            this.performRequest()?.catch((error: Error) => {
+                if (error !== this.queryCache?.error) {
+                    logger.warn(
+                        'Query request promise returned an error that is different from the cached one:',
+                        error,
+                    );
+                }
+            });
         }
 
         return {
             loading: this.loading,
             data: this.queryCache?.data,
             error: this.queryCache?.error,
-            refetch: this.refetch.bind(this),
-            abort: this.abort.bind(this),
+            refetch: this.boundRefetch,
+            abort: this.boundAbort,
         };
     }
 
@@ -54,7 +61,7 @@ export class QueryProcessor<C extends NonUndefined, D extends NonUndefined, E ex
         this.softAbort();
     }
 
-    private performRequest(refetch?: boolean) {
+    private performRequest(refetch?: boolean): Promise<D> | undefined {
         this.ensureAbortControllers();
 
         const queryResult = this.client.query(
@@ -94,6 +101,8 @@ export class QueryProcessor<C extends NonUndefined, D extends NonUndefined, E ex
                     }
                     this.forceUpdate();
                 }
+
+                return data;
             })
             .catch((error: Error) => {
                 if (this.requestCallId === callId) {
@@ -102,14 +111,9 @@ export class QueryProcessor<C extends NonUndefined, D extends NonUndefined, E ex
                         this.queryCache = { data: this.queryCache?.data, error };
                     }
                     this.forceUpdate();
-
-                    if (process.env.NODE_ENV !== 'production' && error !== this.queryCache?.error) {
-                        logger.warn(
-                            'Query request promise returned an error that is different from the cached one:',
-                            error,
-                        );
-                    }
                 }
+
+                throw error;
             });
     }
 
@@ -138,7 +142,12 @@ export class QueryProcessor<C extends NonUndefined, D extends NonUndefined, E ex
         const request = this.performRequest(true);
         this.forceUpdate();
 
-        return request;
+        return (
+            request ||
+            Promise.reject(
+                new Error('Failed to make network request. If this is happening on client side, file an issue.'),
+            )
+        );
     }
 
     private onExternalChange(queryState: QueryState<D, E>) {
