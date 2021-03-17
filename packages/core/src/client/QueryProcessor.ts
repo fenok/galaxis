@@ -220,26 +220,23 @@ export class QueryProcessor<C extends NonUndefined> {
         requestId: string,
         action: { type: 'fail'; error: E } | { type: 'success'; data: D },
     ) {
-        this.cache.updateState({
-            updateRequestError: {
-                requestId,
-                update: () => (action.type === 'success' ? undefined : action.error),
-            },
-            updateCacheData: (cacheData) => {
-                if (action.type === 'fail') {
-                    return cacheData;
-                } else {
-                    return query.toCache
-                        ? query.toCache({
-                              cacheData,
-                              data: action.data,
-                              requestParams: query.requestParams,
-                              requestId,
-                          })
-                        : cacheData;
-                }
-            },
-        });
+        if (action.type === 'success') {
+            this.cache.updateState({
+                data: query.toCache
+                    ? query.toCache({
+                          cacheData: this.cache.getCacheData(),
+                          data: action.data,
+                          requestParams: query.requestParams,
+                          requestId,
+                      })
+                    : undefined,
+                error: [requestId, undefined],
+            });
+        } else {
+            this.cache.updateState({
+                error: [requestId, action.error],
+            });
+        }
     }
 
     private isRequestRequired<D extends NonUndefined, E extends Error, R>(

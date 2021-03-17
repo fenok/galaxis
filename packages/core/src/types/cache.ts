@@ -1,11 +1,8 @@
 import { NonUndefined } from './helpers';
 
 export interface UpdateStateOptions<C extends NonUndefined> {
-    updateCacheData?(prevCacheData: C): C;
-    updateRequestError?: {
-        requestId: string;
-        update(prevError: Error | undefined): Error | undefined;
-    };
+    data?: C;
+    error?: [string, Error | undefined];
 }
 
 export interface Cache<C extends NonUndefined> {

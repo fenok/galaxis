@@ -34,13 +34,12 @@ export class MutationProcessor<C extends NonUndefined> {
 
         if (mutation.optimisticData && mutation.toCache) {
             this.cache.updateState({
-                updateCacheData: (cacheData) =>
-                    mutation.toCache!({
-                        cacheData,
-                        data: mutation.optimisticData!,
-                        requestParams: mutation.requestParams,
-                        requestId,
-                    }),
+                data: mutation.toCache({
+                    cacheData: this.cache.getCacheData(),
+                    data: mutation.optimisticData!,
+                    requestParams: mutation.requestParams,
+                    requestId,
+                }),
             });
         }
 
@@ -58,21 +57,20 @@ export class MutationProcessor<C extends NonUndefined> {
 
                         if (mutation.toCache) {
                             this.cache.updateState({
-                                updateCacheData: (cacheData) =>
-                                    mutation.toCache!({
-                                        cacheData:
-                                            mutation.optimisticData && mutation.removeOptimisticData
-                                                ? mutation.removeOptimisticData({
-                                                      cacheData: cacheData,
-                                                      data: mutation.optimisticData,
-                                                      requestParams: mutation.requestParams,
-                                                      requestId,
-                                                  })
-                                                : cacheData,
-                                        data,
-                                        requestParams: mutation.requestParams,
-                                        requestId,
-                                    }),
+                                data: mutation.toCache({
+                                    cacheData:
+                                        mutation.optimisticData && mutation.removeOptimisticData
+                                            ? mutation.removeOptimisticData({
+                                                  cacheData: this.cache.getCacheData(),
+                                                  data: mutation.optimisticData,
+                                                  requestParams: mutation.requestParams,
+                                                  requestId,
+                                              })
+                                            : this.cache.getCacheData(),
+                                    data,
+                                    requestParams: mutation.requestParams,
+                                    requestId,
+                                }),
                             });
                         }
                     }
@@ -85,13 +83,12 @@ export class MutationProcessor<C extends NonUndefined> {
 
                         if (mutation.optimisticData && mutation.removeOptimisticData) {
                             this.cache.updateState({
-                                updateCacheData: (cacheData) =>
-                                    mutation.removeOptimisticData!({
-                                        cacheData,
-                                        data: mutation.optimisticData!,
-                                        requestParams: mutation.requestParams,
-                                        requestId,
-                                    }),
+                                data: mutation.removeOptimisticData({
+                                    cacheData: this.cache.getCacheData(),
+                                    data: mutation.optimisticData!,
+                                    requestParams: mutation.requestParams,
+                                    requestId,
+                                }),
                             });
                         }
                     }

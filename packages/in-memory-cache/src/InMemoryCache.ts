@@ -4,7 +4,7 @@ import { serializeError, deserializeError, ErrorObject } from 'serialize-error';
 
 interface CacheState<C extends NonUndefined, E = Error> {
     data: C;
-    error: { [id: string]: E | undefined };
+    errors: { [id: string]: E | undefined };
 }
 
 interface CacheOptions<C extends NonUndefined> {
@@ -25,7 +25,7 @@ class InMemoryCache<C extends NonUndefined> implements Cache<C> {
         this.emptyData = emptyData;
 
         this._state = {
-            error: {},
+            errors: {},
             data: this.emptyData,
         };
 
@@ -58,23 +58,23 @@ class InMemoryCache<C extends NonUndefined> implements Cache<C> {
     }
 
     public getRequestError(requestId: string): Error | undefined {
-        return this.state.error[requestId];
+        return this.state.errors[requestId];
     }
 
     public extract(): CacheState<C, ErrorObject> {
         const serializableErrors = Object.fromEntries(
-            Object.entries(this.state.error).map(([id, error]) => [id, error ? serializeError(error) : undefined]),
+            Object.entries(this.state.errors).map(([id, error]) => [id, error ? serializeError(error) : undefined]),
         );
 
         return {
             ...this.state,
-            error: serializableErrors,
+            errors: serializableErrors,
         };
     }
 
     private deserializeState(serializableState: CacheState<C, ErrorObject>): CacheState<C> {
         const deserializedErrors = Object.fromEntries(
-            Object.entries(serializableState.error).map(([id, error]) => [
+            Object.entries(serializableState.errors).map(([id, error]) => [
                 id,
                 error ? deserializeError(error) : undefined,
             ]),
@@ -82,7 +82,7 @@ class InMemoryCache<C extends NonUndefined> implements Cache<C> {
 
         return {
             ...serializableState,
-            error: deserializedErrors,
+            errors: deserializedErrors,
         };
     }
 
@@ -96,7 +96,7 @@ class InMemoryCache<C extends NonUndefined> implements Cache<C> {
 
     public purge() {
         this.state = {
-            error: {},
+            errors: {},
             data: this.emptyData,
         };
     }
@@ -106,22 +106,27 @@ class InMemoryCache<C extends NonUndefined> implements Cache<C> {
         this.devtools?.send({ type: 'UPDATE', ...opts }, this.state);
     }
 
-    private updateStateInner({ updateCacheData, updateRequestError }: UpdateStateOptions<C>) {
-        const newData = updateCacheData ? updateCacheData(this.state.data) : this.state.data;
-        const currentRequestError = updateRequestError ? this.getRequestError(updateRequestError.requestId) : undefined;
-        const newRequestError = updateRequestError ? updateRequestError.update(currentRequestError) : undefined;
+    private updateStateInner({ data, error }: UpdateStateOptions<C>) {
+        this.state = {
+            errors: error ? this.insertError(this.state.errors, error) : this.state.errors,
+            data: data !== undefined ? data : this.state.data,
+        };
+    }
 
-        if (newData !== this.state.data || newRequestError !== currentRequestError) {
-            this.state = {
-                error: updateRequestError
-                    ? {
-                          ...this.state.error,
-                          [updateRequestError.requestId]: newRequestError,
-                      }
-                    : this.state.error,
-                data: newData,
-            };
+    private insertError(errors: Record<string, Error | undefined>, error: [string, Error | undefined]) {
+        const result: Record<string, Error | undefined> = {};
+
+        Object.keys(errors).forEach((key) => {
+            if (key !== error[0]) {
+                result[key] = errors[key];
+            }
+        });
+
+        if (error[1]) {
+            result[error[0]] = error[1];
         }
+
+        return result;
     }
 
     private subscribeToDevtools() {

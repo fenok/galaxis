@@ -51,21 +51,15 @@ export class TestCache<C extends NonUndefined> implements Cache<C> {
         };
     }
 
-    public updateState({ updateCacheData, updateRequestError }: UpdateStateOptions<C>) {
-        const newData = updateCacheData ? updateCacheData(this.state.data) : this.state.data;
-        const currentRequestError = updateRequestError ? this.getRequestError(updateRequestError.requestId) : undefined;
-        const newRequestError = updateRequestError ? updateRequestError.update(currentRequestError) : undefined;
-
-        if (newData !== this.state.data || newRequestError !== currentRequestError) {
-            this.state = {
-                requestErrors: updateRequestError
-                    ? {
-                          ...this.state.requestErrors,
-                          [updateRequestError.requestId]: newRequestError,
-                      }
-                    : this.state.requestErrors,
-                data: newData,
-            };
-        }
+    public updateState({ data, error }: UpdateStateOptions<C>) {
+        this.state = {
+            requestErrors: error
+                ? {
+                      ...this.state.requestErrors,
+                      [error[0]]: error[1],
+                  }
+                : this.state.requestErrors,
+            data: data !== undefined ? data : this.state.data,
+        };
     }
 }
