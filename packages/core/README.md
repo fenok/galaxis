@@ -326,4 +326,17 @@ This type describes base mutation. It extends [BaseRequest](#baserequest).
 
 #### Cache
 
-TODO.
+| Name            | Type                                                                   | Description                                                                                            |
+| --------------- | ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| subscribe       | <code>(callback: () => void) => () => void</code>                      | Subscribe to cache. `callback` will be called on cache changes. Call returned function to unsubscribe. |
+| updateState     | <code>(opts: [UpdateStateOptions](#updatestateoptions)) => void</code> | Update cache state.                                                                                    |
+| getCacheData    | <code>() => [C](#user-defined-types)</code>                            | Get cache data.                                                                                        |
+| getRequestError | <code>(requestId: string) => Error &#124; undefined</code>             | Get cached error for given request id.                                                                 |
+| purge           | <code>() => void</code>                                                | Reset cache to empty state.                                                                            |
+
+#### UpdateStateOptions
+
+| Name  | Type                                          | Description                                                                                                                                                                                 | Required |
+| ----- | --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
+| data  | <code>[C](#user-defined-types)</code>         | New cache data. Omit or set to `undefined` if no update needed.                                                                                                                             | No       |
+| error | <code>[string, Error &#124; undefined]</code> | New error. The first element of the tuple is request id. The second one is error value, where `undefined` means "clear error". Omit the tuple or set it to `undefined` if no update needed. | No       |
