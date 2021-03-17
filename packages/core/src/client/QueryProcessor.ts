@@ -245,8 +245,10 @@ export class QueryProcessor<C extends NonUndefined> {
     ): boolean {
         return !(
             query.fetchPolicy === 'cache-only' ||
-            (query.fetchPolicy === 'cache-first' && this.isRequestStateSufficient(queryCache)) ||
-            (query.preventExcessRequestOnHydrate && this.isHydrate && this.isRequestStateSufficient(queryCache))
+            (query.fetchPolicy === 'cache-first' && queryCache?.data !== undefined) ||
+            (query.preventExcessRequestOnHydrate &&
+                this.isHydrate &&
+                (queryCache?.data !== undefined || queryCache?.error !== undefined))
         );
     }
 
@@ -261,9 +263,5 @@ export class QueryProcessor<C extends NonUndefined> {
                 queryCache?.data === undefined &&
                 queryCache?.error === undefined)
         );
-    }
-
-    private isRequestStateSufficient<D extends NonUndefined, E extends Error>(queryCache?: QueryCache<D, E>): boolean {
-        return queryCache?.data !== undefined;
     }
 }
