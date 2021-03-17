@@ -1,423 +1,76 @@
-# Fetcher
+# Fetcher 🌌
 
 [![npm](https://img.shields.io/npm/v/react-fetching-hooks)](https://www.npmjs.com/package/react-fetching-hooks)
 
-> ⚠ This library is work-in-progress and published only for some real-life testing. Expect bugs, documentation inconsistency and breaking changes on every release until version 1.0.0.
+> ⚠ The library is mostly functional, but there might be slight changes in API until version 1.0.0.
 
-Library for querying and mutating data for any backend, heavily inspired by [Apollo](https://www.apollographql.com/).
+Fetcher is a library for performing network requests. It focuses on high customizability, ease of use and full SSR support.
 
--   Simple and customizable (globally and per-request)
--   Full SSR support: requests on server, works anywhere (not only Next.js)
--   Caching with single shared cache: component's data can be updated by other query or mutation
--   Errors are also cached
--   Different fetch policies
--   Integration with redux-devtools (work in progress)
--   Network requests optimization and (some) race conditions handling
--   Tree-shakable (ES6 modules)
--   Written in typescript
+Fetcher API is inspired by [Apollo](https://www.apollographql.com/). If you were looking for Apollo-like fetching library, this may be the library for you.
 
-## Quick start
+## Features
 
-Add the library and error serializer:
+### Queries
 
-`yarn add react-fetching-hooks serialize-error`
+Queries are requests that **do not** change the system state. They are described as <code>[BaseQuery](packages/core#basequery)</code> objects.
 
-Create a client:
+### Mutations
 
-```typescript
-import {
-    Client,
-    Cache,
-    ClientOptions,
-    getIdUrl,
-    getUrlDefault,
-    processResponseRestfulJson,
-    mergeShallow,
-} from 'react-fetching-hooks';
-import { serializeError, deserializeError } from 'serialize-error';
+Mutations are requests that **do** change the system state. They are described as <code>[BaseMutation](packages/core#basemutation)</code> objects.
 
-const SSR_MODE = typeof window === 'undefined';
+### Fetch Policies
 
-let CLIENT_INSTANCE: Client;
+You must specify query `fetchPolicy` to indicate how this query should be updated.
 
-export function getClient({ fetch }: Partial<ClientOptions> = {}) {
-    // Return new client instance for every request in case of SSR
-    if (SSR_MODE) {
-        return createClient({ fetch });
-    }
+| `fetchPolicy`         | Query execution result                                                                                                                                               |
+| --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `'cache-only'`        | No network request. Returns state from the cache.                                                                                                                    |
+| `'cache-first'`       | Network request, if there is no data in the cache. Returns state from the cache. The cache is then updated with the request result (if there was a network request). |
+| `'cache-and-network'` | Network request regardless of cache state. Returns state from the cache. The cache is then updated with the request result.                                          |
+| `'no-cache'`          | Network request regardless of cache state. Does not touch the cache in any way.                                                                                      |
 
-    // Return single client instance otherwise
-    if (CLIENT_INSTANCE) {
-        return CLIENT_INSTANCE;
-    }
+### Query merging
 
-    // Create single client instance if there is no one
-    return (CLIENT_INSTANCE = createClient({ fetch }));
-}
+The library encourages executing queries at arbitrary parts of code and points in time. This way, any component of the application can express its data requirements in isolation from other components.
 
-function createClient({ fetch }: Partial<ClientOptions>) {
-    return new Client({
-        cache: new Cache({
-            // If client-side, populate cache with preloaded data and errors
-            initialSerializableState: !SSR_MODE ? window.__CACHE__ : undefined,
-            // Enable redux-devtools integration
-            enableDevTools: true,
-            // Tell cache how to serialize errors. You can pass your own functions
-            serializeError,
-            deserializeError,
-        }),
-        // In case of SSR pass fetch (i.e. from node-fetch package)
-        fetch,
-        generalRequestData: {
-            // Default base url
-            root: 'http://localhost:3001',
-            // Default fetch policy
-            fetchPolicy: 'cache-and-network',
-            // Default request id generator
-            getId: getIdUrl,
-            // Default request URL generator
-            getUrl: getUrlDefault,
-            // For the sake of simplicity, assume that body should always be serialized as JSON.
-            // In real world, you'll want to check the body type (e.g. not serialize FormData).
-            // You'll also want to set appropriate headers (e.g. 'Content-Type: application/json').
-            getRequestInit({ body, ...request }) {
-                return { ...request, body: body !== undefined ? JSON.stringify(body) : undefined };
-            },
-            // Default merger of general request data and concrete request data
-            merge: mergeShallow,
-            // Default response handler
-            processResponse: processResponseRestfulJson,
-        },
-    });
-}
+That would lead to duplicate requests to the same resources. To prevent that, the library uses **query merging**.
+
+Query merging works as follows. The query will reuse ongoing network request with the same id. The cache will also be updated just once, using the first _cacheable_ query that created or reused the request. A query is cacheable if its `fetchPolicy` is not `no-cache`.
+
+This means that queries with the same request id must update the cache in the same way. It shouldn't be an issue, as the opposite makes no sense.
+
+### Race conditions handling
+
+Since queries (and mutations!) are executed at arbitrary points in time, there must be a way to prevent overwriting newer data by the older one. This is done by **request queueing**.
+
+Request queueing ensures that all queries, which were started before some mutation, are finished before that mutation is started (in no particular order). It also ensures that the next mutation will be started only after the previous one was finished.
+
+A typical queue may look like this:
+
+```
+[a bunch of queries] -> [mutation] -> [mutation] -> [a bunch of queries]
 ```
 
-Provide the client to your app via `Provider`:
+It's worth noting that queued requests can be aborted at any time, regardless of position in the queue.
 
-```typescript jsx
-import { Provider, Client } from 'react-fetching-hooks';
-import React, { FC } from 'react';
+### Server-side rendering
 
-interface AppProps {
-    client: Client;
-}
+The library is built with SSR in mind. There is no SSR-specific code in components, so they are SSR-ready by default.
 
-export const App: FC<AppProps> = ({ client }) => <Provider client={client}>Your app</Provider>;
-```
+The server waits until all queries are executed and the cache is filled with data and errors, then renders the app based on the cache, and sends resulting HTML with embedded cache to the client.
 
-Preload data and errors on server:
+### Hydrate stage optimization
 
-```typescript jsx
-import { getDataFromTree, Client } from 'react-fetching-hooks';
-import { renderToString } from 'react-dom/server';
-import fetch from 'node-fetch';
-import { getClient } from './path/to/getClient';
-import { App } from './path/to/App';
-import { getHtml } from './path/to/getHtml';
+If you're doing SSR, you're going to have a hydrate stage on the client, which is the initial render with cached data. By default, queries with `fetchPolicy: 'cache-and-network'` will be fetched during the hydrate stage. This is likely undesirable because these requests were just performed on the server.
 
-async function handleRequest(): Promise<string> {
-    // Get client. Pass fetch, because there is no one in Node
-    const client = getClient({ fetch });
-
-    // Create App element, providing it with client
-    const AppElement = React.createElement(App, { client });
-
-    // Fill cache with data/errors
-    await getDataFromTree(AppElement);
-
-    // Get HTML to send
-    const content = renderToString(AppElement);
-
-    // Get data and errors as object. You can safely stringify it with JSON.stringify()
-    const cache = client.extract();
-
-    // Generate full page HTML that will include content and cache
-    // For instance, you can make the cache available as window.__CACHE__
-    return getHtml(content, cache);
-}
-```
-
-Render the app in browser:
-
-```typescript jsx
-import * as React from 'react';
-import * as ReactDOM from 'react-dom';
-import { App } from './path/to/App';
-import { getClient } from './path/to/getClient';
-
-ReactDOM.hydrate(React.createElement(App, { client: getClient() }), document.getElementById('root'));
-```
-
-Query and mutate data in your components:
-
-```typescript jsx
-import React, { FC } from 'react';
-import { PartialRequestData, useQuery, getIdBase64, ResponseError, useMutation } from 'react-fetching-hooks';
-
-// Component props
-interface Props {
-    id: string;
-}
-
-// Data from API
-interface ResponseData {
-    field: string;
-}
-
-// Concrete request (query)
-const dataQuery: PartialRequestData<any, ResponseData, ResponseError<any>, { id: string }> = {
-    // Default path params to make typescript happy. You may choose different approach
-    pathParams: { id: '1' },
-    // Concrete request's url
-    path: '/data/:id',
-};
-
-// Concrete request (mutation)
-const dataMutation = { ...dataQuery, method: 'DELETE' };
-
-const DataDisplay: FC<Props> = ({ id }) => {
-    // You'll likely create your own useQuery and hide quirky logic there
-    const { data } = useQuery(
-        {
-            ...dataQuery,
-            // Override concrete request's path params with component's prop
-            pathParams: { id },
-        },
-        {
-            // Request id generator
-            getPartialRequestId: getIdBase64,
-        },
-    );
-
-    // You'll likely create your own useMutation that would accept PartialRequestData and return mutation state
-    const { mutate } = useMutation();
-
-    return (
-        <div>
-            {data}
-            <button onClick={mutate({ ...dataMutation, pathParams: { id } })}>Delete</button>
-        </div>
-    );
-};
-```
-
-## In-depth
-
-### Queries and mutations
-
-Queries and mutations use the same `RequestData` objects.
-
-Rule of thumb: if a request doesn't change any backend state by the fact of its execution, it's a query. Otherwise, it's a mutation.
-
-I.e. request, returning current time, is a query, even though it returns new data every time.
-
-### RequestData
-
-Requests are represented as `RequestData` objects. Due to flexibility, `RequestData` isn't a class, but rather a type defining a specific shape.
-
-`RequestData` is a valid native fetch `RequestInit` object, excluding the `body` field. In `RequestData`, it can also be unserialized `object`, which should be converted to `RequestInit`-compatible `string` via `getRequestInit` function.
-
-`RequestData` also has additional fields:
-
--   `fetchPolicy` - string, defines cache and network usage.
--   `root` - string, backend host, like `https://my-app.com`. Must be absolute on server, may be relative on client. Will be processed by `getUrl` function.
--   `path` - string, like `/data/:id`. Will be processed by `getUrl` function.
--   `pathParams` - object of params in path, like `{id: "1"}`. Will be processed by `getUrl` function.
--   `queryParams` - object of params in query. Will be processed by `getUrl` function.
--   `body` - body of the request.
--   `headers` - headers of the request.
--   `lazy` - boolean, lazy requests are not performed automatically.
--   `refetchQueries` - array of `PartialRequestData` objects that will be queried after successful mutation with this request.
--   `optimisticResponse` - optimistic value for `data` field.
--   `disableSsr` - boolean, if `true`, there will be no network request on server.
--   `disableInitialRenderDataRefetchOptimization` - boolean, if `true`, the query with this request may refetch itself on initial render even with cached data, depending on `fetchPolicy`.
--   `disableLoadingQueriesRefetchOptimization` - boolean, if `true`, the mutation with this request will not cause loading queries to refetch.
--   `getUrl` - function for generating request's URL.
--   `getRequestInit` - function for generating request's `RequestInit` object (for `fetch`). Can be used to stringify body and add appropriate headers.
--   `getId` - function for generating request's id. _Requests with the same id are considered the same_.
--   `processResponse` - function that returns data or throws an error based on request's `Response` (native).
--   `merge` - function that merges `GeneralRequestData` and `PartialRequestData` into `RequestData`.
--   `toCache`, `fromCache` - functions for writing data to and reading data from cache.
--   `clearCacheFromOptimisticResponse` - function that removes optimistic response from cache.
-
-Every field may be configured either globally on `Client` instance or on concrete request.
-
-`RequestData` consists of `GeneralRequestData` and `PartialRequestData`.
-
--   `GeneralRequestData` is defined on `Client` instance as `generalRequestData`. Essentially it contains default values for every request. You can define any `RequestData` fields except `path`.
--   `PartialRequestData` represents concrete request. All `RequestData` fields are optional except `path` (and possibly `pathParams`, `queryParams`, `body` and `headers`, depending on types).
-
-### RequestData as generic
-
-`RequestData` (as well as `GeneralRequestData` and `PartialRequestData`) is actually a generic:
-`RequestData<SharedData, ResponseData, Error, PathParams, QueryParams, Body, Headers>`, where
-
--   `SharedData` - same for every request, type of shared cache.
--   `ResponseData` - type of successful response's data (returned by `processResponse` function).
--   `Error` - type of error, thrown by `processResponse`.
--   `PathParams`, `QueryParams`, `Body`, `Headers` - types of path params, query params, body and headers respectively.
-
-### Request functions
-
-All functions are replaceable. The library provides default/example ones:
-
--   `getIdUrl` - returns URL as id.
--   `getUrlDefault` - returns URL, using `query-string` and `path-to-regexp` packages. If you don't want to include them, you can provide your own function and they will be tree-shaked.
--   `mergeShallow` - merges `GeneralRequestData` and `PartialRequestData` objects shallowly.
--   `processResponseRestfulJson` - assumes that 2xx response is successful (and returns JSON), throws `ResponseError` on non-2xx response.
-
-`toCache` and `fromCache` functions are completely up to you. Here are some rules:
-
--   Think in redux way. `toCache` should work like reducer. `fromCache` should return the same object every time.
--   They should never throw.
--   Return `undefined`, if there is no data in cache.
+It can be fixed by setting `preventExcessRequestOnHydrate: true` for all queries by default. In general, you should always do that, unless your cache is not coming from just-performed requests (e.g. you are not doing SSR, but persist the cache to local storage).
 
 ### Optimistic responses
 
-The value of `optimisticResponse` field is used for `data` field when the request starts.
+You can specify `optimisticData` for mutations. During mutation execution, the cache will immediately be updated with this data, and then with the real data when it arrives. Note that you also have to specify the `removeOptimisticData()` and `toCache()` functions, so the library knows how to remove the optimistic data from the cache, and how to put the real data in.
 
-When the request either fails or completes, `clearCacheFromOptimisticResponse` function is used to clear cache before writing actual result (data or error).
+### Great customization capabilities
 
-In case of query, the function is optional. If it's not provided, the following will happen:
+The library is completely unopinionated about the network level. You can use fetch, axios, XMLHttpRequest, or any other solution. You can add network requests logging, retries, or timeouts. See [BaseRequest](packages/core#baserequest) for details.
 
--   on success, the cache won't be cleared before writing actual data,
--   on fail, the cache will be cleared by calling `toCache` with previous `data` value.
-
-In case of mutation, the function is required. Mutations are not cached to `requestStates`, so there is no previous `data` value available.
-
-### Cache
-
-Cache is responsible for storing all cacheable data.
-
-Cache consists of two parts: `requestStates` and `sharedData`.
-
-`requestStates` stores states of every individual request by its id. Request state consists of:
-
--   `data` - result of successful request from `processResponse` function.
--   `loading` - boolean.
--   `loadingRequesterIds` - array of ids of requesters (callers, hooks) that executed the request.
--   `error` - error thrown from `processResponse` function.
-
-`requestStates` is for internal usage only.
-
-`sharedData` stores data from `processResponse` function, normalized by `toCache` function (from all requests). Shape of `sharedData` is completely up to you, but generally it should be as normalized and deduplicated as possible.
-
-If request result updates `sharedData`, `data` field in `requestStates` is set to `undefined` to prevent duplication.
-
-Cache options:
-
--   `serializeError` - function that converts error into serializable error object,
--   `deserializeError` - function that converts serializable error object into error,
--   `initialSerializableState` - object that will be used for cache initialization (both `requestStates` and `sharedData`). You can provide SSR result here. Defaults to empty cache.
--   `enableDevTools` - enable redux-devtools bindings. Defaults to `false`.
--   `enableDataDuplication` - if `true`, `data` field in `requestStates` will always be set. Defaults to `false`.
-
-Queries are always cached in `requestStates`. If `toCache` is provided, the query will also be cached to `sharedData`.
-
-Mutations are never cached to `requestStates`. If `toCache` is provided, the mutation will be cached to `sharedData`.
-
-### Client
-
-Client is responsible for performing requests.
-
-Cache must be accessed via client with the following functions:
-
--   `extract()` - returns serializable cache object.
--   `purge(serializableCacheState?: SerializableCacheState)` - clears cache and aborts all loading queries/mutations. Use it to reset cache after e.g. logout.
-
-On retrieving data from cache `fromCache` function is prioritized over `data` field from request state from `requestStates`.
-
-You must provide new `Client` instance for every request in case of SSR.
-
-Due to tree-shakeable design, you have to specify all parts of `generalRequestData` manually.
-
-### Fetch policies
-
-Queries:
-
--   `cache-only` - never makes network request. Returns data from cache or `undefined`.
--   `cache-first` - only makes network request, if there is no data in cache. Returns data from cache or `undefined` and then data/error from network, if there was network request.
--   `cache-and-network` - always makes network request. Returns data or `undefined` from cache and data/error from network.
--   `no-cache` - always makes network request. Returns data or `undefined` from cache and data/error from network. It's cached on per-caller basis and never touches `sharedData`, so initially it always returns `undefined`.
-
-Mutations:
-
--   `cache-only`, `cache-first`, `cache-and-network` - returns data/error and updates `sharedData`
--   `no-cache` - returns data/error without touching `sharedData`
-
-### Render details
-
-Queries that are about to fetch data from network always start in loading state. That allows simple loading indicator for multiple related queries: `const loading = firstQueryLoading || secondQueryLoading;`.
-
-Queries with cached errors always start in loading state.
-
-On initial render queries are not refetched if there is cached data (e.g. query with cached data and `fetchPolicy: 'cache-and-network'` will initially render in non-loading state).
-
-### useQuery
-
-> You should build your own useQuery (using useQuery from the library) with API that is convenient for your app.
-
-```typescript
-const { data, loading, loadingRequesterIds, requesterId, error, abort, refetch } = useQuery(request, {
-    getPartialRequestId: getIdBase64,
-    hookId: 'my-hook',
-});
-```
-
-Options:
-
--   `getPartialRequestId` - function that calculates id of passed `PartialRequestData` object. It's optional with fallback to request's `getId`, but that's unreliable. In real world you should provide it (i.e. default `getIdBase64`).
--   `hookId` - if you're using code-splitting, you **must** provide SSR- and code-splitting-friendly id. You'll likely use [react-uid](https://www.npmjs.com/package/react-uid) for that. Otherwise, you may omit this parameter.
-
-Return values:
-
--   `data` - query data (actual or previous). May appear as (and never switches to) `undefined` (which means absence of data).
--   `loading` - boolean, indicating network request.
--   `loadingRequesterIds` - array of ids of requesters (callers, hooks) that executed the request.
--   `requesterId` - requester id of the hook. The value of `hookId` option, if provided. Otherwise, it's generated internally.
--   `error` - query error. Always swicthes to `undefined` after network request success.
--   `abort` - function for aborting query.
--   `refetch` - function for forcing network request.
-
-Loading state:
-
-The `loading` return value corresponds to the request itself. I.e. if hook A and hook B use the same request, and hook A initiates network request, hook B will receive `loading: true` as well. In some cases that's undesirable.
-
-You can get hook-specific loading state like this:
-
-```typescript
-const { loadingRequesterIds, requesterId } = useQuery(/*...*/);
-
-const hookSpecificLoading = loadingRequesterIds.includes(requesterId);
-```
-
-Abort:
-
--   `abort()` without arguments won't abort request, if there are any other callers.
--   `abort(true)` will force abort for all callers.
-
-Refetch:
-
--   `refetch()` without arguments won't start new network request if there is one already.
--   `refetch(true)` will always start new network request.
-
-If some query is loading, and another caller (hook) executes the same query (using `RequestData` with the same id), this query is seamlessly merged with the first one, as if they were started simultaneously. This two queries will result in single network request.
-
-### useMutation
-
-> You should build your own useMutation (using useMutation from the library) with API that is convenient for your app.
-
-```typescript
-const { mutate } = useMutation();
-```
-
--   `mutate` - function that performs mutation with given request.
-
-## Known issues
-
--   You can't return `undefined` as query data (and probably shouldn't, because empty data can be represented as `null`)
--   Race conditions handling is not 100% reliable, though no idea how to make it so (is it possible?).
--   Redux-devtools integration is limited.
--   It's probably better to move request functions to separate package.
--   Tests are really poor.
--   Errors in external code may lead to different errors in state and promise rejections (i.e. `query().catch()`). It's likely not going to be fixed, but you should get diverged error warnings in development.
+The library is also unopinionated about [Cache](packages/core#cache) internals. You can add cache persistence, partial or complete. You even should be able to integrate the cache with your own state management solution, should you need so.
