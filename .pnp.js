@@ -2355,7 +2355,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@types/object-hash", "npm:1.3.4"],
             ["@typescript-eslint/eslint-plugin", "virtual:f779e5e0cc38834fa930f15ec8a4725df917eb76996fdb6c7229e819595ad2611f25dad7193bcaad659832cf3ae75cf76fd69137c1031c37b919da1909c5fbe3#npm:2.22.0"],
             ["@typescript-eslint/parser", "virtual:f779e5e0cc38834fa930f15ec8a4725df917eb76996fdb6c7229e819595ad2611f25dad7193bcaad659832cf3ae75cf76fd69137c1031c37b919da1909c5fbe3#npm:2.22.0"],
-            ["buffer", "npm:5.6.0"],
             ["eslint", "npm:7.11.0"],
             ["eslint-config-prettier", "virtual:c1fde0c38ec1424cff1aa573370869dd10639d73765698008e2f898ea742a371da1723302503adc59a9e0ccdfbd193dd16f26475486c07386c0dd5483ed2cf6e#npm:6.13.0"],
             ["eslint-plugin-react-hooks", "virtual:f779e5e0cc38834fa930f15ec8a4725df917eb76996fdb6c7229e819595ad2611f25dad7193bcaad659832cf3ae75cf76fd69137c1031c37b919da1909c5fbe3#npm:4.1.2"],
@@ -2382,7 +2381,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@types/object-hash", "npm:1.3.4"],
             ["@typescript-eslint/eslint-plugin", "virtual:f779e5e0cc38834fa930f15ec8a4725df917eb76996fdb6c7229e819595ad2611f25dad7193bcaad659832cf3ae75cf76fd69137c1031c37b919da1909c5fbe3#npm:2.22.0"],
             ["@typescript-eslint/parser", "virtual:f779e5e0cc38834fa930f15ec8a4725df917eb76996fdb6c7229e819595ad2611f25dad7193bcaad659832cf3ae75cf76fd69137c1031c37b919da1909c5fbe3#npm:2.22.0"],
-            ["buffer", "npm:5.6.0"],
             ["eslint", "npm:7.11.0"],
             ["eslint-config-prettier", "virtual:c1fde0c38ec1424cff1aa573370869dd10639d73765698008e2f898ea742a371da1723302503adc59a9e0ccdfbd193dd16f26475486c07386c0dd5483ed2cf6e#npm:6.13.0"],
             ["eslint-plugin-react-hooks", "virtual:f779e5e0cc38834fa930f15ec8a4725df917eb76996fdb6c7229e819595ad2611f25dad7193bcaad659832cf3ae75cf76fd69137c1031c37b919da1909c5fbe3#npm:4.1.2"],
@@ -4121,15 +4119,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "linkType": "HARD",
         }]
       ]],
-      ["base64-js", [
-        ["npm:1.5.1", {
-          "packageLocation": "./.yarn/cache/base64-js-npm-1.5.1-b2f7275641-c1b41a26dd.zip/node_modules/base64-js/",
-          "packageDependencies": [
-            ["base64-js", "npm:1.5.1"]
-          ],
-          "linkType": "HARD",
-        }]
-      ]],
       ["bcrypt-pbkdf", [
         ["npm:1.0.2", {
           "packageLocation": "./.yarn/cache/bcrypt-pbkdf-npm-1.0.2-80db8b16ed-3f57eb99bb.zip/node_modules/bcrypt-pbkdf/",
@@ -4270,17 +4259,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageDependencies": [
             ["bser", "npm:2.1.1"],
             ["node-int64", "npm:0.4.0"]
-          ],
-          "linkType": "HARD",
-        }]
-      ]],
-      ["buffer", [
-        ["npm:5.6.0", {
-          "packageLocation": "./.yarn/cache/buffer-npm-5.6.0-e1494693bf-e18fdf099c.zip/node_modules/buffer/",
-          "packageDependencies": [
-            ["buffer", "npm:5.6.0"],
-            ["base64-js", "npm:1.5.1"],
-            ["ieee754", "npm:1.2.1"]
           ],
           "linkType": "HARD",
         }]
@@ -6453,15 +6431,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageDependencies": [
             ["iconv-lite", "npm:0.4.24"],
             ["safer-buffer", "npm:2.1.2"]
-          ],
-          "linkType": "HARD",
-        }]
-      ]],
-      ["ieee754", [
-        ["npm:1.2.1", {
-          "packageLocation": "./.yarn/cache/ieee754-npm-1.2.1-fb63b3caeb-6c1cfab995.zip/node_modules/ieee754/",
-          "packageDependencies": [
-            ["ieee754", "npm:1.2.1"]
           ],
           "linkType": "HARD",
         }]
