@@ -1,10 +1,10 @@
 import { Client, NonUndefined } from '@fetcher/core';
 import { useContext, useEffect, createContext, FC, createElement } from 'react';
 
-const ClientContext = createContext<Client<any> | null>(null);
+const ClientContext = createContext<Client<NonUndefined> | null>(null);
 
 interface ProviderProps {
-    client: Client<any>;
+    client: Client<NonUndefined>;
 }
 
 const ClientProvider: FC<ProviderProps> = ({ children, client }) => {
@@ -23,7 +23,7 @@ const useClient = <C extends NonUndefined>() => {
     return client as Client<C>;
 };
 
-function ensureClient(client: Client<any> | null): asserts client is Client<any> {
+function ensureClient(client: Client<NonUndefined> | null): asserts client is Client<NonUndefined> {
     if (!client) {
         throw new Error('No client provided');
     }

@@ -4,7 +4,7 @@ import { CustomData } from './CustomData';
 export type PathConstraint = Record<string, string | number>;
 export type QueryConstraint = StringifiableRecord;
 export type HeadersConstraint = HeadersInit;
-export type BodyConstraint = CustomData<any> | BodyInit | null;
+export type BodyConstraint = CustomData<unknown> | BodyInit | null;
 
 export type RequestParamsConstraint = {
     pathParams?: PathConstraint;

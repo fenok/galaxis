@@ -2,9 +2,11 @@ import * as React from 'react';
 import { Client, Provider, objectHash, mergeDeepNonUndefined } from '@fetcher/react';
 import { UserDisplay } from '../UserDisplay';
 import { getRequestFactory, getRequestId } from '@fetcher/typed-fetch-request';
+import { CacheData } from '../../lib/CacheData';
+import { InMemoryCache } from '@fetcher/in-memory-cache';
 
 interface Props {
-    client: Client<any>;
+    client: Client<CacheData, InMemoryCache<CacheData>>;
     fetch?: typeof fetch;
 }
 

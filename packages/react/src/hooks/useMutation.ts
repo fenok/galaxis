@@ -13,12 +13,8 @@ import { useCallback, useContext } from 'react';
 export function useMutation() {
     const client = useClient();
 
-    const defaultRequest = useContext<DefaultRequest<NonUndefined, NonUndefined, Error, unknown>>(
-        DefaultRequestContext,
-    );
-    const defaultMutation = useContext<DefaultMutation<NonUndefined, NonUndefined, Error, unknown>>(
-        DefaultMutationContext,
-    );
+    const defaultRequest = useContext<DefaultRequest>(DefaultRequestContext);
+    const defaultMutation = useContext<DefaultMutation>(DefaultMutationContext);
     const requestParamsMerger = useContext<RequestParamsMerger<unknown, unknown, unknown>>(RequestParamsMergerContext);
 
     const mutate = useCallback(
@@ -34,7 +30,7 @@ export function useMutation() {
                     defaultMutation.requestParams,
                     mutation.requestParams,
                 ),
-            });
+            } as Mutation<C, D, E, R>);
         },
         [client, defaultMutation, defaultRequest, requestParamsMerger],
     );

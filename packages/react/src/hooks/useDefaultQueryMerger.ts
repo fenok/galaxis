@@ -12,9 +12,9 @@ import {
 export function useDefaultQueryMerger<C extends NonUndefined, D extends NonUndefined, E extends Error, R>(
     query: Partial<Query<C, D, E, R>>,
 ): Query<C, D, E, R> {
-    const defaultRequest = useContext<DefaultRequest<C, D, E, R>>(DefaultRequestContext);
-    const defaultQuery = useContext<DefaultQuery<C, D, E, R>>(DefaultQueryContext);
-    const requestParamsMerger = useContext<RequestParamsMerger<R, R, R>>(RequestParamsMergerContext);
+    const defaultRequest = useContext<DefaultRequest>(DefaultRequestContext);
+    const defaultQuery = useContext<DefaultQuery>(DefaultQueryContext);
+    const requestParamsMerger = useContext<RequestParamsMerger<unknown, unknown, unknown>>(RequestParamsMergerContext);
 
     return {
         ...defaultRequest,
@@ -25,5 +25,5 @@ export function useDefaultQueryMerger<C extends NonUndefined, D extends NonUndef
             defaultQuery.requestParams,
             query.requestParams,
         ),
-    };
+    } as Query<C, D, E, R>;
 }

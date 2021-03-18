@@ -1,13 +1,13 @@
 import { allSettled } from '../promise';
 
 class SsrPromisesManager {
-    private promises: Promise<any>[] = [];
+    private promises: Promise<unknown>[] = [];
 
-    public addPromise(promise: Promise<any>) {
+    public addPromise(promise: Promise<unknown>) {
         this.promises.push(promise);
     }
 
-    public awaitPromises(): Promise<any> {
+    public awaitPromises(): Promise<unknown> {
         return allSettled(this.promises).then(() => {
             this.promises = [];
         });

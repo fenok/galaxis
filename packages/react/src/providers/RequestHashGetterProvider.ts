@@ -1,18 +1,18 @@
 import { createContext, createElement, PropsWithChildren } from 'react';
 
-export type RequestHashGetter<T> = (request: T) => string | number;
+export type RequestHashGetter = (request: unknown) => string | number;
 
-export const RequestHashGetterContext = createContext<RequestHashGetter<any>>(() => {
+export const RequestHashGetterContext = createContext<RequestHashGetter>(() => {
     throw new Error('No request hash getter provided');
 });
 
-export interface RequestHashGetterProviderOptions<T> {
-    requestHashGetter: RequestHashGetter<T>;
+export interface RequestHashGetterProviderOptions {
+    requestHashGetter: RequestHashGetter;
 }
 
-export const RequestHashGetterProvider = <T>({
+export const RequestHashGetterProvider = ({
     requestHashGetter,
     children,
-}: PropsWithChildren<RequestHashGetterProviderOptions<T>>) => {
+}: PropsWithChildren<RequestHashGetterProviderOptions>) => {
     return createElement(RequestHashGetterContext.Provider, { value: requestHashGetter }, children);
 };

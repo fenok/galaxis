@@ -1,10 +1,10 @@
 import { NonUndefined, CacheOptions } from '@fetcher/core';
 
-const cache: Record<string, { keys: any[]; value: unknown } | undefined> = {};
+const cache: Record<string, { keys: unknown[]; value: unknown } | undefined> = {};
 
 export function memoize<C extends NonUndefined, D extends NonUndefined, R>(
     fromCache: (opts: CacheOptions<C, R>) => D | undefined,
-    getKeys: (opts: CacheOptions<C, R>) => any[],
+    getKeys: (opts: CacheOptions<C, R>) => unknown[],
 ) {
     if (typeof window !== 'undefined') {
         return (opts: CacheOptions<C, R>) => {

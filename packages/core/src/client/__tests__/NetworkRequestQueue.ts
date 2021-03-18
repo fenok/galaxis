@@ -3,7 +3,7 @@ import { resolveAfter, delayedPromise, wireAbortSignals } from '../../promise';
 
 function getPromiseFactory(value: string, timeout?: number, abortSignal?: AbortSignal) {
     return (abortDelaySignal?: AbortSignal) =>
-        delayedPromise(
+        delayedPromise<string>(
             (abortSignal) => {
                 return new Promise((resolve, reject) => {
                     wireAbortSignals(() => reject(value + ':abort'), abortSignal);
@@ -25,7 +25,7 @@ function getOpts(
     time: 'instant' | 'short' | 'long',
     type: 'query' | 'mutation',
     abortSignal?: AbortSignal,
-): [(abortDelaySignal?: AbortSignal) => Promise<any>, 'query' | 'mutation'] {
+): [(abortDelaySignal?: AbortSignal) => Promise<string>, 'query' | 'mutation'] {
     return [getPromiseFactory(`${time}:${type}`, time === 'short' ? 10 : time === 'long' ? 20 : 0, abortSignal), type];
 }
 

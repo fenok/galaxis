@@ -15,13 +15,13 @@ interface Options {
 }
 
 interface ReduxDevTools {
-    send(action: Action, state: any): void;
+    send(action: Action, state: unknown): void;
     subscribe(callback: (message: Message) => void): void;
 }
 
 type Action = {
     type: string;
-} & { [key: string]: any };
+} & { [key: string]: unknown };
 
 interface Message {
     type: 'DISPATCH' | 'OTHER';

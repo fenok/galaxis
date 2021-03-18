@@ -1,5 +1,5 @@
 import { createElement, FC } from 'react';
-import { Client } from '@fetcher/core';
+import { Client, NonUndefined } from '@fetcher/core';
 import { DefaultRequest, DefaultRequestProvider } from './DefaultRequestProvider';
 import { DefaultQuery, DefaultQueryProvider, initialDefaultQuery } from './DefaultQueryProvider';
 import { DefaultMutation, DefaultMutationProvider, initialDefaultMutation } from './DefaultMutationProvider';
@@ -8,12 +8,12 @@ import { RequestHashGetter, RequestHashGetterProvider } from './RequestHashGette
 import { RequestParamsMerger, RequestParamsMergerProvider } from './RequestParamsMergerProvider';
 
 export const Provider: FC<{
-    client: Client<any>;
+    client: Client<NonUndefined>;
     request: DefaultRequest;
     query?: DefaultQuery;
     mutation?: DefaultMutation;
-    requestHashGetter: RequestHashGetter<any>;
-    requestParamsMerger: RequestParamsMerger<any, any, any>;
+    requestHashGetter: RequestHashGetter;
+    requestParamsMerger: RequestParamsMerger;
 }> = ({
     client,
     request,

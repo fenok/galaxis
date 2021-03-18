@@ -9,11 +9,11 @@ export async function resolveAfter<T>(ms: number, value: T): Promise<T> {
     return value;
 }
 
-export function onResolve<U>(promise: Promise<any>, cb: () => U | Promise<U>): Promise<U> {
+export function onResolve<U>(promise: Promise<unknown>, cb: () => U | Promise<U>): Promise<U> {
     return promise.then(cb, cb);
 }
 
-export function allSettled(promises: Promise<any>[]) {
+export function allSettled(promises: Promise<unknown>[]) {
     return new Promise((resolve) => {
         let unsettledCount = promises.length;
 
