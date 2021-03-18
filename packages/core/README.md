@@ -174,7 +174,7 @@ const result = queryManager.process(query, client, ssrPromisesManager);
 
 | Name               | Type                                                   | Description                  | Required |
 | ------------------ | ------------------------------------------------------ | ---------------------------- | -------- |
-| query              | <code>[BaseQuery](#basequery)</code>                   | Query to process.            | Yes      |
+| query              | <code>[Query](#basequery)</code>                       | Query to process.            | Yes      |
 | client             | <code>[Client](#client)</code>                         | Client to use.               | Yes      |
 | ssrPromisesManager | <code>[SsrPromisesManager](#ssrpromisesmanager)</code> | Ssr promises manager to use. | No       |
 
@@ -274,7 +274,7 @@ This type describes base network request.
 
 #### BaseQuery
 
-This type describes base query. It extends [BaseRequest](#baserequest).
+Extends [BaseRequest](#baserequest). Base queries can be executed by [Client](#client).
 
 | Name                          | Type                                                                                             | Description                                                                                                                                                          | Required                                 |
 | ----------------------------- | ------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------- |
@@ -287,12 +287,24 @@ This type describes base query. It extends [BaseRequest](#baserequest).
 
 #### BaseMutation
 
-This type describes base mutation. It extends [BaseRequest](#baserequest).
+Extends [BaseRequest](#baserequest). Base mutations can be executed by [Client](#client).
 
 | Name                 | Type                                                                                           | Description                                             | Required |
 | -------------------- | ---------------------------------------------------------------------------------------------- | ------------------------------------------------------- | -------- |
 | optimisticData       | <code>[D](#user-defined-types)</code>                                                          | Optimistic data (optimistic response).                  | No       |
 | removeOptimisticData | <code>(opts: [CacheOptionsWithData](#cacheoptionswithdata)) => [C](#user-defined-types)</code> | A function that removes optimistic data from the cache. | No       |
+
+#### Query
+
+Extends [BaseQuery](#basequery). Queries can be processed by [QueryManager](#querymanager).
+
+| Name | Type                 | Description                                                                                                                                                                                                                               | Required |
+| ---- | -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
+| lazy | <code>boolean</code> | If `true`, `fetchPolicy` will be overridden with `'cache-only'` value. Such a query can only be executed manually via `refetch()` call. It's also useful if this query is depending on data from another query, which hasn't arrived yet. | No       |
+
+#### Mutation
+
+At the moment it is an alias for [BaseMutation](#basemutation). Reserved for potential MutationManager.
 
 #### RequestOptions
 
