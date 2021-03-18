@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Client, Provider, objectHash, mergeDeepNonUndefined } from '@fetcher/react';
 import { UserDisplay } from '../UserDisplay';
-import { getRequestFactory, getRequestId } from '@fetcher/typed-fetch-request';
+import { getRequestFactory, getRequestId, processResponseJson } from '@fetcher/typed-fetch-request';
 import { CacheData } from '../../lib/CacheData';
 import { InMemoryCache } from '@fetcher/in-memory-cache';
 
@@ -19,7 +19,7 @@ const App: React.FC<Props> = ({ client, fetch }) => {
                 requestParams: {
                     root: 'https://jsonplaceholder.typicode.com',
                 },
-                getRequestFactory: getRequestFactory({ fetch }),
+                getRequestFactory: getRequestFactory({ fetch, processResponse: processResponseJson }),
                 getRequestId: getRequestId,
             }}
             query={{
