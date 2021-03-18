@@ -1,5 +1,5 @@
 import { DefaultRequest } from './DefaultRequestProvider';
-import { NonUndefined, BaseQuery } from '@fetcher/react-core';
+import { NonUndefined, BaseQuery } from '@fetcher/core';
 import { createContext, createElement, PropsWithChildren } from 'react';
 
 export type DefaultQuery<

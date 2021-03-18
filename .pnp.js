@@ -35,10 +35,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         "reference": "workspace:packages/react"
       },
       {
-        "name": "@fetcher/react-core",
-        "reference": "workspace:packages/react-core"
-      },
-      {
         "name": "@fetcher/react-example",
         "reference": "workspace:packages/react-example"
       },
@@ -57,7 +53,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
       ["@fetcher/core", ["workspace:packages/core"]],
       ["@fetcher/in-memory-cache", ["virtual:39adb0faa57969db6c58a50f46bb945c04a047b71dac39a622bd25be10980d4a8674c24033f2c15cfe66b4a5d4f0afd0f53a8a37311cf79d0b3977ef90bb2b3b#workspace:packages/in-memory-cache", "workspace:packages/in-memory-cache"]],
       ["@fetcher/react", ["virtual:39adb0faa57969db6c58a50f46bb945c04a047b71dac39a622bd25be10980d4a8674c24033f2c15cfe66b4a5d4f0afd0f53a8a37311cf79d0b3977ef90bb2b3b#workspace:packages/react", "workspace:packages/react"]],
-      ["@fetcher/react-core", ["virtual:7d0e81df316b60d3846168366d17c43abedaa9b6b7dc2b475b1bfdd24865614794d5b5ab7204005630e415857904f82adbe65c0874776a7af5ab0de94c10aca7#workspace:packages/react-core", "workspace:packages/react-core"]],
       ["@fetcher/react-example", ["workspace:packages/react-example"]],
       ["@fetcher/typed-fetch-request", ["virtual:39adb0faa57969db6c58a50f46bb945c04a047b71dac39a622bd25be10980d4a8674c24033f2c15cfe66b4a5d4f0afd0f53a8a37311cf79d0b3977ef90bb2b3b#workspace:packages/typed-fetch-request", "workspace:packages/typed-fetch-request"]],
       ["@fetcher/utils", ["virtual:7d0e81df316b60d3846168366d17c43abedaa9b6b7dc2b475b1bfdd24865614794d5b5ab7204005630e415857904f82adbe65c0874776a7af5ab0de94c10aca7#workspace:packages/utils", "workspace:packages/utils"]],
@@ -2205,7 +2200,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageLocation": "./.yarn/$$virtual/@fetcher-react-virtual-c454f11ed9/1/packages/react/",
           "packageDependencies": [
             ["@fetcher/react", "virtual:39adb0faa57969db6c58a50f46bb945c04a047b71dac39a622bd25be10980d4a8674c24033f2c15cfe66b4a5d4f0afd0f53a8a37311cf79d0b3977ef90bb2b3b#workspace:packages/react"],
-            ["@fetcher/react-core", "virtual:7d0e81df316b60d3846168366d17c43abedaa9b6b7dc2b475b1bfdd24865614794d5b5ab7204005630e415857904f82adbe65c0874776a7af5ab0de94c10aca7#workspace:packages/react-core"],
+            ["@fetcher/core", "workspace:packages/core"],
             ["@fetcher/utils", "virtual:7d0e81df316b60d3846168366d17c43abedaa9b6b7dc2b475b1bfdd24865614794d5b5ab7204005630e415857904f82adbe65c0874776a7af5ab0de94c10aca7#workspace:packages/utils"],
             ["@types/node", "npm:13.9.0"],
             ["@types/react", "npm:16.9.23"],
@@ -2237,62 +2232,8 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageLocation": "./packages/react/",
           "packageDependencies": [
             ["@fetcher/react", "workspace:packages/react"],
-            ["@fetcher/react-core", "virtual:7d0e81df316b60d3846168366d17c43abedaa9b6b7dc2b475b1bfdd24865614794d5b5ab7204005630e415857904f82adbe65c0874776a7af5ab0de94c10aca7#workspace:packages/react-core"],
+            ["@fetcher/core", "workspace:packages/core"],
             ["@fetcher/utils", "virtual:7d0e81df316b60d3846168366d17c43abedaa9b6b7dc2b475b1bfdd24865614794d5b5ab7204005630e415857904f82adbe65c0874776a7af5ab0de94c10aca7#workspace:packages/utils"],
-            ["@types/node", "npm:13.9.0"],
-            ["@types/react", "npm:16.9.23"],
-            ["@types/react-dom", "npm:16.9.5"],
-            ["@typescript-eslint/eslint-plugin", "virtual:f779e5e0cc38834fa930f15ec8a4725df917eb76996fdb6c7229e819595ad2611f25dad7193bcaad659832cf3ae75cf76fd69137c1031c37b919da1909c5fbe3#npm:2.22.0"],
-            ["@typescript-eslint/parser", "virtual:f779e5e0cc38834fa930f15ec8a4725df917eb76996fdb6c7229e819595ad2611f25dad7193bcaad659832cf3ae75cf76fd69137c1031c37b919da1909c5fbe3#npm:2.22.0"],
-            ["eslint", "npm:7.11.0"],
-            ["eslint-config-prettier", "virtual:c1fde0c38ec1424cff1aa573370869dd10639d73765698008e2f898ea742a371da1723302503adc59a9e0ccdfbd193dd16f26475486c07386c0dd5483ed2cf6e#npm:6.13.0"],
-            ["eslint-plugin-react-hooks", "virtual:f779e5e0cc38834fa930f15ec8a4725df917eb76996fdb6c7229e819595ad2611f25dad7193bcaad659832cf3ae75cf76fd69137c1031c37b919da1909c5fbe3#npm:4.1.2"],
-            ["prettier", "npm:2.1.2"],
-            ["react", "npm:16.14.0"],
-            ["react-dom", "virtual:7d0e81df316b60d3846168366d17c43abedaa9b6b7dc2b475b1bfdd24865614794d5b5ab7204005630e415857904f82adbe65c0874776a7af5ab0de94c10aca7#npm:16.14.0"],
-            ["rimraf", "npm:3.0.2"],
-            ["typescript", "patch:typescript@npm%3A4.0.3#builtin<compat/typescript>::version=4.0.3&hash=5bf698"]
-          ],
-          "linkType": "SOFT",
-        }]
-      ]],
-      ["@fetcher/react-core", [
-        ["virtual:7d0e81df316b60d3846168366d17c43abedaa9b6b7dc2b475b1bfdd24865614794d5b5ab7204005630e415857904f82adbe65c0874776a7af5ab0de94c10aca7#workspace:packages/react-core", {
-          "packageLocation": "./.yarn/$$virtual/@fetcher-react-core-virtual-9c0955c25e/1/packages/react-core/",
-          "packageDependencies": [
-            ["@fetcher/react-core", "virtual:7d0e81df316b60d3846168366d17c43abedaa9b6b7dc2b475b1bfdd24865614794d5b5ab7204005630e415857904f82adbe65c0874776a7af5ab0de94c10aca7#workspace:packages/react-core"],
-            ["@fetcher/core", "workspace:packages/core"],
-            ["@types/node", "npm:13.9.0"],
-            ["@types/react", "npm:16.9.23"],
-            ["@types/react-dom", "npm:16.9.5"],
-            ["@types/types__react", null],
-            ["@types/types__react-dom", null],
-            ["@typescript-eslint/eslint-plugin", "virtual:f779e5e0cc38834fa930f15ec8a4725df917eb76996fdb6c7229e819595ad2611f25dad7193bcaad659832cf3ae75cf76fd69137c1031c37b919da1909c5fbe3#npm:2.22.0"],
-            ["@typescript-eslint/parser", "virtual:f779e5e0cc38834fa930f15ec8a4725df917eb76996fdb6c7229e819595ad2611f25dad7193bcaad659832cf3ae75cf76fd69137c1031c37b919da1909c5fbe3#npm:2.22.0"],
-            ["eslint", "npm:7.11.0"],
-            ["eslint-config-prettier", "virtual:c1fde0c38ec1424cff1aa573370869dd10639d73765698008e2f898ea742a371da1723302503adc59a9e0ccdfbd193dd16f26475486c07386c0dd5483ed2cf6e#npm:6.13.0"],
-            ["eslint-plugin-react-hooks", "virtual:f779e5e0cc38834fa930f15ec8a4725df917eb76996fdb6c7229e819595ad2611f25dad7193bcaad659832cf3ae75cf76fd69137c1031c37b919da1909c5fbe3#npm:4.1.2"],
-            ["prettier", "npm:2.1.2"],
-            ["react", "npm:16.14.0"],
-            ["react-dom", "virtual:7d0e81df316b60d3846168366d17c43abedaa9b6b7dc2b475b1bfdd24865614794d5b5ab7204005630e415857904f82adbe65c0874776a7af5ab0de94c10aca7#npm:16.14.0"],
-            ["rimraf", "npm:3.0.2"],
-            ["typescript", "patch:typescript@npm%3A4.0.3#builtin<compat/typescript>::version=4.0.3&hash=5bf698"]
-          ],
-          "packagePeers": [
-            "@types/react-dom",
-            "@types/react",
-            "@types/types__react-dom",
-            "@types/types__react",
-            "react-dom",
-            "react"
-          ],
-          "linkType": "SOFT",
-        }],
-        ["workspace:packages/react-core", {
-          "packageLocation": "./packages/react-core/",
-          "packageDependencies": [
-            ["@fetcher/react-core", "workspace:packages/react-core"],
-            ["@fetcher/core", "workspace:packages/core"],
             ["@types/node", "npm:13.9.0"],
             ["@types/react", "npm:16.9.23"],
             ["@types/react-dom", "npm:16.9.5"],
@@ -2411,6 +2352,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@types/fetcher__core", null],
             ["@types/lodash.merge", "npm:4.6.6"],
             ["@types/node", "npm:13.9.0"],
+            ["@types/object-hash", "npm:1.3.4"],
             ["@typescript-eslint/eslint-plugin", "virtual:f779e5e0cc38834fa930f15ec8a4725df917eb76996fdb6c7229e819595ad2611f25dad7193bcaad659832cf3ae75cf76fd69137c1031c37b919da1909c5fbe3#npm:2.22.0"],
             ["@typescript-eslint/parser", "virtual:f779e5e0cc38834fa930f15ec8a4725df917eb76996fdb6c7229e819595ad2611f25dad7193bcaad659832cf3ae75cf76fd69137c1031c37b919da1909c5fbe3#npm:2.22.0"],
             ["buffer", "npm:5.6.0"],
@@ -2419,11 +2361,13 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["eslint-plugin-react-hooks", "virtual:f779e5e0cc38834fa930f15ec8a4725df917eb76996fdb6c7229e819595ad2611f25dad7193bcaad659832cf3ae75cf76fd69137c1031c37b919da1909c5fbe3#npm:4.1.2"],
             ["immer", "npm:8.0.1"],
             ["lodash.merge", "npm:4.6.2"],
+            ["object-hash", "npm:2.1.1"],
             ["prettier", "npm:2.1.2"],
             ["rimraf", "npm:3.0.2"],
             ["typescript", "patch:typescript@npm%3A4.0.3#builtin<compat/typescript>::version=4.0.3&hash=5bf698"]
           ],
           "packagePeers": [
+            "@fetcher/core",
             "@types/fetcher__core"
           ],
           "linkType": "SOFT",
@@ -2435,6 +2379,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@fetcher/core", "workspace:packages/core"],
             ["@types/lodash.merge", "npm:4.6.6"],
             ["@types/node", "npm:13.9.0"],
+            ["@types/object-hash", "npm:1.3.4"],
             ["@typescript-eslint/eslint-plugin", "virtual:f779e5e0cc38834fa930f15ec8a4725df917eb76996fdb6c7229e819595ad2611f25dad7193bcaad659832cf3ae75cf76fd69137c1031c37b919da1909c5fbe3#npm:2.22.0"],
             ["@typescript-eslint/parser", "virtual:f779e5e0cc38834fa930f15ec8a4725df917eb76996fdb6c7229e819595ad2611f25dad7193bcaad659832cf3ae75cf76fd69137c1031c37b919da1909c5fbe3#npm:2.22.0"],
             ["buffer", "npm:5.6.0"],
@@ -2443,6 +2388,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["eslint-plugin-react-hooks", "virtual:f779e5e0cc38834fa930f15ec8a4725df917eb76996fdb6c7229e819595ad2611f25dad7193bcaad659832cf3ae75cf76fd69137c1031c37b919da1909c5fbe3#npm:4.1.2"],
             ["immer", "npm:8.0.1"],
             ["lodash.merge", "npm:4.6.2"],
+            ["object-hash", "npm:2.1.1"],
             ["prettier", "npm:2.1.2"],
             ["rimraf", "npm:3.0.2"],
             ["typescript", "patch:typescript@npm%3A4.0.3#builtin<compat/typescript>::version=4.0.3&hash=5bf698"]
@@ -3049,6 +2995,15 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageLocation": "./.yarn/cache/@types-normalize-package-data-npm-2.4.0-ed928aaaa8-6d077e73be.zip/node_modules/@types/normalize-package-data/",
           "packageDependencies": [
             ["@types/normalize-package-data", "npm:2.4.0"]
+          ],
+          "linkType": "HARD",
+        }]
+      ]],
+      ["@types/object-hash", [
+        ["npm:1.3.4", {
+          "packageLocation": "./.yarn/cache/@types-object-hash-npm-1.3.4-3b3e2e44e8-2ae12c7b34.zip/node_modules/@types/object-hash/",
+          "packageDependencies": [
+            ["@types/object-hash", "npm:1.3.4"]
           ],
           "linkType": "HARD",
         }]
@@ -8495,6 +8450,15 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["copy-descriptor", "npm:0.1.1"],
             ["define-property", "npm:0.2.5"],
             ["kind-of", "npm:3.2.2"]
+          ],
+          "linkType": "HARD",
+        }]
+      ]],
+      ["object-hash", [
+        ["npm:2.1.1", {
+          "packageLocation": "./.yarn/cache/object-hash-npm-2.1.1-b31a917f31-fe49a0864c.zip/node_modules/object-hash/",
+          "packageDependencies": [
+            ["object-hash", "npm:2.1.1"]
           ],
           "linkType": "HARD",
         }]

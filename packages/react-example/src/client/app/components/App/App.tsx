@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Client, Provider } from '@fetcher/react';
+import { Client, Provider, objectHash, mergeDeepNonUndefined } from '@fetcher/react';
 import { UserDisplay } from '../UserDisplay';
 import { getRequestFactory, getRequestId } from '@fetcher/typed-fetch-request';
 
@@ -24,6 +24,8 @@ const App: React.FC<Props> = ({ client, fetch }) => {
                 preventExcessRequestOnHydrate: true,
                 fetchPolicy: 'cache-and-network',
             }}
+            requestHashGetter={objectHash}
+            requestParamsMerger={mergeDeepNonUndefined}
         >
             <UserDisplay variant={1} />
             <UserDisplay variant={2} />

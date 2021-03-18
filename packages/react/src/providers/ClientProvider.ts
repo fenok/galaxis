@@ -1,5 +1,4 @@
 import { Client, NonUndefined } from '@fetcher/core';
-import { ensureClient } from './ensureClient';
 import { useContext, useEffect, createContext, FC, createElement } from 'react';
 
 const ClientContext = createContext<Client<any> | null>(null);
@@ -23,5 +22,11 @@ const useClient = <C extends NonUndefined>() => {
 
     return client as Client<C>;
 };
+
+function ensureClient(client: Client<any> | null): asserts client is Client<any> {
+    if (!client) {
+        throw new Error('No client provided');
+    }
+}
 
 export { ClientProvider, useClient };

@@ -1573,32 +1573,6 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@fetcher/react-core@0.0.19, @fetcher/react-core@workspace:packages/react-core":
-  version: 0.0.0-use.local
-  resolution: "@fetcher/react-core@workspace:packages/react-core"
-  dependencies:
-    "@fetcher/core": 0.0.19
-    "@types/node": 13.9.0
-    "@types/react": "*"
-    "@types/react-dom": "*"
-    "@typescript-eslint/eslint-plugin": 2.22.0
-    "@typescript-eslint/parser": 2.22.0
-    eslint: 7.11.0
-    eslint-config-prettier: 6.13.0
-    eslint-plugin-react-hooks: 4.1.2
-    prettier: 2.1.2
-    react: 16.14.0
-    react-dom: 16.14.0
-    rimraf: 3.0.2
-    typescript: 4.0.3
-  peerDependencies:
-    "@types/react": "*"
-    "@types/react-dom": "*"
-    react: ^16.8.0
-    react-dom: ^16.8.0
-  languageName: unknown
-  linkType: soft
-
 "@fetcher/react-example@workspace:packages/react-example":
   version: 0.0.0-use.local
   resolution: "@fetcher/react-example@workspace:packages/react-example"
@@ -1645,7 +1619,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@fetcher/react@workspace:packages/react"
   dependencies:
-    "@fetcher/react-core": 0.0.19
+    "@fetcher/core": 0.0.19
     "@fetcher/utils": 0.0.19
     "@types/node": 13.9.0
     "@types/react": "*"
@@ -1698,6 +1672,7 @@ __metadata:
     "@fetcher/core": ^0.0.19
     "@types/lodash.merge": 4.6.6
     "@types/node": 13.9.0
+    "@types/object-hash": 1.3.4
     "@typescript-eslint/eslint-plugin": 2.22.0
     "@typescript-eslint/parser": 2.22.0
     buffer: 5.6.0
@@ -1706,6 +1681,7 @@ __metadata:
     eslint-plugin-react-hooks: 4.1.2
     immer: 8.0.1
     lodash.merge: 4.6.2
+    object-hash: 2.1.1
     prettier: 2.1.2
     rimraf: 3.0.2
     typescript: 4.0.3
@@ -2262,6 +2238,13 @@ __metadata:
   version: 2.4.0
   resolution: "@types/normalize-package-data@npm:2.4.0"
   checksum: 6d077e73be7ac6227b678829c7bd765607136cdef537fd4ee7f368d9302a651aea924254d69826663322048436d90d6e7c679c9aa99c4824a687c568aab8ce4f
+  languageName: node
+  linkType: hard
+
+"@types/object-hash@npm:1.3.4":
+  version: 1.3.4
+  resolution: "@types/object-hash@npm:1.3.4"
+  checksum: 2ae12c7b341bcefb8f5e163527ab6afb911b3fdcdb2aeacac3231b13d5d5ddd4f75bde48268dd01727bac3488222b629808b20b6650364d011bb3c6692dd38e2
   languageName: node
   linkType: hard
 
@@ -7126,6 +7109,13 @@ fsevents@~2.1.2:
     define-property: ^0.2.5
     kind-of: ^3.0.3
   checksum: d91d46e54297cad0544f04e4dff4694f92aca9661f59ad7e803a1ba94a2bb24b38ca4fd59ea827d24c9bdc6f7148d5c838287ee4b2b9c5df9b445b1c0d7a066c
+  languageName: node
+  linkType: hard
+
+"object-hash@npm:2.1.1":
+  version: 2.1.1
+  resolution: "object-hash@npm:2.1.1"
+  checksum: fe49a0864cba7ac4055c604295692ae75f5f4d22ba929aaaa987469809d17ab030d1111e8f0d425a070fa4a78b8021b55260e26e98b66b59e0f7be2bd9069fb8
   languageName: node
   linkType: hard
 

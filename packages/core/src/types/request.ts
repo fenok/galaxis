@@ -37,3 +37,11 @@ export interface BaseMutation<C extends NonUndefined, D extends NonUndefined, E 
     optimisticData?: D;
     removeOptimisticData?(opts: CacheOptionsWithData<C, D, R>): C;
 }
+
+export interface Query<C extends NonUndefined, D extends NonUndefined, E extends Error, R>
+    extends BaseQuery<C, D, E, R> {
+    lazy?: boolean;
+}
+
+export interface Mutation<C extends NonUndefined, D extends NonUndefined, E extends Error, R>
+    extends BaseMutation<C, D, E, R> {}

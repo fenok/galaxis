@@ -1,4 +1,4 @@
-import { BaseQuery, NonUndefined } from '../types';
+import { NonUndefined, Query } from '../types';
 import { Client } from './Client';
 import { SsrPromisesManager } from './SsrPromisesManager';
 import { QueryCache, QueryState } from './QueryProcessor';
@@ -10,7 +10,7 @@ export interface QueryManagerOptions {
 
 export class QueryManager<C extends NonUndefined, D extends NonUndefined, E extends Error, R> {
     private forceUpdate: () => void;
-    private query!: BaseQuery<C, D, E, R>;
+    private query!: Query<C, D, E, R>;
     private client!: Client<C>;
     private ssrPromisesManager?: SsrPromisesManager;
     private loading = false;
@@ -28,7 +28,7 @@ export class QueryManager<C extends NonUndefined, D extends NonUndefined, E exte
         this.boundAbort = this.abort.bind(this);
     }
 
-    public process(query: BaseQuery<C, D, E, R>, client: Client<C>, ssrPromisesManager?: SsrPromisesManager) {
+    public process(query: Query<C, D, E, R>, client: Client<C>, ssrPromisesManager?: SsrPromisesManager) {
         if (this.query !== query || this.client !== client || this.ssrPromisesManager !== ssrPromisesManager) {
             this.cleanup();
 
@@ -67,6 +67,7 @@ export class QueryManager<C extends NonUndefined, D extends NonUndefined, E exte
         const queryResult = this.client.query(
             {
                 ...this.query,
+                fetchPolicy: this.query.lazy ? 'cache-only' : this.query.fetchPolicy,
                 abortSignal: this.abortController?.signal,
                 softAbortSignal: this.softAbortController?.signal,
                 forceNewRequestOnRequestMerge: refetch || this.query.forceNewRequestOnRequestMerge,

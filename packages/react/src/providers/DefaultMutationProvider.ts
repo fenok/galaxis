@@ -1,5 +1,5 @@
 import { DefaultRequest } from './DefaultRequestProvider';
-import { NonUndefined, BaseMutation } from '@fetcher/react-core';
+import { NonUndefined, BaseMutation } from '@fetcher/core';
 import { createContext, createElement, PropsWithChildren } from 'react';
 
 export type DefaultMutation<

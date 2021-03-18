@@ -1,4 +1,4 @@
-import { BaseRequest, NonUndefined } from '@fetcher/react-core';
+import { BaseRequest, NonUndefined } from '@fetcher/core';
 import { createContext, createElement, PropsWithChildren } from 'react';
 
 export type DefaultRequest<
