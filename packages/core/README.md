@@ -278,7 +278,7 @@ Extends [BaseRequest](#baserequest). Base queries can be executed by [Client](#c
 
 | Name                          | Type                                                                                             | Description                                                                                                                                                          | Required                                 |
 | ----------------------------- | ------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------- |
-| fetchPolicy                   | <code>'cache-only' &#124; 'cache-first' &#124; 'cache-and-network' &#124; 'no-cache'</code>      | [Fetch policy](#fetch-policies).                                                                                                                                     | Yes                                      |
+| fetchPolicy                   | <code>[FetchPolicy](#fetchpolicy)</code>                                                         | [Fetch policy](#fetch-policies).                                                                                                                                     | Yes                                      |
 | disableSsr                    | `boolean`                                                                                        | If `true`, the query will not be fetched on the server.                                                                                                              | No                                       |
 | preventExcessRequestOnHydrate | `boolean`                                                                                        | If `true`, the query won't be fetched on the client during the hydrate stage, if there is data **or error** in the cache. `fetchPolicy` option is ignored.           | No                                       |
 | forceNewRequestOnMerge        | `boolean`                                                                                        | If `true`, the query will start a new network request, if it's merged with the existing query.                                                                       | No                                       |
@@ -363,3 +363,7 @@ At the moment it is an alias for [BaseMutation](#basemutation). Reserved for pot
 #### NonUndefined
 
 Anything but `undefined`.
+
+#### FetchPolicy
+
+<code>'cache-only' &#124; 'cache-first' &#124; 'cache-and-network' &#124; 'no-cache'</code>
