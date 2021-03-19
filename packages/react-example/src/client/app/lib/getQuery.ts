@@ -1,4 +1,5 @@
-import { NonUndefined, getParametrizedQuery, Query } from '@fetcher/react';
+import { NonUndefined, Query } from '@fetcher/react';
+import { getParametrizedQuery } from '@fetcher/utils';
 import {
     RequestParams,
     ResponseError,

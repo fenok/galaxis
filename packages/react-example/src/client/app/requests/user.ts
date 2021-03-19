@@ -1,5 +1,5 @@
 import { getQuery } from '../lib/getQuery';
-import { immerify, memoize } from '@fetcher/react';
+import { immerify, memoize } from '@fetcher/utils';
 
 export interface User {
     id: number;

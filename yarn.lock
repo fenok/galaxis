@@ -1586,6 +1586,7 @@ __metadata:
     "@fetcher/in-memory-cache": 0.0.19
     "@fetcher/react": 0.0.19
     "@fetcher/typed-fetch-request": 0.0.19
+    "@fetcher/utils": 0.0.19
     "@types/express": 4.17.8
     "@types/lodash-es": 4.17.4
     "@types/memoizee": 0.4.5
@@ -1620,7 +1621,6 @@ __metadata:
   resolution: "@fetcher/react@workspace:packages/react"
   dependencies:
     "@fetcher/core": 0.0.19
-    "@fetcher/utils": 0.0.19
     "@types/node": 13.9.0
     "@types/react": "*"
     "@types/react-dom": "*"
@@ -1647,7 +1647,6 @@ __metadata:
   resolution: "@fetcher/typed-fetch-request@workspace:packages/typed-fetch-request"
   dependencies:
     "@fetcher/core": ^0.0.19
-    "@fetcher/utils": ^0.0.19
     "@types/node": 13.9.0
     "@typescript-eslint/eslint-plugin": 2.22.0
     "@typescript-eslint/parser": 2.22.0
@@ -1661,11 +1660,10 @@ __metadata:
     typescript: 4.0.3
   peerDependencies:
     "@fetcher/core": ^0.0.19
-    "@fetcher/utils": ^0.0.19
   languageName: unknown
   linkType: soft
 
-"@fetcher/utils@0.0.19, @fetcher/utils@^0.0.19, @fetcher/utils@workspace:packages/utils":
+"@fetcher/utils@0.0.19, @fetcher/utils@workspace:packages/utils":
   version: 0.0.0-use.local
   resolution: "@fetcher/utils@workspace:packages/utils"
   dependencies:

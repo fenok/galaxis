@@ -1,5 +1,6 @@
 import * as React from 'react';
-import { Client, Provider, objectHash, mergeDeepNonUndefined, NonUndefined } from '@fetcher/react';
+import { Client, Provider, NonUndefined } from '@fetcher/react';
+import { objectHash, mergeDeepNonUndefined } from '@fetcher/utils';
 import { UserDisplay } from '../UserDisplay';
 import {
     getRequestFactory,
@@ -28,7 +29,7 @@ const App: React.FC<Props> = ({ client, fetch }) => {
                     path: '',
                 },
                 getRequestFactory: getRequestFactory({ fetch, processResponse: processResponseJson }),
-                getRequestId: getRequestId,
+                getRequestId: getRequestId({ hash: objectHash }),
             }}
             defaultQuery={{
                 preventExcessRequestOnHydrate: true,

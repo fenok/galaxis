@@ -55,7 +55,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
       ["@fetcher/react", ["virtual:39adb0faa57969db6c58a50f46bb945c04a047b71dac39a622bd25be10980d4a8674c24033f2c15cfe66b4a5d4f0afd0f53a8a37311cf79d0b3977ef90bb2b3b#workspace:packages/react", "workspace:packages/react"]],
       ["@fetcher/react-example", ["workspace:packages/react-example"]],
       ["@fetcher/typed-fetch-request", ["virtual:39adb0faa57969db6c58a50f46bb945c04a047b71dac39a622bd25be10980d4a8674c24033f2c15cfe66b4a5d4f0afd0f53a8a37311cf79d0b3977ef90bb2b3b#workspace:packages/typed-fetch-request", "workspace:packages/typed-fetch-request"]],
-      ["@fetcher/utils", ["virtual:7d0e81df316b60d3846168366d17c43abedaa9b6b7dc2b475b1bfdd24865614794d5b5ab7204005630e415857904f82adbe65c0874776a7af5ab0de94c10aca7#workspace:packages/utils", "workspace:packages/utils"]],
+      ["@fetcher/utils", ["virtual:39adb0faa57969db6c58a50f46bb945c04a047b71dac39a622bd25be10980d4a8674c24033f2c15cfe66b4a5d4f0afd0f53a8a37311cf79d0b3977ef90bb2b3b#workspace:packages/utils", "workspace:packages/utils"]],
       ["fetcher", ["workspace:."]]
     ],
     "fallbackPool": [
@@ -2201,7 +2201,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageDependencies": [
             ["@fetcher/react", "virtual:39adb0faa57969db6c58a50f46bb945c04a047b71dac39a622bd25be10980d4a8674c24033f2c15cfe66b4a5d4f0afd0f53a8a37311cf79d0b3977ef90bb2b3b#workspace:packages/react"],
             ["@fetcher/core", "workspace:packages/core"],
-            ["@fetcher/utils", "virtual:7d0e81df316b60d3846168366d17c43abedaa9b6b7dc2b475b1bfdd24865614794d5b5ab7204005630e415857904f82adbe65c0874776a7af5ab0de94c10aca7#workspace:packages/utils"],
             ["@types/node", "npm:13.9.0"],
             ["@types/react", "npm:16.9.23"],
             ["@types/react-dom", "npm:16.9.5"],
@@ -2233,7 +2232,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageDependencies": [
             ["@fetcher/react", "workspace:packages/react"],
             ["@fetcher/core", "workspace:packages/core"],
-            ["@fetcher/utils", "virtual:7d0e81df316b60d3846168366d17c43abedaa9b6b7dc2b475b1bfdd24865614794d5b5ab7204005630e415857904f82adbe65c0874776a7af5ab0de94c10aca7#workspace:packages/utils"],
             ["@types/node", "npm:13.9.0"],
             ["@types/react", "npm:16.9.23"],
             ["@types/react-dom", "npm:16.9.5"],
@@ -2265,6 +2263,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@fetcher/in-memory-cache", "virtual:39adb0faa57969db6c58a50f46bb945c04a047b71dac39a622bd25be10980d4a8674c24033f2c15cfe66b4a5d4f0afd0f53a8a37311cf79d0b3977ef90bb2b3b#workspace:packages/in-memory-cache"],
             ["@fetcher/react", "virtual:39adb0faa57969db6c58a50f46bb945c04a047b71dac39a622bd25be10980d4a8674c24033f2c15cfe66b4a5d4f0afd0f53a8a37311cf79d0b3977ef90bb2b3b#workspace:packages/react"],
             ["@fetcher/typed-fetch-request", "virtual:39adb0faa57969db6c58a50f46bb945c04a047b71dac39a622bd25be10980d4a8674c24033f2c15cfe66b4a5d4f0afd0f53a8a37311cf79d0b3977ef90bb2b3b#workspace:packages/typed-fetch-request"],
+            ["@fetcher/utils", "virtual:39adb0faa57969db6c58a50f46bb945c04a047b71dac39a622bd25be10980d4a8674c24033f2c15cfe66b4a5d4f0afd0f53a8a37311cf79d0b3977ef90bb2b3b#workspace:packages/utils"],
             ["@types/express", "npm:4.17.8"],
             ["@types/lodash-es", "npm:4.17.4"],
             ["@types/memoizee", "npm:0.4.5"],
@@ -2301,9 +2300,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageDependencies": [
             ["@fetcher/typed-fetch-request", "virtual:39adb0faa57969db6c58a50f46bb945c04a047b71dac39a622bd25be10980d4a8674c24033f2c15cfe66b4a5d4f0afd0f53a8a37311cf79d0b3977ef90bb2b3b#workspace:packages/typed-fetch-request"],
             ["@fetcher/core", "workspace:packages/core"],
-            ["@fetcher/utils", "virtual:7d0e81df316b60d3846168366d17c43abedaa9b6b7dc2b475b1bfdd24865614794d5b5ab7204005630e415857904f82adbe65c0874776a7af5ab0de94c10aca7#workspace:packages/utils"],
             ["@types/fetcher__core", null],
-            ["@types/fetcher__utils", null],
             ["@types/node", "npm:13.9.0"],
             ["@typescript-eslint/eslint-plugin", "virtual:f779e5e0cc38834fa930f15ec8a4725df917eb76996fdb6c7229e819595ad2611f25dad7193bcaad659832cf3ae75cf76fd69137c1031c37b919da1909c5fbe3#npm:2.22.0"],
             ["@typescript-eslint/parser", "virtual:f779e5e0cc38834fa930f15ec8a4725df917eb76996fdb6c7229e819595ad2611f25dad7193bcaad659832cf3ae75cf76fd69137c1031c37b919da1909c5fbe3#npm:2.22.0"],
@@ -2317,8 +2314,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["typescript", "patch:typescript@npm%3A4.0.3#builtin<compat/typescript>::version=4.0.3&hash=5bf698"]
           ],
           "packagePeers": [
-            "@types/fetcher__core",
-            "@types/fetcher__utils"
+            "@types/fetcher__core"
           ],
           "linkType": "SOFT",
         }],
@@ -2327,7 +2323,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageDependencies": [
             ["@fetcher/typed-fetch-request", "workspace:packages/typed-fetch-request"],
             ["@fetcher/core", "workspace:packages/core"],
-            ["@fetcher/utils", "virtual:7d0e81df316b60d3846168366d17c43abedaa9b6b7dc2b475b1bfdd24865614794d5b5ab7204005630e415857904f82adbe65c0874776a7af5ab0de94c10aca7#workspace:packages/utils"],
             ["@types/node", "npm:13.9.0"],
             ["@typescript-eslint/eslint-plugin", "virtual:f779e5e0cc38834fa930f15ec8a4725df917eb76996fdb6c7229e819595ad2611f25dad7193bcaad659832cf3ae75cf76fd69137c1031c37b919da1909c5fbe3#npm:2.22.0"],
             ["@typescript-eslint/parser", "virtual:f779e5e0cc38834fa930f15ec8a4725df917eb76996fdb6c7229e819595ad2611f25dad7193bcaad659832cf3ae75cf76fd69137c1031c37b919da1909c5fbe3#npm:2.22.0"],
@@ -2344,10 +2339,10 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         }]
       ]],
       ["@fetcher/utils", [
-        ["virtual:7d0e81df316b60d3846168366d17c43abedaa9b6b7dc2b475b1bfdd24865614794d5b5ab7204005630e415857904f82adbe65c0874776a7af5ab0de94c10aca7#workspace:packages/utils", {
-          "packageLocation": "./.yarn/$$virtual/@fetcher-utils-virtual-d4a4478fed/1/packages/utils/",
+        ["virtual:39adb0faa57969db6c58a50f46bb945c04a047b71dac39a622bd25be10980d4a8674c24033f2c15cfe66b4a5d4f0afd0f53a8a37311cf79d0b3977ef90bb2b3b#workspace:packages/utils", {
+          "packageLocation": "./.yarn/$$virtual/@fetcher-utils-virtual-7b0e04716e/1/packages/utils/",
           "packageDependencies": [
-            ["@fetcher/utils", "virtual:7d0e81df316b60d3846168366d17c43abedaa9b6b7dc2b475b1bfdd24865614794d5b5ab7204005630e415857904f82adbe65c0874776a7af5ab0de94c10aca7#workspace:packages/utils"],
+            ["@fetcher/utils", "virtual:39adb0faa57969db6c58a50f46bb945c04a047b71dac39a622bd25be10980d4a8674c24033f2c15cfe66b4a5d4f0afd0f53a8a37311cf79d0b3977ef90bb2b3b#workspace:packages/utils"],
             ["@fetcher/core", "workspace:packages/core"],
             ["@types/fetcher__core", null],
             ["@types/lodash.merge", "npm:4.6.6"],
@@ -2366,7 +2361,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["typescript", "patch:typescript@npm%3A4.0.3#builtin<compat/typescript>::version=4.0.3&hash=5bf698"]
           ],
           "packagePeers": [
-            "@fetcher/core",
             "@types/fetcher__core"
           ],
           "linkType": "SOFT",
