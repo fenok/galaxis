@@ -152,7 +152,7 @@ export class QueryProcessor<C extends NonUndefined> {
                 currentQueryRequest.cacheableQuery = query;
             }
 
-            if (query.forceNewRequestOnRequestMerge) {
+            if (query.forceNewRequestOnMerge) {
                 currentQueryRequest.shouldRerun = true;
                 currentQueryRequest.abortController?.abort();
             }

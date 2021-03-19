@@ -70,7 +70,7 @@ export class QueryManager<C extends NonUndefined, D extends NonUndefined, E exte
                 fetchPolicy: this.query.lazy ? 'cache-only' : this.query.fetchPolicy,
                 abortSignal: this.abortController?.signal,
                 softAbortSignal: this.softAbortController?.signal,
-                forceNewRequestOnRequestMerge: refetch || this.query.forceNewRequestOnRequestMerge,
+                forceNewRequestOnMerge: refetch || this.query.forceNewRequestOnMerge,
             },
             { required: refetch },
         );

@@ -27,7 +27,7 @@ export interface BaseQuery<C extends NonUndefined, D extends NonUndefined, E ext
     fetchPolicy: FetchPolicy;
     disableSsr?: boolean;
     preventExcessRequestOnHydrate?: boolean;
-    forceNewRequestOnRequestMerge?: boolean;
+    forceNewRequestOnMerge?: boolean;
     softAbortSignal?: AbortSignal;
     fromCache?(opts: CacheOptions<C, R>): D | undefined;
 }
