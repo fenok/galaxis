@@ -252,13 +252,13 @@ const hasPromises = ssrPromisesManager.hasPromises();
 
 #### User-defined types
 
-| Name    | Scope            | Constraint                               | Description                                    |
-| ------- | ---------------- | ---------------------------------------- | ---------------------------------------------- |
-| `CACHE` | Client-specific  | Must extend <code>[Cache](#cache)</code> | Cache for storing normalized data and errors.  |
-| `C`     | Client-specific  | Anything but `undefined`                 | Cache data. Normalized data from all requests. |
-| `D`     | Request-specific | Anything but `undefined`                 | Query or mutation data.                        |
-| `E`     | Request-specific | Must extend `Error`                      | Query or mutation error.                       |
-| `R`     | Request-specific | None                                     | Query or mutation request parameters.          |
+| Name    | Scope            | Constraint                                             | Description                                    |
+| ------- | ---------------- | ------------------------------------------------------ | ---------------------------------------------- |
+| `CACHE` | Client-specific  | Must extend <code>[Cache](#cache)</code>               | Cache for storing normalized data and errors.  |
+| `C`     | Client-specific  | Must extend <code>[NonUndefined](#nonundefined)</code> | Cache data. Normalized data from all requests. |
+| `D`     | Request-specific | Must extend <code>[NonUndefined](#nonundefined)</code> | Query or mutation data.                        |
+| `E`     | Request-specific | Must extend `Error`                                    | Query or mutation error.                       |
+| `R`     | Request-specific | None                                                   | Query or mutation request parameters.          |
 
 #### BaseRequest
 
@@ -359,3 +359,7 @@ At the moment it is an alias for [BaseMutation](#basemutation). Reserved for pot
 | ----- | --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------- |
 | data  | <code>[C](#user-defined-types)</code>         | New cache data. Omit or set to `undefined` if no update is needed.                                                                                                                                     | No       |
 | error | <code>[string, Error &#124; undefined]</code> | New error. The first element of the tuple is the request id. The second one is the error value, where `undefined` means "clear error". Omit the tuple or set it to `undefined` if no update is needed. | No       |
+
+#### NonUndefined
+
+Anything but `undefined`.
