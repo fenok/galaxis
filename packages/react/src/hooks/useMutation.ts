@@ -15,7 +15,7 @@ export function useMutation() {
 
     const defaultRequest = useContext<DefaultRequest>(DefaultRequestContext);
     const defaultMutation = useContext<DefaultMutation>(DefaultMutationContext);
-    const requestParamsMerger = useContext<RequestParamsMerger<unknown, unknown, unknown>>(RequestParamsMergerContext);
+    const requestParamsMerger = useContext<RequestParamsMerger<unknown>>(RequestParamsMergerContext);
 
     const mutate = useCallback(
         <C extends NonUndefined, D extends NonUndefined, E extends Error, R>(

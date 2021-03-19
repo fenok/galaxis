@@ -14,7 +14,7 @@ export function useDefaultQueryMerger<C extends NonUndefined, D extends NonUndef
 ): Query<C, D, E, R> {
     const defaultRequest = useContext<DefaultRequest>(DefaultRequestContext);
     const defaultQuery = useContext<DefaultQuery>(DefaultQueryContext);
-    const requestParamsMerger = useContext<RequestParamsMerger<unknown, unknown, unknown>>(RequestParamsMergerContext);
+    const requestParamsMerger = useContext<RequestParamsMerger<unknown>>(RequestParamsMergerContext);
 
     return {
         ...defaultRequest,

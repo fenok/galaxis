@@ -1,5 +1,5 @@
 import { DefaultRequest } from './DefaultRequestProvider';
-import { NonUndefined, BaseQuery } from '@fetcher/core';
+import { NonUndefined, BaseQuery, FetchPolicy } from '@fetcher/core';
 import { createContext, createElement, PropsWithChildren } from 'react';
 
 export type DefaultQuery<
@@ -9,8 +9,8 @@ export type DefaultQuery<
     R = unknown
 > = Partial<DefaultRequest<C, D, E, R>> & Omit<BaseQuery<C, D, E, R>, keyof DefaultRequest<C, D, E, R>>;
 
-export const initialDefaultQuery: DefaultQuery = {
-    fetchPolicy: 'no-cache',
+export const initialDefaultQuery = {
+    fetchPolicy: 'no-cache' as FetchPolicy,
 };
 
 export const DefaultQueryContext = createContext<DefaultQuery>(initialDefaultQuery);

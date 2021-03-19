@@ -9,7 +9,7 @@ export type DefaultMutation<
     R = unknown
 > = Partial<DefaultRequest<C, D, E, R>> & Omit<BaseMutation<C, D, E, R>, keyof DefaultRequest<C, D, E, R>>;
 
-export const initialDefaultMutation: DefaultMutation = {};
+export const initialDefaultMutation = {};
 
 export const DefaultMutationContext = createContext<DefaultMutation>(initialDefaultMutation);
 

@@ -3,11 +3,11 @@ import { useContext, useEffect, createContext, FC, createElement } from 'react';
 
 const ClientContext = createContext<Client<NonUndefined> | null>(null);
 
-interface ProviderProps {
-    client: Client<NonUndefined>;
+export interface ClientProviderProps<C extends NonUndefined = NonUndefined, CACHE extends Cache<C> = Cache<C>> {
+    client: Client<C, CACHE>;
 }
 
-const ClientProvider: FC<ProviderProps> = ({ children, client }) => {
+const ClientProvider: FC<ClientProviderProps> = ({ children, client }) => {
     useEffect(() => {
         client.onHydrateComplete();
     }, [client]);

@@ -1,9 +1,16 @@
 import * as React from 'react';
-import { Client, Provider, objectHash, mergeDeepNonUndefined } from '@fetcher/react';
+import { Client, Provider, objectHash, mergeDeepNonUndefined, NonUndefined } from '@fetcher/react';
 import { UserDisplay } from '../UserDisplay';
-import { getRequestFactory, getRequestId, processResponseJson } from '@fetcher/typed-fetch-request';
+import {
+    getRequestFactory,
+    getRequestId,
+    processResponseJson,
+    RequestParams,
+    ResponseError,
+} from '@fetcher/typed-fetch-request';
 import { CacheData } from '../../lib/CacheData';
 import { InMemoryCache } from '@fetcher/in-memory-cache';
+import { ErrorResponse } from '../../lib/ErrorResponse';
 
 interface Props {
     client: Client<CacheData, InMemoryCache<CacheData>>;
@@ -13,11 +20,12 @@ interface Props {
 const App: React.FC<Props> = ({ client, fetch }) => {
     console.log('APP_RENDER');
     return (
-        <Provider
+        <Provider<CacheData, InMemoryCache<CacheData>, NonUndefined, ResponseError<ErrorResponse>, RequestParams>
             client={client}
             request={{
                 requestParams: {
                     root: 'https://jsonplaceholder.typicode.com',
+                    path: '',
                 },
                 getRequestFactory: getRequestFactory({ fetch, processResponse: processResponseJson }),
                 getRequestId: getRequestId,
