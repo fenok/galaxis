@@ -5,8 +5,8 @@ import {
     DefaultQueryContext,
     DefaultRequest,
     DefaultRequestContext,
-    RequestParamsMerger,
-    RequestParamsMergerContext,
+    MergeRequestParams,
+    MergeRequestParamsContext,
 } from '../providers';
 
 export function useDefaultQueryMerger<C extends NonUndefined, D extends NonUndefined, E extends Error, R>(
@@ -14,7 +14,7 @@ export function useDefaultQueryMerger<C extends NonUndefined, D extends NonUndef
 ): Query<C, D, E, R> {
     const defaultRequest = useContext<DefaultRequest>(DefaultRequestContext);
     const defaultQuery = useContext<DefaultQuery>(DefaultQueryContext);
-    const requestParamsMerger = useContext<RequestParamsMerger<unknown>>(RequestParamsMergerContext);
+    const requestParamsMerger = useContext<MergeRequestParams<unknown>>(MergeRequestParamsContext);
 
     return {
         ...defaultRequest,

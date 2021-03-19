@@ -26,12 +26,12 @@ export interface DefaultRequestProviderOptions<
     E extends Error = Error,
     R = unknown
 > {
-    request: DefaultRequest<C, D, E, R>;
+    defaultRequest: DefaultRequest<C, D, E, R>;
 }
 
 export const DefaultRequestProvider = <C extends NonUndefined, D extends NonUndefined, E extends Error, R>({
-    request,
+    defaultRequest,
     children,
 }: PropsWithChildren<DefaultRequestProviderOptions<C, D, E, R>>) => {
-    return createElement(DefaultRequestContext.Provider, { value: request }, children);
+    return createElement(DefaultRequestContext.Provider, { value: defaultRequest }, children);
 };

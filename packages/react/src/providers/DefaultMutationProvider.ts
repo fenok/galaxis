@@ -19,12 +19,12 @@ export interface DefaultMutationProviderOptions<
     E extends Error = Error,
     R = unknown
 > {
-    mutation: DefaultMutation<C, D, E, R>;
+    defaultMutation: DefaultMutation<C, D, E, R>;
 }
 
 export const DefaultMutationProvider = <C extends NonUndefined, D extends NonUndefined, E extends Error, R = unknown>({
-    mutation,
+    defaultMutation,
     children,
 }: PropsWithChildren<DefaultMutationProviderOptions<C, D, E, R>>) => {
-    return createElement(DefaultMutationContext.Provider, { value: mutation }, children);
+    return createElement(DefaultMutationContext.Provider, { value: defaultMutation }, children);
 };

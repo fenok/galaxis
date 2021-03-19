@@ -3,5 +3,5 @@ export * from './DefaultRequestProvider';
 export * from './DefaultQueryProvider';
 export * from './DefaultMutationProvider';
 export * from './Provider';
-export * from './RequestHashGetterProvider';
-export * from './RequestParamsMergerProvider';
+export * from './HashRequestProvider';
+export * from './MergeRequestParamsProvider';

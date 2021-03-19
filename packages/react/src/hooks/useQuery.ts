@@ -1,6 +1,6 @@
 import { QueryManager, NonUndefined, Query } from '@fetcher/core';
 import { useContext, useEffect, useReducer, useRef } from 'react';
-import { RequestHashGetterContext, useClient } from '../providers';
+import { HashRequestContext, useClient } from '../providers';
 import { SsrPromisesManagerContext } from '../ssr';
 import { useDefaultQueryMerger } from './useDefaultQueryMerger';
 
@@ -9,7 +9,7 @@ export function useQuery<C extends NonUndefined, D extends NonUndefined, E exten
 ) {
     const client = useClient<C>();
     const ssrPromisesManager = useContext(SsrPromisesManagerContext);
-    const getQueryHash = useContext(RequestHashGetterContext);
+    const getQueryHash = useContext(HashRequestContext);
 
     const completeQuery = useDefaultQueryMerger<C, D, E, R>(query);
 

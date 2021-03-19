@@ -3,8 +3,8 @@ import {
     DefaultMutationContext,
     DefaultRequest,
     DefaultRequestContext,
-    RequestParamsMerger,
-    RequestParamsMergerContext,
+    MergeRequestParams,
+    MergeRequestParamsContext,
     useClient,
 } from '../providers';
 import { NonUndefined, Mutation } from '@fetcher/core';
@@ -15,7 +15,7 @@ export function useMutation() {
 
     const defaultRequest = useContext<DefaultRequest>(DefaultRequestContext);
     const defaultMutation = useContext<DefaultMutation>(DefaultMutationContext);
-    const requestParamsMerger = useContext<RequestParamsMerger<unknown>>(RequestParamsMergerContext);
+    const requestParamsMerger = useContext<MergeRequestParams<unknown>>(MergeRequestParamsContext);
 
     const mutate = useCallback(
         <C extends NonUndefined, D extends NonUndefined, E extends Error, R>(

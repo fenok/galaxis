@@ -21,12 +21,12 @@ export interface DefaultQueryProviderOptions<
     E extends Error = Error,
     R = unknown
 > {
-    query: DefaultQuery<C, D, E, R>;
+    defaultQuery: DefaultQuery<C, D, E, R>;
 }
 
 export const DefaultQueryProvider = <C extends NonUndefined, D extends NonUndefined, E extends Error, R>({
-    query,
+    defaultQuery,
     children,
 }: PropsWithChildren<DefaultQueryProviderOptions<C, D, E, R>>) => {
-    return createElement(DefaultQueryContext.Provider, { value: query }, children);
+    return createElement(DefaultQueryContext.Provider, { value: defaultQuery }, children);
 };

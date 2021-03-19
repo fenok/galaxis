@@ -1,14 +1,14 @@
 import { ComponentType, createElement, PropsWithChildren } from 'react';
 import { DefaultRequestProvider, DefaultRequestProviderOptions } from './DefaultRequestProvider';
-import { DefaultQueryProvider, DefaultQueryProviderOptions, initialDefaultQuery } from './DefaultQueryProvider';
+import { DefaultQueryProvider, DefaultQueryProviderOptions } from './DefaultQueryProvider';
 import {
     DefaultMutationProvider,
     DefaultMutationProviderOptions,
     initialDefaultMutation,
 } from './DefaultMutationProvider';
 import { ClientProvider, ClientProviderProps } from './ClientProvider';
-import { RequestHashGetterProvider, RequestHashGetterProviderOptions } from './RequestHashGetterProvider';
-import { RequestParamsMergerProvider, RequestParamsMergerProviderOptions } from './RequestParamsMergerProvider';
+import { HashRequestProvider, HashRequestProviderOptions } from './HashRequestProvider';
+import { MergeRequestParamsProvider, MergeRequestParamsProviderOptions } from './MergeRequestParamsProvider';
 import { NonUndefined, Cache } from '@fetcher/core';
 
 export type ProviderOptions<
@@ -19,18 +19,18 @@ export type ProviderOptions<
     R
 > = ClientProviderProps<C, CACHE> &
     DefaultRequestProviderOptions<C, D, E, R> &
-    Partial<DefaultQueryProviderOptions<C, D, E, R>> &
+    DefaultQueryProviderOptions<C, D, E, R> &
     Partial<DefaultMutationProviderOptions<C, D, E, R>> &
-    RequestHashGetterProviderOptions &
-    RequestParamsMergerProviderOptions<R>;
+    HashRequestProviderOptions &
+    MergeRequestParamsProviderOptions<R>;
 
 export const Provider = <C extends NonUndefined, CACHE extends Cache<C>, D extends NonUndefined, E extends Error, R>({
     client,
-    request,
-    query = initialDefaultQuery,
-    mutation = initialDefaultMutation,
-    requestHashGetter,
-    requestParamsMerger,
+    defaultRequest,
+    defaultQuery,
+    defaultMutation = initialDefaultMutation,
+    hashRequest,
+    mergeRequestParams,
     children,
 }: PropsWithChildren<ProviderOptions<C, CACHE, D, E, R>>) => {
     return createElement(
@@ -38,19 +38,19 @@ export const Provider = <C extends NonUndefined, CACHE extends Cache<C>, D exten
         { client },
         createElement(
             DefaultRequestProvider,
-            { request },
+            { defaultRequest },
             createElement(
                 DefaultQueryProvider,
-                { query },
+                { defaultQuery },
                 createElement(
                     DefaultMutationProvider,
-                    { mutation },
+                    { defaultMutation },
                     createElement(
-                        RequestHashGetterProvider,
-                        { requestHashGetter },
+                        HashRequestProvider,
+                        { hashRequest },
                         createElement(
-                            RequestParamsMergerProvider as ComponentType<RequestParamsMergerProviderOptions<R>>,
-                            { requestParamsMerger },
+                            MergeRequestParamsProvider as ComponentType<MergeRequestParamsProviderOptions<R>>,
+                            { mergeRequestParams },
                             children,
                         ),
                     ),

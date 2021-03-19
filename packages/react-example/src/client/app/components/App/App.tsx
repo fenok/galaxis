@@ -22,7 +22,7 @@ const App: React.FC<Props> = ({ client, fetch }) => {
     return (
         <Provider<CacheData, InMemoryCache<CacheData>, NonUndefined, ResponseError<ErrorResponse>, RequestParams>
             client={client}
-            request={{
+            defaultRequest={{
                 requestParams: {
                     root: 'https://jsonplaceholder.typicode.com',
                     path: '',
@@ -30,12 +30,12 @@ const App: React.FC<Props> = ({ client, fetch }) => {
                 getRequestFactory: getRequestFactory({ fetch, processResponse: processResponseJson }),
                 getRequestId: getRequestId,
             }}
-            query={{
+            defaultQuery={{
                 preventExcessRequestOnHydrate: true,
                 fetchPolicy: 'cache-and-network',
             }}
-            requestHashGetter={objectHash}
-            requestParamsMerger={mergeDeepNonUndefined}
+            hashRequest={objectHash}
+            mergeRequestParams={mergeDeepNonUndefined}
         >
             <UserDisplay variant={1} />
             <UserDisplay variant={2} />
