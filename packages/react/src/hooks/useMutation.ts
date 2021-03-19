@@ -1,38 +1,19 @@
-import {
-    DefaultMutation,
-    DefaultMutationContext,
-    DefaultRequest,
-    DefaultRequestContext,
-    MergeRequestParams,
-    MergeRequestParamsContext,
-    useClient,
-} from '../providers';
-import { NonUndefined, Mutation } from '@fetcher/core';
-import { useCallback, useContext } from 'react';
+import { useClient } from '../providers';
+import { Mutation, NonUndefined } from '@fetcher/core';
+import { useGetCompleteMutation } from './useGetCompleteMutation';
+import { useMemoOnce } from './useMemoOnce';
 
 export function useMutation() {
     const client = useClient();
+    const getCompleteMutation = useGetCompleteMutation();
 
-    const defaultRequest = useContext<DefaultRequest>(DefaultRequestContext);
-    const defaultMutation = useContext<DefaultMutation>(DefaultMutationContext);
-    const requestParamsMerger = useContext<MergeRequestParams<unknown>>(MergeRequestParamsContext);
-
-    const mutate = useCallback(
+    const mutate = useMemoOnce(
         <C extends NonUndefined, D extends NonUndefined, E extends Error, R>(
             mutation: Partial<Mutation<C, D, E, R>>,
         ) => {
-            return client.mutate({
-                ...defaultRequest,
-                ...defaultMutation,
-                ...mutation,
-                requestParams: requestParamsMerger(
-                    defaultRequest.requestParams,
-                    defaultMutation.requestParams,
-                    mutation.requestParams,
-                ),
-            } as Mutation<C, D, E, R>);
+            return client.mutate(getCompleteMutation(mutation));
         },
-        [client, defaultMutation, defaultRequest, requestParamsMerger],
+        [client, getCompleteMutation],
     );
 
     return { mutate };

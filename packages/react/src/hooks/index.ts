@@ -1,3 +1,4 @@
 export * from './useQuery';
 export * from './useMutation';
-export * from './useDefaultQueryMerger';
+export * from './useGetCompleteQuery';
+export * from './useGetCompleteMutation';

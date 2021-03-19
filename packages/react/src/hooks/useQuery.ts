@@ -2,7 +2,7 @@ import { QueryManager, NonUndefined, Query } from '@fetcher/core';
 import { useContext, useEffect, useReducer, useRef } from 'react';
 import { HashRequestContext, useClient } from '../providers';
 import { SsrPromisesManagerContext } from '../ssr';
-import { useDefaultQueryMerger } from './useDefaultQueryMerger';
+import { useGetCompleteQuery } from './useGetCompleteQuery';
 
 export function useQuery<C extends NonUndefined, D extends NonUndefined, E extends Error, R>(
     query: Partial<Query<C, D, E, R>>,
@@ -11,7 +11,7 @@ export function useQuery<C extends NonUndefined, D extends NonUndefined, E exten
     const ssrPromisesManager = useContext(SsrPromisesManagerContext);
     const getQueryHash = useContext(HashRequestContext);
 
-    const completeQuery = useDefaultQueryMerger<C, D, E, R>(query);
+    const completeQuery = useGetCompleteQuery()(query);
 
     const [, forceUpdate] = useReducer((i: number) => i + 1, 0);
 
