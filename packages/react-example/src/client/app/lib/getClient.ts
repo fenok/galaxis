@@ -20,19 +20,21 @@ export interface GetClientOptions {
     fetch?: typeof fetch;
 }
 
-export function getClient({ fetch }: GetClientOptions) {
+export type AppClient = Client<
+    CacheData,
+    InMemoryCache<CacheData>,
+    NonUndefined,
+    ResponseError<ErrorResponse>,
+    GlobalStaticRequestParams
+>;
+
+export function getClient({ fetch }: GetClientOptions): AppClient {
     const defaultRequest = {
         getRequestFactory: getRequestFactory({ fetch, processResponse: processResponseJson }),
         getRequestId: getRequestId({ hash: objectHash }),
     };
 
-    return new Client<
-        CacheData,
-        InMemoryCache<CacheData>,
-        NonUndefined,
-        ResponseError<ErrorResponse>,
-        GlobalStaticRequestParams
-    >({
+    return new Client({
         cache: new InMemoryCache({
             initialState: typeof window !== 'undefined' ? window.FETCHER_STATE : undefined,
             emptyData: EMPTY_DATA,

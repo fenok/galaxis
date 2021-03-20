@@ -1,20 +1,11 @@
 import * as React from 'react';
-import { Client, ClientProvider, NonUndefined } from '@fetcher/react';
-import { UserDisplay } from '../UserDisplay';
-import { CacheData } from '../../lib/CacheData';
-import { InMemoryCache } from '@fetcher/in-memory-cache';
-import { GlobalStaticRequestParams, ResponseError } from '@fetcher/typed-fetch-request';
-import { ErrorResponse } from '../../lib/ErrorResponse';
 import { useState } from 'react';
+import { ClientProvider } from '@fetcher/react';
+import { UserDisplay } from '../UserDisplay';
+import { AppClient } from '../../lib/getClient';
 
 interface Props {
-    client: Client<
-        CacheData,
-        InMemoryCache<CacheData>,
-        NonUndefined,
-        ResponseError<ErrorResponse>,
-        GlobalStaticRequestParams
-    >;
+    client: AppClient;
 }
 
 const App: React.FC<Props> = ({ client }) => {
