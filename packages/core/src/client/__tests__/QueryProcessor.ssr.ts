@@ -15,14 +15,14 @@ it('does not return promise if there is error in cache', async () => {
 
     const firstItemRequest = getFailingFirstItemRequest();
 
-    const queryResult = queryProcessor.query(firstItemRequest);
+    const queryResult = queryProcessor.watchQuery(firstItemRequest);
 
     await expect(queryResult.request).rejects.toEqual(getNetworkError());
 
     const dataFromCache = queryProcessor.getQueryState(firstItemRequest);
     expect(dataFromCache.cache).toMatchObject({ data: undefined, error: getNetworkError() });
 
-    const nextQueryResult = queryProcessor.query(firstItemRequest);
+    const nextQueryResult = queryProcessor.watchQuery(firstItemRequest);
 
     const postQueryDataFromCache = queryProcessor.getQueryState(firstItemRequest);
     expect(postQueryDataFromCache.cache).toMatchObject({ data: undefined, error: getNetworkError() });
@@ -39,7 +39,7 @@ it('does not return promise if there is data in cache', async () => {
 
     const firstItemRequest = getFirstItemRequest();
 
-    const queryResult = queryProcessor.query(firstItemRequest);
+    const queryResult = queryProcessor.watchQuery(firstItemRequest);
 
     await expect(queryResult.request).resolves.toEqual(FIRST_ITEM);
 
@@ -47,7 +47,7 @@ it('does not return promise if there is data in cache', async () => {
 
     expect(dataFromCache.cache).toMatchObject({ data: FIRST_ITEM, error: undefined });
 
-    const nextQueryResult = queryProcessor.query(firstItemRequest);
+    const nextQueryResult = queryProcessor.watchQuery(firstItemRequest);
 
     expect(nextQueryResult.request).toEqual(undefined);
 
@@ -61,7 +61,7 @@ it('can opt-out from returning the promise', () => {
 
     const firstItemRequest = getFirstItemRequest();
 
-    const queryResult = queryProcessor.query({ ...firstItemRequest, disableSsr: true });
+    const queryResult = queryProcessor.watchQuery({ ...firstItemRequest, disableSsr: true });
     expect(queryResult.request).toEqual(undefined);
 
     const dataFromCache = queryProcessor.getQueryState(firstItemRequest);

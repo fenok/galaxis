@@ -1,7 +1,7 @@
-import { QueryProcessor, QueryResult, QueryState, QueryRequestFlags } from './QueryProcessor';
+import { QueryProcessor, QueryState } from './QueryProcessor';
 import { MutationProcessor } from './MutationProcessor';
 import { RequestQueue } from './RequestQueue';
-import { NonUndefined, Cache, BaseQuery, BaseMutation } from '../types';
+import { BaseMutation, BaseQuery, Cache, NonUndefined } from '../types';
 
 interface ClientOptions<
     C extends NonUndefined = NonUndefined,
@@ -77,29 +77,6 @@ class Client<
         return this.cache;
     }
 
-    public subscribe<D extends BD, E extends BE, R extends BR>(
-        query: BaseQuery<C, D, E, R>,
-        onChange: (state: QueryState<D, E>) => void,
-    ) {
-        let currentState = this.getQueryState(query);
-
-        if (currentState.cache) {
-            return {
-                queryState: currentState,
-                unsubscribe: this.cache.subscribe(() => {
-                    const newState = this.getQueryState(query);
-
-                    if (!this.areQueryStatesEqual(currentState, newState)) {
-                        currentState = newState;
-                        onChange(newState);
-                    }
-                }),
-            };
-        }
-
-        throw new Error("Couldn't subscribe to cache, most likely due to 'no-cache' fetch policy");
-    }
-
     public onHydrateComplete() {
         this.queryProcessor.onHydrateComplete();
     }
@@ -108,23 +85,19 @@ class Client<
         return this.queryProcessor.getQueryState(this.getMergedQuery(query));
     }
 
-    public query<D extends BD, E extends BE, R extends BR>(
+    public query<D extends BD, E extends BE, R extends BR>(query: BaseQuery<C, D, E, R>): Promise<D> {
+        return this.queryProcessor.query(this.getMergedQuery(query));
+    }
+
+    public watchQuery<D extends BD, E extends BE, R extends BR>(
         query: BaseQuery<C, D, E, R>,
-        requestFlags?: Partial<QueryRequestFlags>,
-    ): QueryResult<D, E> {
-        return this.queryProcessor.query(this.getMergedQuery(query), requestFlags);
+        onChange?: (state: QueryState<D, E>) => void,
+    ) {
+        return this.queryProcessor.watchQuery(this.getMergedQuery(query), onChange);
     }
 
     public async mutate<D extends BD, E extends BE, R extends BR>(mutation: BaseMutation<C, D, E, R>): Promise<D> {
         return this.mutationProcessor.mutate(this.getMergedMutation(mutation));
-    }
-
-    private areQueryStatesEqual<D extends NonUndefined, E extends Error>(
-        a: QueryState<D, E>,
-        b: QueryState<D, E>,
-    ): boolean {
-        // Since we compare states of the same query, that's all we need, as flags are the same if data and error are.
-        return a.cache?.error === b.cache?.error && a.cache?.data === b.cache?.data;
     }
 
     private getMergedQuery<D extends BD, E extends BE, R extends BR>(

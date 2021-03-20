@@ -73,36 +73,39 @@ export class QueryManager<C extends NonUndefined, D extends NonUndefined, E exte
     private performRequest(refetch?: boolean): Promise<D> | undefined {
         this.ensureAbortControllers();
 
-        const queryResult = this.client.query(
-            {
-                ...this.query,
-                fetchPolicy: this.query.lazy ? 'cache-only' : this.query.fetchPolicy,
-                abortSignal: this.abortController?.signal,
-                softAbortSignal: this.softAbortController?.signal,
-                forceNewRequestOnMerge: refetch || this.query.forceNewRequestOnMerge,
-            },
-            { required: refetch },
-        );
+        const query = {
+            ...this.query,
+            fetchPolicy: this.query.lazy ? 'cache-only' : this.query.fetchPolicy,
+            abortSignal: this.abortController?.signal,
+            softAbortSignal: this.softAbortController?.signal,
+            forceNewRequestOnMerge: refetch || this.query.forceNewRequestOnMerge,
+        };
 
-        this.loading = refetch || queryResult.requestFlags.required;
+        let request: Promise<D> | undefined;
 
         if (!refetch) {
-            try {
-                const { queryState, unsubscribe } = this.client.subscribe(this.query, this.onExternalChange.bind(this));
-                this.queryCache = queryState.cache;
-                this.unsubscribe = unsubscribe;
-            } catch {
+            const queryResult = this.client.watchQuery(query, this.onExternalChange.bind(this));
+            this.loading = queryResult.requestFlags.required;
+            request = queryResult.request;
+
+            if (queryResult.cache && queryResult.unsubscribe) {
+                this.queryCache = queryResult.cache;
+                this.unsubscribe = queryResult.unsubscribe;
+            } else {
                 this.queryCache = { data: undefined, error: undefined };
             }
+        } else {
+            request = this.client.query(query);
+            this.loading = true;
         }
 
-        if (this.ssrPromisesManager && queryResult.request) {
-            this.ssrPromisesManager.addPromise(queryResult.request);
+        if (this.ssrPromisesManager && request && !refetch) {
+            this.ssrPromisesManager.addPromise(request);
         }
 
         const callId = ++this.requestCallId;
 
-        return queryResult.request
+        return request
             ?.then((data) => {
                 if (this.requestCallId === callId) {
                     this.loading = false;

@@ -60,19 +60,35 @@ export class QueryProcessor<C extends NonUndefined> {
         this.ongoingRequests = {};
     }
 
-    public query<D extends NonUndefined, E extends Error, R>(
-        query: BaseQuery<C, D, E, R>,
-        requestFlags?: Partial<QueryRequestFlags>,
-    ): QueryResult<D, E> {
+    public query<D extends NonUndefined, E extends Error, R>(query: BaseQuery<C, D, E, R>): Promise<D> {
         const requestId = query.getRequestId ? query.getRequestId(query) : this.hash(query.requestParams);
-        const queryState = this.getQueryState(query);
+        return this.getRequestPromise(query, requestId);
+    }
 
-        const requestRequired = requestFlags?.required ?? queryState.requestFlags.required;
-        const requestAllowed = requestFlags?.allowed ?? queryState.requestFlags.allowed;
+    public watchQuery<D extends NonUndefined, E extends Error, R>(
+        query: BaseQuery<C, D, E, R>,
+        onChange?: (state: QueryState<D, E>) => void,
+    ) {
+        const requestId = query.getRequestId ? query.getRequestId(query) : this.hash(query.requestParams);
+        let queryState = this.getQueryState(query);
 
         return {
             ...queryState,
-            request: requestRequired && requestAllowed ? this.getRequestPromise(query, requestId) : undefined,
+            request:
+                queryState.requestFlags.required && queryState.requestFlags.allowed
+                    ? this.getRequestPromise(query, requestId)
+                    : undefined,
+            unsubscribe:
+                queryState.cache && onChange
+                    ? this.cache.subscribe(() => {
+                          const newState = this.getQueryState(query);
+
+                          if (!this.areQueryStatesEqual(queryState, newState)) {
+                              queryState = newState;
+                              onChange(newState);
+                          }
+                      })
+                    : undefined,
         };
     }
 
@@ -269,5 +285,13 @@ export class QueryProcessor<C extends NonUndefined> {
 
     private isFetchPolicy(fetchPolicy: FetchPolicy | undefined, value: FetchPolicy): boolean {
         return (fetchPolicy || 'cache-only') === value;
+    }
+
+    private areQueryStatesEqual<D extends NonUndefined, E extends Error>(
+        a: QueryState<D, E>,
+        b: QueryState<D, E>,
+    ): boolean {
+        // Since we compare states of the same query, that's all we need, as flags are the same if data and error are.
+        return a.cache?.error === b.cache?.error && a.cache?.data === b.cache?.data;
     }
 }
