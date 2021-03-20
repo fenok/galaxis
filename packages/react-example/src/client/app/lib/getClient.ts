@@ -22,9 +22,6 @@ export interface GetClientOptions {
 
 export function getClient({ fetch }: GetClientOptions) {
     const defaultRequest = {
-        requestParams: {
-            root: 'https://jsonplaceholder.typicode.com',
-        },
         getRequestFactory: getRequestFactory({ fetch, processResponse: processResponseJson }),
         getRequestId: getRequestId({ hash: objectHash }),
     };
