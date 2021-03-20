@@ -21,5 +21,10 @@ export type StaticRequestParams = {
     path: string;
 };
 
+export type GlobalStaticRequestParams = {
+    root?: string;
+};
+
 export type RequestParams<T extends RequestParamsConstraint = RequestParamsConstraint> = DynamicRequestParams<T> &
-    StaticRequestParams;
+    StaticRequestParams &
+    GlobalStaticRequestParams;
