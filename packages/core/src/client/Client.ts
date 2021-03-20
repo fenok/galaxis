@@ -4,7 +4,7 @@ import { RequestQueue } from './RequestQueue';
 import { NonUndefined, Cache, BaseQuery, BaseMutation } from '../types';
 
 interface ClientOptions<
-    C extends NonUndefined,
+    C extends NonUndefined = NonUndefined,
     CACHE extends Cache<C> = Cache<C>,
     BD extends NonUndefined = NonUndefined,
     BE extends Error = Error,
@@ -18,7 +18,7 @@ interface ClientOptions<
 }
 
 class Client<
-    C extends NonUndefined,
+    C extends NonUndefined = NonUndefined,
     CACHE extends Cache<C> = Cache<C>,
     BD extends NonUndefined = NonUndefined,
     BE extends Error = Error,

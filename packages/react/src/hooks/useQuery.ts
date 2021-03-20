@@ -4,7 +4,7 @@ import { useClient } from '../providers';
 import { SsrPromisesManagerContext } from '../ssr';
 
 export function useQuery<C extends NonUndefined, D extends NonUndefined, E extends Error, R>(query: Query<C, D, E, R>) {
-    const client = useClient<C>();
+    const client = useClient();
     const ssrPromisesManager = useContext(SsrPromisesManagerContext);
 
     const [, forceUpdate] = useReducer((i: number) => i + 1, 0);
@@ -18,5 +18,5 @@ export function useQuery<C extends NonUndefined, D extends NonUndefined, E exten
         };
     }, []);
 
-    return queryManager.current.process(query, client, ssrPromisesManager ?? undefined);
+    return queryManager.current.process(query, client, ssrPromisesManager);
 }

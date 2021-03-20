@@ -13,7 +13,7 @@ export class QueryManager<C extends NonUndefined, D extends NonUndefined, E exte
     private defaultQueryHash: string | number = '';
     private queryHash: string | number = '';
     private query!: Query<C, D, E, R>;
-    private client!: Client<C>;
+    private client!: Client;
     private ssrPromisesManager?: SsrPromisesManager;
     private loading = false;
     private queryCache?: QueryCache<D, E>;
@@ -30,7 +30,7 @@ export class QueryManager<C extends NonUndefined, D extends NonUndefined, E exte
         this.boundAbort = this.abort.bind(this);
     }
 
-    public process(query: Query<C, D, E, R>, client: Client<C>, ssrPromisesManager?: SsrPromisesManager) {
+    public process(query: Query<C, D, E, R>, client: Client, ssrPromisesManager?: SsrPromisesManager) {
         if (
             this.client !== client ||
             this.queryHash !== this.client.getHash(query) ||
