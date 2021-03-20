@@ -1,5 +1,5 @@
 import { RequestQueue } from '../client/RequestQueue';
-import { InternalQuery, InternalRequest, RequestOptions } from '../types';
+import { BaseQuery, BaseRequest, RequestOptions } from '../types';
 import { QueryProcessor } from '../client/QueryProcessor';
 import { TestCache } from './TestCache';
 import { wait } from '../promise';
@@ -88,20 +88,20 @@ export const INITIAL_CACHE_DATA: TestCacheData = {
     items: {},
 };
 
-export const BASE_REQUEST: Pick<InternalRequest<TestCacheData, ItemEntity, Error, TestRequestInit>, 'getRequestId'> = {
+export const BASE_REQUEST: Pick<BaseRequest<TestCacheData, ItemEntity, Error, TestRequestInit>, 'getRequestId'> = {
     getRequestId({ requestParams }: RequestOptions<TestRequestInit>): string {
         return Buffer.from(JSON.stringify(requestParams)).toString('base64');
     },
 };
 
 export const BASE_QUERY: typeof BASE_REQUEST &
-    Pick<InternalQuery<TestCacheData, ItemEntity, Error, TestRequestInit>, 'fetchPolicy'> = {
+    Pick<BaseQuery<TestCacheData, ItemEntity, Error, TestRequestInit>, 'fetchPolicy'> = {
     ...BASE_REQUEST,
     fetchPolicy: 'cache-and-network',
 };
 
 export const ITEM_REQUEST: Omit<
-    InternalQuery<TestCacheData, ItemEntity, Error, TestRequestInit>,
+    BaseQuery<TestCacheData, ItemEntity, Error, TestRequestInit>,
     'requestParams' | 'getRequestFactory'
 > = {
     ...BASE_QUERY,
@@ -115,7 +115,7 @@ export const ITEM_REQUEST: Omit<
 
 export function getFirstItemRequest(
     getRequestFactory = getGetRequestFactory(),
-): InternalQuery<TestCacheData, ItemEntity, Error, TestRequestInit> {
+): BaseQuery<TestCacheData, ItemEntity, Error, TestRequestInit> {
     return {
         ...ITEM_REQUEST,
         getRequestFactory,
@@ -123,7 +123,7 @@ export function getFirstItemRequest(
     };
 }
 
-export function getFailingFirstItemRequest(): InternalQuery<TestCacheData, ItemEntity, Error, TestRequestInit> {
+export function getFailingFirstItemRequest(): BaseQuery<TestCacheData, ItemEntity, Error, TestRequestInit> {
     return {
         ...ITEM_REQUEST,
         getRequestFactory: () => () => Promise.reject(getNetworkError()),
@@ -133,7 +133,7 @@ export function getFailingFirstItemRequest(): InternalQuery<TestCacheData, ItemE
 
 export function getSecondItemRequest(
     getRequestFactory = getGetRequestFactory(),
-): InternalQuery<TestCacheData, ItemEntity, Error, TestRequestInit> {
+): BaseQuery<TestCacheData, ItemEntity, Error, TestRequestInit> {
     return {
         ...ITEM_REQUEST,
         getRequestFactory,
@@ -153,6 +153,9 @@ export function getQueryProcessor(requestQueue = getRequestQueue(), cache = getC
     return new QueryProcessor({
         cache,
         requestQueue,
+        hash(value: unknown): string {
+            return JSON.stringify(value);
+        },
     });
 }
 
@@ -160,6 +163,9 @@ export function getMutationProcessor(requestQueue = getRequestQueue(), cache = g
     return new QueryProcessor({
         cache,
         requestQueue,
+        hash(value: unknown): string {
+            return JSON.stringify(value);
+        },
     });
 }
 
@@ -168,11 +174,11 @@ export function getClient(cache = getCache()) {
         cache,
         defaultQuery: getFirstItemRequest(),
         defaultMutation: getFirstItemRequest(),
-        hash(value: unknown): string | number {
+        hash(value: unknown): string {
             return JSON.stringify(value);
         },
-        merge<R1, R2>(r1: R1, r2: R2): R1 & R2 {
-            return { ...r1, ...r2 };
+        merge<R1, R2, R3>(r1: R1, r2: R2, r3: R3): R1 & R2 & R3 {
+            return { ...r1, ...r2, ...r3 };
         },
     });
 }

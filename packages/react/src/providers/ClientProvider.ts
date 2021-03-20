@@ -1,4 +1,4 @@
-import { Client, NonUndefined, Cache, DefaultQuery, DefaultMutation } from '@fetcher/core';
+import { Client, NonUndefined, Cache, BaseMutation, BaseQuery } from '@fetcher/core';
 import { useContext, useEffect, createContext, FC, createElement } from 'react';
 
 const ClientContext = createContext<Client<NonUndefined> | null>(null);
@@ -11,8 +11,8 @@ export interface ClientProviderProps<
     BR = unknown
 > {
     client: Client<C, CACHE>;
-    defaultQuery?: DefaultQuery<C, BD, BE, BR>;
-    defaultMutation?: DefaultMutation<C, BD, BE, BR>;
+    defaultQuery?: BaseQuery<C, BD, BE, BR>;
+    defaultMutation?: BaseMutation<C, BD, BE, BR>;
     preventOnHydrateCompleteCall?: boolean;
 }
 
@@ -30,11 +30,11 @@ const ClientProvider: FC<ClientProviderProps> = ({
     }, [client, preventOnHydrateCompleteCall]);
 
     if (defaultQuery) {
-        client.setDefaultQuery(defaultQuery);
+        client.setDynamicDefaultQuery(defaultQuery);
     }
 
     if (defaultMutation) {
-        client.setDefaultMutation(defaultMutation);
+        client.setDynamicDefaultMutation(defaultMutation);
     }
 
     return createElement(ClientContext.Provider, { value: client }, children);

@@ -34,7 +34,7 @@ export class QueryManager<C extends NonUndefined, D extends NonUndefined, E exte
         if (
             this.client !== client ||
             this.queryHash !== this.client.getHash(query) ||
-            this.defaultQueryHash !== this.client.getDefaultQueryHash() ||
+            this.defaultQueryHash !== this.client.getDynamicDefaultQueryHash() ||
             this.ssrPromisesManager !== ssrPromisesManager
         ) {
             this.cleanup();
@@ -43,7 +43,7 @@ export class QueryManager<C extends NonUndefined, D extends NonUndefined, E exte
             this.ssrPromisesManager = ssrPromisesManager;
             this.query = query;
             this.queryHash = this.client.getHash(query);
-            this.defaultQueryHash = this.client.getDefaultQueryHash();
+            this.defaultQueryHash = this.client.getDynamicDefaultQueryHash();
 
             this.performRequest()?.catch((error: Error) => {
                 if (error !== this.queryCache?.error) {
@@ -87,11 +87,11 @@ export class QueryManager<C extends NonUndefined, D extends NonUndefined, E exte
         this.loading = refetch || queryResult.requestFlags.required;
 
         if (!refetch) {
-            if (this.query.fetchPolicy !== 'no-cache') {
+            try {
                 const { queryState, unsubscribe } = this.client.subscribe(this.query, this.onExternalChange.bind(this));
                 this.queryCache = queryState.cache;
                 this.unsubscribe = unsubscribe;
-            } else {
+            } catch {
                 this.queryCache = { data: undefined, error: undefined };
             }
         }

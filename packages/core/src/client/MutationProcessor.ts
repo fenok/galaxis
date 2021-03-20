@@ -1,7 +1,7 @@
 import { wireAbortSignals, getAbortController } from '../promise';
 import { RequestQueue } from './RequestQueue';
 import { RequestHelper } from './RequestHelper';
-import { NonUndefined, Cache, InternalMutation } from '../types';
+import { NonUndefined, Cache, BaseMutation } from '../types';
 
 export interface MutationRequest {
     promise: Promise<unknown>;
@@ -11,17 +11,20 @@ export interface MutationRequest {
 
 export interface MutationProcessorOptions<C extends NonUndefined> {
     cache: Cache<C>;
-    networkRequestQueue: RequestQueue;
+    requestQueue: RequestQueue;
+    hash(value: unknown): string;
 }
 
 export class MutationProcessor<C extends NonUndefined> {
     private ongoingRequests: Set<MutationRequest> = new Set();
     private readonly cache: Cache<C>;
     private readonly requestQueue: RequestQueue;
+    private hash: (value: unknown) => string;
 
-    constructor({ cache, networkRequestQueue }: MutationProcessorOptions<C>) {
+    constructor({ cache, requestQueue, hash }: MutationProcessorOptions<C>) {
         this.cache = cache;
-        this.requestQueue = networkRequestQueue;
+        this.requestQueue = requestQueue;
+        this.hash = hash;
     }
 
     public purge() {
@@ -29,8 +32,8 @@ export class MutationProcessor<C extends NonUndefined> {
         this.ongoingRequests.clear();
     }
 
-    public mutate<D extends NonUndefined, E extends Error, R>(mutation: InternalMutation<C, D, E, R>): Promise<D> {
-        const requestId = mutation.getRequestId(mutation);
+    public mutate<D extends NonUndefined, E extends Error, R>(mutation: BaseMutation<C, D, E, R>): Promise<D> {
+        const requestId = mutation.getRequestId ? mutation.getRequestId(mutation) : this.hash(mutation.requestParams);
 
         if (mutation.optimisticData && mutation.toCache) {
             this.cache.updateState({

@@ -1,16 +1,7 @@
 import { QueryProcessor, QueryResult, QueryState, QueryRequestFlags } from './QueryProcessor';
 import { MutationProcessor } from './MutationProcessor';
 import { RequestQueue } from './RequestQueue';
-import {
-    NonUndefined,
-    Cache,
-    InternalQuery,
-    InternalMutation,
-    BaseQuery,
-    BaseMutation,
-    DefaultQuery,
-    DefaultMutation,
-} from '../types';
+import { NonUndefined, Cache, BaseQuery, BaseMutation } from '../types';
 
 interface ClientOptions<
     C extends NonUndefined,
@@ -20,10 +11,10 @@ interface ClientOptions<
     BR = unknown
 > {
     cache: CACHE;
-    merge<R1, R2>(r1: R1, r2: R2): R1 & R2;
-    hash(value: unknown): string | number;
-    defaultQuery?: DefaultQuery<C, BD, BE, BR>;
-    defaultMutation?: DefaultMutation<C, BD, BE, BR>;
+    merge<R1, R2, R3>(r1: R1, r2: R2, r3: R3): R1 & R2 & R3;
+    hash(value: unknown): string;
+    defaultQuery?: BaseQuery<C, BD, BE, BR>;
+    defaultMutation?: BaseMutation<C, BD, BE, BR>;
 }
 
 class Client<
@@ -36,18 +27,18 @@ class Client<
     private readonly cache: CACHE;
     private queryProcessor: QueryProcessor<C>;
     private mutationProcessor: MutationProcessor<C>;
-    private merge: <R1, R2>(r1: R1, r2: R2) => R1 & R2;
-    private hash: (value: unknown) => string | number;
-    private staticDefaultQuery?: DefaultQuery<C, BD, BE, BR>;
-    private staticDefaultMutation?: DefaultMutation<C, BD, BE, BR>;
-    private dynamicDefaultQuery?: DefaultQuery<C, BD, BE, BR>;
-    private dynamicDefaultMutation?: DefaultMutation<C, BD, BE, BR>;
+    private merge: <R1, R2, R3>(r1: R1, r2: R2, r3: R3) => R1 & R2 & R3;
+    private hash: (value: unknown) => string;
+    private staticDefaultQuery?: BaseQuery<C, BD, BE, BR>;
+    private staticDefaultMutation?: BaseMutation<C, BD, BE, BR>;
+    private dynamicDefaultQuery?: BaseQuery<C, BD, BE, BR>;
+    private dynamicDefaultMutation?: BaseMutation<C, BD, BE, BR>;
 
     constructor({ cache, merge, defaultQuery, defaultMutation, hash }: ClientOptions<C, CACHE, BD, BE, BR>) {
-        const networkRequestQueue = new RequestQueue();
+        const requestQueue = new RequestQueue();
         this.cache = cache;
-        this.queryProcessor = new QueryProcessor({ cache, requestQueue: networkRequestQueue });
-        this.mutationProcessor = new MutationProcessor({ cache, networkRequestQueue });
+        this.queryProcessor = new QueryProcessor({ cache, requestQueue, hash });
+        this.mutationProcessor = new MutationProcessor({ cache, requestQueue, hash });
         this.merge = merge;
         this.hash = hash;
         this.staticDefaultQuery = defaultQuery;
@@ -58,19 +49,19 @@ class Client<
         return this.hash(value);
     }
 
-    public getDefaultQueryHash() {
-        return this.hash(this.getDefaultQuery());
+    public getDynamicDefaultQueryHash() {
+        return this.hash(this.dynamicDefaultQuery);
     }
 
-    public getDefaultMutationHash() {
-        return this.hash(this.getDefaultMutation());
+    public getDynamicDefaultMutationHash() {
+        return this.hash(this.dynamicDefaultMutation);
     }
 
-    public setDefaultQuery(defaultQuery: DefaultQuery<C, BD, BE, BR>) {
+    public setDynamicDefaultQuery(defaultQuery: BaseQuery<C, BD, BE, BR>) {
         this.dynamicDefaultQuery = defaultQuery;
     }
 
-    public setDefaultMutation(defaultMutation: DefaultMutation<C, BD, BE, BR>) {
+    public setDynamicDefaultMutation(defaultMutation: BaseMutation<C, BD, BE, BR>) {
         this.dynamicDefaultMutation = defaultMutation;
     }
 
@@ -90,11 +81,9 @@ class Client<
         query: BaseQuery<C, D, E, R>,
         onChange: (state: QueryState<D, E>) => void,
     ) {
-        const internalQuery = this.getInternalQuery(query);
+        let currentState = this.getQueryState(query);
 
-        if (internalQuery.fetchPolicy !== 'no-cache') {
-            let currentState = this.getQueryState(query);
-
+        if (currentState.cache) {
             return {
                 queryState: currentState,
                 unsubscribe: this.cache.subscribe(() => {
@@ -108,7 +97,7 @@ class Client<
             };
         }
 
-        throw new Error("Query with 'no-cache' fetch policy cannot be subscribed to cache");
+        throw new Error("Couldn't subscribe to cache, most likely due to 'no-cache' fetch policy");
     }
 
     public onHydrateComplete() {
@@ -116,18 +105,18 @@ class Client<
     }
 
     public getQueryState<D extends BD, E extends BE, R extends BR>(query: BaseQuery<C, D, E, R>): QueryState<D, E> {
-        return this.queryProcessor.getQueryState(this.getInternalQuery(query));
+        return this.queryProcessor.getQueryState(this.getMergedQuery(query));
     }
 
     public query<D extends BD, E extends BE, R extends BR>(
         query: BaseQuery<C, D, E, R>,
         requestFlags?: Partial<QueryRequestFlags>,
     ): QueryResult<D, E> {
-        return this.queryProcessor.query(this.getInternalQuery(query), requestFlags);
+        return this.queryProcessor.query(this.getMergedQuery(query), requestFlags);
     }
 
     public async mutate<D extends BD, E extends BE, R extends BR>(mutation: BaseMutation<C, D, E, R>): Promise<D> {
-        return this.mutationProcessor.mutate(this.getInternalMutation(mutation));
+        return this.mutationProcessor.mutate(this.getMergedMutation(mutation));
     }
 
     private areQueryStatesEqual<D extends NonUndefined, E extends Error>(
@@ -138,36 +127,16 @@ class Client<
         return a.cache?.error === b.cache?.error && a.cache?.data === b.cache?.data;
     }
 
-    private getInternalQuery<D extends BD, E extends BE, R extends BR>(
+    private getMergedQuery<D extends BD, E extends BE, R extends BR>(
         query: BaseQuery<C, D, E, R>,
-    ): InternalQuery<C, D, E, R> {
-        return this.merge(this.getDefaultQuery(), query);
+    ): BaseQuery<C, D, E, R> {
+        return this.merge(this.staticDefaultQuery, this.dynamicDefaultQuery, query);
     }
 
-    private getInternalMutation<D extends BD, E extends BE, R extends BR>(
+    private getMergedMutation<D extends BD, E extends BE, R extends BR>(
         mutation: BaseMutation<C, D, E, R>,
-    ): InternalMutation<C, D, E, R> {
-        return this.merge(this.getDefaultMutation(), mutation);
-    }
-
-    private getDefaultQuery() {
-        const defaultQuery = this.dynamicDefaultQuery || this.staticDefaultQuery;
-
-        if (!defaultQuery) {
-            throw new Error('No default query');
-        }
-
-        return defaultQuery;
-    }
-
-    private getDefaultMutation() {
-        const defaultMutation = this.dynamicDefaultMutation || this.staticDefaultMutation;
-
-        if (!defaultMutation) {
-            throw new Error('No default mutation');
-        }
-
-        return defaultMutation;
+    ): BaseMutation<C, D, E, R> {
+        return this.merge(this.staticDefaultMutation, this.dynamicDefaultMutation, mutation);
     }
 }
 

@@ -1,7 +1,7 @@
 import { getAbortController, wireAbortSignals } from '../promise';
 import { RequestQueue } from './RequestQueue';
 import { RequestHelper } from './RequestHelper';
-import { InternalQuery, Cache, NonUndefined } from '../types';
+import { BaseQuery, Cache, NonUndefined, FetchPolicy } from '../types';
 
 export interface QueryCache<D extends NonUndefined, E extends Error> {
     error?: E | Error; // Regular error can always slip through
@@ -35,6 +35,7 @@ export interface QueryRequest {
 export interface QueryProcessorOptions<C extends NonUndefined> {
     cache: Cache<C>;
     requestQueue: RequestQueue;
+    hash(value: unknown): string;
 }
 
 export class QueryProcessor<C extends NonUndefined> {
@@ -42,10 +43,12 @@ export class QueryProcessor<C extends NonUndefined> {
     private isHydrate = true;
     private readonly cache: Cache<C>;
     private readonly requestQueue: RequestQueue;
+    private hash: (value: unknown) => string;
 
-    constructor({ cache, requestQueue }: QueryProcessorOptions<C>) {
+    constructor({ cache, requestQueue, hash }: QueryProcessorOptions<C>) {
         this.cache = cache;
         this.requestQueue = requestQueue;
+        this.hash = hash;
     }
 
     public onHydrateComplete() {
@@ -58,10 +61,10 @@ export class QueryProcessor<C extends NonUndefined> {
     }
 
     public query<D extends NonUndefined, E extends Error, R>(
-        query: InternalQuery<C, D, E, R>,
+        query: BaseQuery<C, D, E, R>,
         requestFlags?: Partial<QueryRequestFlags>,
     ): QueryResult<D, E> {
-        const requestId = query.getRequestId(query);
+        const requestId = query.getRequestId ? query.getRequestId(query) : this.hash(query.requestParams);
         const queryState = this.getQueryState(query);
 
         const requestRequired = requestFlags?.required ?? queryState.requestFlags.required;
@@ -73,22 +76,19 @@ export class QueryProcessor<C extends NonUndefined> {
         };
     }
 
-    public getQueryState<D extends NonUndefined, E extends Error, R>(
-        query: InternalQuery<C, D, E, R>,
-    ): QueryState<D, E> {
-        const requestId = query.getRequestId(query);
+    public getQueryState<D extends NonUndefined, E extends Error, R>(query: BaseQuery<C, D, E, R>): QueryState<D, E> {
+        const requestId = query.getRequestId ? query.getRequestId(query) : this.hash(query.requestParams);
 
-        const cache =
-            query.fetchPolicy !== 'no-cache'
-                ? {
-                      error: this.cache.getRequestError(requestId),
-                      data: query.fromCache?.({
-                          cacheData: this.cache.getCacheData(),
-                          requestParams: query.requestParams,
-                          requestId,
-                      }),
-                  }
-                : undefined;
+        const cache = !this.isFetchPolicy(query.fetchPolicy, 'no-cache')
+            ? {
+                  error: this.cache.getRequestError(requestId),
+                  data: query.fromCache?.({
+                      cacheData: this.cache.getCacheData(),
+                      requestParams: query.requestParams,
+                      requestId,
+                  }),
+              }
+            : undefined;
 
         return {
             cache,
@@ -100,7 +100,7 @@ export class QueryProcessor<C extends NonUndefined> {
     }
 
     private getRequestPromise<D extends NonUndefined, E extends Error, R>(
-        query: InternalQuery<C, D, E, R>,
+        query: BaseQuery<C, D, E, R>,
         requestId: string,
     ): Promise<D> {
         const queryRequest = this.ensureQueryRequest(query, requestId);
@@ -125,10 +125,10 @@ export class QueryProcessor<C extends NonUndefined> {
     }
 
     private ensureQueryRequest<D extends NonUndefined, E extends Error, R>(
-        query: InternalQuery<C, D, E, R>,
+        query: BaseQuery<C, D, E, R>,
         requestId: string,
     ): QueryRequest {
-        const isQueryCacheable = query.fetchPolicy !== 'no-cache';
+        const isQueryCacheable = !this.isFetchPolicy(query.fetchPolicy, 'no-cache');
 
         const currentQueryRequest = this.ongoingRequests[requestId];
 
@@ -164,7 +164,7 @@ export class QueryProcessor<C extends NonUndefined> {
     }
 
     private getQueryPromise<D extends NonUndefined, E extends Error, R>(
-        query: InternalQuery<C, D, E, R>,
+        query: BaseQuery<C, D, E, R>,
         requestId: string,
         queryRequest: QueryRequest,
     ): Promise<D> {
@@ -186,7 +186,7 @@ export class QueryProcessor<C extends NonUndefined> {
                         this.ongoingRequests[requestId] = undefined;
 
                         if (queryRequest.cacheableQuery) {
-                            this.updateCache(queryRequest.cacheableQuery as InternalQuery<C, D, E, R>, requestId, {
+                            this.updateCache(queryRequest.cacheableQuery as BaseQuery<C, D, E, R>, requestId, {
                                 type: 'success',
                                 data,
                             });
@@ -206,7 +206,7 @@ export class QueryProcessor<C extends NonUndefined> {
                         this.ongoingRequests[requestId] = undefined;
 
                         if (queryRequest.cacheableQuery) {
-                            this.updateCache(queryRequest.cacheableQuery as InternalQuery<C, D, E, R>, requestId, {
+                            this.updateCache(queryRequest.cacheableQuery as BaseQuery<C, D, E, R>, requestId, {
                                 type: 'fail',
                                 error,
                             });
@@ -218,7 +218,7 @@ export class QueryProcessor<C extends NonUndefined> {
     }
 
     private updateCache<D extends NonUndefined, E extends Error, R>(
-        query: InternalQuery<C, D, E, R>,
+        query: BaseQuery<C, D, E, R>,
         requestId: string,
         action: { type: 'fail'; error: E } | { type: 'success'; data: D },
     ) {
@@ -242,12 +242,12 @@ export class QueryProcessor<C extends NonUndefined> {
     }
 
     private isRequestRequired<D extends NonUndefined, E extends Error, R>(
-        query: InternalQuery<C, D, E, R>,
+        query: BaseQuery<C, D, E, R>,
         queryCache?: QueryCache<D, E>,
     ): boolean {
         return !(
-            query.fetchPolicy === 'cache-only' ||
-            (query.fetchPolicy === 'cache-first' && queryCache?.data !== undefined) ||
+            this.isFetchPolicy(query.fetchPolicy, 'cache-only') ||
+            (this.isFetchPolicy(query.fetchPolicy, 'cache-first') && queryCache?.data !== undefined) ||
             (query.preventExcessRequestOnHydrate &&
                 this.isHydrate &&
                 (queryCache?.data !== undefined || queryCache?.error !== undefined))
@@ -255,15 +255,19 @@ export class QueryProcessor<C extends NonUndefined> {
     }
 
     private isRequestAllowed<D extends NonUndefined, E extends Error, R>(
-        query: InternalQuery<C, D, E, R>,
+        query: BaseQuery<C, D, E, R>,
         queryCache?: QueryCache<D, E>,
     ): boolean {
         return (
             typeof window !== 'undefined' ||
             (!query.disableSsr &&
-                query.fetchPolicy !== 'no-cache' &&
+                !this.isFetchPolicy(query.fetchPolicy, 'no-cache') &&
                 queryCache?.data === undefined &&
                 queryCache?.error === undefined)
         );
+    }
+
+    private isFetchPolicy(fetchPolicy: FetchPolicy | undefined, value: FetchPolicy): boolean {
+        return (fetchPolicy || 'cache-only') === value;
     }
 }
