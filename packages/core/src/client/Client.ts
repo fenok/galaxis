@@ -22,8 +22,8 @@ interface ClientOptions<
     cache: CACHE;
     merge<R1, R2>(r1: R1, r2: R2): R1 & R2;
     hash(value: unknown): string | number;
-    defaultQuery: DefaultQuery<C, BD, BE, BR>;
-    defaultMutation: DefaultMutation<C, BD, BE, BR>;
+    defaultQuery?: DefaultQuery<C, BD, BE, BR>;
+    defaultMutation?: DefaultMutation<C, BD, BE, BR>;
 }
 
 class Client<
@@ -37,9 +37,11 @@ class Client<
     private queryProcessor: QueryProcessor<C>;
     private mutationProcessor: MutationProcessor<C>;
     private merge: <R1, R2>(r1: R1, r2: R2) => R1 & R2;
-    private defaultQuery: DefaultQuery<C, BD, BE, BR>;
-    private defaultMutation: DefaultMutation<C, BD, BE, BR>;
     private hash: (value: unknown) => string | number;
+    private staticDefaultQuery?: DefaultQuery<C, BD, BE, BR>;
+    private staticDefaultMutation?: DefaultMutation<C, BD, BE, BR>;
+    private dynamicDefaultQuery?: DefaultQuery<C, BD, BE, BR>;
+    private dynamicDefaultMutation?: DefaultMutation<C, BD, BE, BR>;
 
     constructor({ cache, merge, defaultQuery, defaultMutation, hash }: ClientOptions<C, CACHE, BD, BE, BR>) {
         const networkRequestQueue = new RequestQueue();
@@ -47,9 +49,9 @@ class Client<
         this.queryProcessor = new QueryProcessor({ cache, requestQueue: networkRequestQueue });
         this.mutationProcessor = new MutationProcessor({ cache, networkRequestQueue });
         this.merge = merge;
-        this.defaultQuery = defaultQuery;
-        this.defaultMutation = defaultMutation;
         this.hash = hash;
+        this.staticDefaultQuery = defaultQuery;
+        this.staticDefaultMutation = defaultMutation;
     }
 
     public getHash(value: unknown) {
@@ -57,14 +59,24 @@ class Client<
     }
 
     public getDefaultQueryHash() {
-        return this.hash(this.defaultQuery);
+        return this.hash(this.getDefaultQuery());
     }
 
     public getDefaultMutationHash() {
-        return this.hash(this.defaultMutation);
+        return this.hash(this.getDefaultMutation());
+    }
+
+    public setDefaultQuery(defaultQuery: DefaultQuery<C, BD, BE, BR>) {
+        this.dynamicDefaultQuery = defaultQuery;
+    }
+
+    public setDefaultMutation(defaultMutation: DefaultMutation<C, BD, BE, BR>) {
+        this.dynamicDefaultMutation = defaultMutation;
     }
 
     public purge() {
+        this.dynamicDefaultQuery = undefined;
+        this.dynamicDefaultMutation = undefined;
         this.queryProcessor.purge();
         this.mutationProcessor.purge();
         this.cache.purge();
@@ -129,13 +141,33 @@ class Client<
     private getInternalQuery<D extends BD, E extends BE, R extends BR>(
         query: BaseQuery<C, D, E, R>,
     ): InternalQuery<C, D, E, R> {
-        return this.merge(this.defaultQuery, query);
+        return this.merge(this.getDefaultQuery(), query);
     }
 
     private getInternalMutation<D extends BD, E extends BE, R extends BR>(
         mutation: BaseMutation<C, D, E, R>,
     ): InternalMutation<C, D, E, R> {
-        return this.merge(this.defaultMutation, mutation);
+        return this.merge(this.getDefaultMutation(), mutation);
+    }
+
+    private getDefaultQuery() {
+        const defaultQuery = this.dynamicDefaultQuery || this.staticDefaultQuery;
+
+        if (!defaultQuery) {
+            throw new Error('No default query');
+        }
+
+        return defaultQuery;
+    }
+
+    private getDefaultMutation() {
+        const defaultMutation = this.dynamicDefaultMutation || this.staticDefaultMutation;
+
+        if (!defaultMutation) {
+            throw new Error('No default mutation');
+        }
+
+        return defaultMutation;
     }
 }
 
