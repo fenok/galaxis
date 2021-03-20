@@ -11,16 +11,16 @@ export interface ClientProviderProps<
     BR = unknown
 > {
     client: Client<C, CACHE>;
-    defaultQuery?: BaseQuery<C, BD, BE, BR>;
-    defaultMutation?: BaseMutation<C, BD, BE, BR>;
+    dynamicDefaultQuery?: Partial<BaseQuery<C, BD, BE, BR>>;
+    dynamicDefaultMutation?: Partial<BaseMutation<C, BD, BE, BR>>;
     preventOnHydrateCompleteCall?: boolean;
 }
 
 const ClientProvider: FC<ClientProviderProps> = ({
     children,
     client,
-    defaultQuery,
-    defaultMutation,
+    dynamicDefaultQuery,
+    dynamicDefaultMutation,
     preventOnHydrateCompleteCall,
 }) => {
     useEffect(() => {
@@ -29,12 +29,12 @@ const ClientProvider: FC<ClientProviderProps> = ({
         }
     }, [client, preventOnHydrateCompleteCall]);
 
-    if (defaultQuery) {
-        client.setDynamicDefaultQuery(defaultQuery);
+    if (dynamicDefaultQuery) {
+        client.setDynamicDefaultQuery(dynamicDefaultQuery);
     }
 
-    if (defaultMutation) {
-        client.setDynamicDefaultMutation(defaultMutation);
+    if (dynamicDefaultMutation) {
+        client.setDynamicDefaultMutation(dynamicDefaultMutation);
     }
 
     return createElement(ClientContext.Provider, { value: client }, children);

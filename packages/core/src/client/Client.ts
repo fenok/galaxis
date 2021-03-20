@@ -13,8 +13,8 @@ interface ClientOptions<
     cache: CACHE;
     merge<R1, R2, R3>(r1: R1, r2: R2, r3: R3): R1 & R2 & R3;
     hash(value: unknown): string;
-    defaultQuery?: BaseQuery<C, BD, BE, BR>;
-    defaultMutation?: BaseMutation<C, BD, BE, BR>;
+    defaultQuery?: Partial<BaseQuery<C, BD, BE, BR>>;
+    defaultMutation?: Partial<BaseMutation<C, BD, BE, BR>>;
 }
 
 class Client<
@@ -29,10 +29,10 @@ class Client<
     private mutationProcessor: MutationProcessor<C>;
     private merge: <R1, R2, R3>(r1: R1, r2: R2, r3: R3) => R1 & R2 & R3;
     private hash: (value: unknown) => string;
-    private staticDefaultQuery?: BaseQuery<C, BD, BE, BR>;
-    private staticDefaultMutation?: BaseMutation<C, BD, BE, BR>;
-    private dynamicDefaultQuery?: BaseQuery<C, BD, BE, BR>;
-    private dynamicDefaultMutation?: BaseMutation<C, BD, BE, BR>;
+    private staticDefaultQuery?: Partial<BaseQuery<C, BD, BE, BR>>;
+    private staticDefaultMutation?: Partial<BaseMutation<C, BD, BE, BR>>;
+    private dynamicDefaultQuery?: Partial<BaseQuery<C, BD, BE, BR>>;
+    private dynamicDefaultMutation?: Partial<BaseMutation<C, BD, BE, BR>>;
 
     constructor({ cache, merge, defaultQuery, defaultMutation, hash }: ClientOptions<C, CACHE, BD, BE, BR>) {
         const requestQueue = new RequestQueue();
@@ -57,11 +57,11 @@ class Client<
         return this.hash(this.dynamicDefaultMutation);
     }
 
-    public setDynamicDefaultQuery(defaultQuery: BaseQuery<C, BD, BE, BR>) {
+    public setDynamicDefaultQuery(defaultQuery: Partial<BaseQuery<C, BD, BE, BR>>) {
         this.dynamicDefaultQuery = defaultQuery;
     }
 
-    public setDynamicDefaultMutation(defaultMutation: BaseMutation<C, BD, BE, BR>) {
+    public setDynamicDefaultMutation(defaultMutation: Partial<BaseMutation<C, BD, BE, BR>>) {
         this.dynamicDefaultMutation = defaultMutation;
     }
 
