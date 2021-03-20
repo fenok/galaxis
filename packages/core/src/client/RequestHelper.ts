@@ -1,10 +1,10 @@
 import { Signals, delayedPromise } from '../promise';
 import { logger } from '../logger';
-import { NonUndefined, BaseRequest } from '../types';
+import { NonUndefined, InternalRequest } from '../types';
 
-export class BaseRequestHelper {
+export class RequestHelper {
     public static getPromiseFactory<C extends NonUndefined, D extends NonUndefined, E extends Error, R>(
-        request: BaseRequest<C, D, E, R>,
+        request: InternalRequest<C, D, E, R>,
         signals: Signals = {},
     ): (abortDelaySignal?: AbortSignal) => Promise<D> {
         return (abortDelaySignal?: AbortSignal) =>

@@ -13,6 +13,6 @@ export function getQuery<
     D extends NonUndefined,
     R extends RequestParamsConstraint = RequestParamsConstraint,
     P = DynamicRequestParams<R>
->(factory: (params: P) => Partial<Query<CacheData, D, ResponseError<ErrorResponse>, RequestParams<R>>>) {
+>(factory: (params: P) => Query<CacheData, D, ResponseError<ErrorResponse>, RequestParams<R>>) {
     return getParametrizedQuery(factory);
 }

@@ -8,10 +8,10 @@ import { getDataFromTree } from '@fetcher/react';
 import fetchFn from 'node-fetch';
 
 export default async function ssrMiddleware(_: Request, res: Response<unknown>) {
-    const client = getClient();
+    const client = getClient({ fetch: (fetchFn as unknown) as typeof fetch });
 
     console.log('Creating app...');
-    const app = createElement(App, { client, fetch: (fetchFn as unknown) as typeof fetch });
+    const app = createElement(App, { client });
 
     console.log('Waiting for data...');
     await getDataFromTree(app);

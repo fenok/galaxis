@@ -1,7 +1,7 @@
 import { getAbortController, wireAbortSignals } from '../promise';
 import { RequestQueue } from './RequestQueue';
-import { BaseRequestHelper } from './BaseRequestHelper';
-import { BaseQuery, Cache, NonUndefined } from '../types';
+import { RequestHelper } from './RequestHelper';
+import { InternalQuery, Cache, NonUndefined } from '../types';
 
 export interface QueryCache<D extends NonUndefined, E extends Error> {
     error?: E | Error; // Regular error can always slip through
@@ -58,7 +58,7 @@ export class QueryProcessor<C extends NonUndefined> {
     }
 
     public query<D extends NonUndefined, E extends Error, R>(
-        query: BaseQuery<C, D, E, R>,
+        query: InternalQuery<C, D, E, R>,
         requestFlags?: Partial<QueryRequestFlags>,
     ): QueryResult<D, E> {
         const requestId = query.getRequestId(query);
@@ -73,7 +73,9 @@ export class QueryProcessor<C extends NonUndefined> {
         };
     }
 
-    public getQueryState<D extends NonUndefined, E extends Error, R>(query: BaseQuery<C, D, E, R>): QueryState<D, E> {
+    public getQueryState<D extends NonUndefined, E extends Error, R>(
+        query: InternalQuery<C, D, E, R>,
+    ): QueryState<D, E> {
         const requestId = query.getRequestId(query);
 
         const cache =
@@ -98,7 +100,7 @@ export class QueryProcessor<C extends NonUndefined> {
     }
 
     private getRequestPromise<D extends NonUndefined, E extends Error, R>(
-        query: BaseQuery<C, D, E, R>,
+        query: InternalQuery<C, D, E, R>,
         requestId: string,
     ): Promise<D> {
         const queryRequest = this.ensureQueryRequest(query, requestId);
@@ -123,7 +125,7 @@ export class QueryProcessor<C extends NonUndefined> {
     }
 
     private ensureQueryRequest<D extends NonUndefined, E extends Error, R>(
-        query: BaseQuery<C, D, E, R>,
+        query: InternalQuery<C, D, E, R>,
         requestId: string,
     ): QueryRequest {
         const isQueryCacheable = query.fetchPolicy !== 'no-cache';
@@ -162,13 +164,13 @@ export class QueryProcessor<C extends NonUndefined> {
     }
 
     private getQueryPromise<D extends NonUndefined, E extends Error, R>(
-        query: BaseQuery<C, D, E, R>,
+        query: InternalQuery<C, D, E, R>,
         requestId: string,
         queryRequest: QueryRequest,
     ): Promise<D> {
         return this.requestQueue
             .addPromise(
-                BaseRequestHelper.getPromiseFactory(query, {
+                RequestHelper.getPromiseFactory(query, {
                     abortSignal: queryRequest.abortController?.signal,
                 }),
                 'query',
@@ -184,7 +186,7 @@ export class QueryProcessor<C extends NonUndefined> {
                         this.ongoingRequests[requestId] = undefined;
 
                         if (queryRequest.cacheableQuery) {
-                            this.updateCache(queryRequest.cacheableQuery as BaseQuery<C, D, E, R>, requestId, {
+                            this.updateCache(queryRequest.cacheableQuery as InternalQuery<C, D, E, R>, requestId, {
                                 type: 'success',
                                 data,
                             });
@@ -204,7 +206,7 @@ export class QueryProcessor<C extends NonUndefined> {
                         this.ongoingRequests[requestId] = undefined;
 
                         if (queryRequest.cacheableQuery) {
-                            this.updateCache(queryRequest.cacheableQuery as BaseQuery<C, D, E, R>, requestId, {
+                            this.updateCache(queryRequest.cacheableQuery as InternalQuery<C, D, E, R>, requestId, {
                                 type: 'fail',
                                 error,
                             });
@@ -216,7 +218,7 @@ export class QueryProcessor<C extends NonUndefined> {
     }
 
     private updateCache<D extends NonUndefined, E extends Error, R>(
-        query: BaseQuery<C, D, E, R>,
+        query: InternalQuery<C, D, E, R>,
         requestId: string,
         action: { type: 'fail'; error: E } | { type: 'success'; data: D },
     ) {
@@ -240,7 +242,7 @@ export class QueryProcessor<C extends NonUndefined> {
     }
 
     private isRequestRequired<D extends NonUndefined, E extends Error, R>(
-        query: BaseQuery<C, D, E, R>,
+        query: InternalQuery<C, D, E, R>,
         queryCache?: QueryCache<D, E>,
     ): boolean {
         return !(
@@ -253,7 +255,7 @@ export class QueryProcessor<C extends NonUndefined> {
     }
 
     private isRequestAllowed<D extends NonUndefined, E extends Error, R>(
-        query: BaseQuery<C, D, E, R>,
+        query: InternalQuery<C, D, E, R>,
         queryCache?: QueryCache<D, E>,
     ): boolean {
         return (
