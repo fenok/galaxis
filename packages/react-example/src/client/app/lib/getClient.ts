@@ -40,7 +40,7 @@ export function getClient({ fetch }: GetClientOptions): AppClient {
             getRequestId: getRequestId({ hash: objectHash }),
         },
         defaultQuery: {
-            preventExcessRequestOnHydrate: true,
+            optimizeOnHydrate: true,
             fetchPolicy: 'cache-and-network',
         },
         hash: objectHash,

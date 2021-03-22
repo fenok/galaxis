@@ -256,7 +256,7 @@ export class QueryProcessor<C extends NonUndefined> {
             query.lazy ||
             this.isFetchPolicy(query.fetchPolicy, 'cache-only') ||
             (this.isFetchPolicy(query.fetchPolicy, 'cache-first') && queryCache?.data !== undefined) ||
-            (query.preventExcessRequestOnHydrate &&
+            (query.optimizeOnHydrate &&
                 this.isHydrate &&
                 (queryCache?.data !== undefined || queryCache?.error !== undefined))
         );
