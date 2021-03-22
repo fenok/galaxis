@@ -92,6 +92,7 @@ export class QueryManager<C extends NonUndefined, D extends NonUndefined, E exte
 
             if (queryResult.cache && queryResult.unsubscribe) {
                 this.queryCache = queryResult.cache;
+                // eslint-disable-next-line @typescript-eslint/unbound-method
                 this.unsubscribe = queryResult.unsubscribe;
             } else {
                 this.queryCache = { data: undefined, error: undefined };
