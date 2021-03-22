@@ -100,6 +100,22 @@ const queryState = client.getQueryState(query);
 | cache        | <code>[QueryCache](#querycache) &#124; undefined</code> | Query state from the cache. Will be `undefined` if the given query is not cacheable (has `fetchPolicy: 'no-cache'`). |
 | requestFlags | <code>[QueryRequestFlags](#queryrequestflags)</code>    | Internal flags for the given query.                                                                                  |
 
+##### Related types
+
+###### `QueryCache`
+
+| Name  | Type                                                                | Description                                                                                                                                                                     |
+| ----- | ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| data  | <code>[D](#user-defined-types) &#124; undefined</code>              | Data from the cache. `undefined` means no data. An unsuccessful request **will not** overwrite this field. It can be thought of as _the last known data_.                       |
+| error | <code>Error &#124; [E](#user-defined-types) &#124; undefined</code> | Error from the cache. `undefined` means no error. A successful request **will** overwrite this field to `undefined`. It can be thought of as _the error from the last request_. |
+
+###### `QueryRequestFlags`
+
+| Name     | Type    | Description                                                                                                                                                                                                                                                                                                                                                                                |
+| -------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| required | boolean | Specifies whether a network request is required, based on cache state and fetch policy of given query.                                                                                                                                                                                                                                                                                     |
+| allowed  | boolean | Specifies whether a network request is allowed. It's always `true` on the client side. On the server side it may be switched to `false` based on fetch policy, existing result from the previous request, or SSR disabling. It is possible to have a query with `required: true` and `allowed: false`. Such a query should be rendered as loading on the server and fetched on the client. |
+
 #### `client.mutate()`
 
 Execute mutation.
@@ -350,7 +366,11 @@ const hasPromises = ssrPromisesManager.hasPromises();
 | `E`     | Request-specific | Must extend `BE`                                       | Query or mutation error.                                                          |
 | `R`     | Request-specific | Must extend `BR`                                       | Query or mutation request parameters.                                             |
 
-#### BaseRequest
+##### `NonUndefined`
+
+Anything but `undefined`.
+
+#### `BaseRequest`
 
 This type describes base network request.
 
@@ -362,7 +382,7 @@ This type describes base network request.
 | getRequestId      | <code>(opts: [RequestOptions](#requestoptions)) => string;</code>                                                           | Function for calculating request id. It should take some hash from `requestParams`, excluding parts that are different between client and server.                                                                                                                                                                                                                                                          | No, a hash from `requestParams` will be used by default |
 | toCache           | <code>(opts: [CacheOptionsWithData](#cacheoptionswithdata)) => [C](#user-defined-types);</code>                             | A function that modifies cache data based on request data (from network or optimistic response).                                                                                                                                                                                                                                                                                                           | No                                                      |
 
-#### BaseQuery
+#### `BaseQuery`
 
 Extends [BaseRequest](#baserequest). Base queries can be executed by [Client](#client).
 
@@ -376,7 +396,7 @@ Extends [BaseRequest](#baserequest). Base queries can be executed by [Client](#c
 | softAbortSignal               | `AbortSignal`                                                                                    | Soft aborting should be used to indicate loss of interest in the ongoing network request. The actual request won't be aborted if there are other interested parties.                                                             | No                                     |
 | fromCache                     | <code>(opts: [CacheOptions](#cacheoptions)) => [D](#user-defined-types) &#124; undefined </code> | Function for retrieving query data from cache data.                                                                                                                                                                              | No                                     |
 
-#### BaseMutation
+#### `BaseMutation`
 
 Extends [BaseRequest](#baserequest). Base mutations can be executed by [Client](#client).
 
@@ -385,21 +405,21 @@ Extends [BaseRequest](#baserequest). Base mutations can be executed by [Client](
 | optimisticData       | <code>[D](#user-defined-types)</code>                                                          | Optimistic data (optimistic response).                  | No       |
 | removeOptimisticData | <code>(opts: [CacheOptionsWithData](#cacheoptionswithdata)) => [C](#user-defined-types)</code> | A function that removes optimistic data from the cache. | No       |
 
-#### Query
+#### `Query`
 
 Extends [BaseQuery](#basequery). Queries can be processed by [QueryManager](#querymanager).
 
-#### Mutation
+#### `Mutation`
 
 Extends [BaseMutation](#basemutation). Mutations can be processed by [MutationManager](#mutationmanager).
 
-#### RequestOptions
+##### `RequestOptions`
 
 | Name          | Type                                  | Description                              |
 | ------------- | ------------------------------------- | ---------------------------------------- |
 | requestParams | <code>[R](#user-defined-types)</code> | Arbitrary storage of request parameters. |
 
-#### CacheOptions
+##### `CacheOptions`
 
 | Name          | Type                                  | Description                              |
 | ------------- | ------------------------------------- | ---------------------------------------- |
@@ -407,7 +427,7 @@ Extends [BaseMutation](#basemutation). Mutations can be processed by [MutationMa
 | requestParams | <code>[R](#user-defined-types)</code> | Arbitrary storage of request parameters. |
 | requestId     | `string`                              | Request id.                              |
 
-#### CacheOptionsWithData
+##### `CacheOptionsWithData`
 
 Extends <code>[CacheOptions](#cacheoptions)</code>
 
@@ -415,21 +435,11 @@ Extends <code>[CacheOptions](#cacheoptions)</code>
 | ---- | ------------------------------------- | ---------------------------------------------------------------- |
 | data | <code>[D](#user-defined-types)</code> | Data of the given request (from network or optimistic response). |
 
-#### QueryRequestFlags
+##### `FetchPolicy`
 
-| Name     | Type    | Description                                                                                                                                                                                                                                                                                                                                                                                |
-| -------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| required | boolean | Specifies whether a network request is required, based on cache state and fetch policy of given query.                                                                                                                                                                                                                                                                                     |
-| allowed  | boolean | Specifies whether a network request is allowed. It's always `true` on the client side. On the server side it may be switched to `false` based on fetch policy, existing result from the previous request, or SSR disabling. It is possible to have a query with `required: true` and `allowed: false`. Such a query should be rendered as loading on the server and fetched on the client. |
+<code>'cache-only' &#124; 'cache-first' &#124; 'cache-and-network' &#124; 'no-cache'</code>
 
-#### QueryCache
-
-| Name  | Type                                                                | Description                                                                                                                                                                     |
-| ----- | ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| data  | <code>[D](#user-defined-types) &#124; undefined</code>              | Data from the cache. `undefined` means no data. An unsuccessful request **will not** overwrite this field. It can be thought of as _the last known data_.                       |
-| error | <code>Error &#124; [E](#user-defined-types) &#124; undefined</code> | Error from the cache. `undefined` means no error. A successful request **will** overwrite this field to `undefined`. It can be thought of as _the error from the last request_. |
-
-#### Cache
+#### `Cache`
 
 | Name            | Type                                                                   | Description                                                                                                    |
 | --------------- | ---------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
@@ -439,17 +449,9 @@ Extends <code>[CacheOptions](#cacheoptions)</code>
 | getRequestError | <code>(requestId: string) => Error &#124; undefined</code>             | Get cached error for the given request id.                                                                     |
 | purge           | <code>() => void</code>                                                | Reset the cache to empty state.                                                                                |
 
-#### UpdateStateOptions
+##### `UpdateStateOptions`
 
 | Name  | Type                                          | Description                                                                                                                                                                                            | Required |
 | ----- | --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------- |
 | data  | <code>[C](#user-defined-types)</code>         | New cache data. Omit or set to `undefined` if no update is needed.                                                                                                                                     | No       |
 | error | <code>[string, Error &#124; undefined]</code> | New error. The first element of the tuple is the request id. The second one is the error value, where `undefined` means "clear error". Omit the tuple or set it to `undefined` if no update is needed. | No       |
-
-#### NonUndefined
-
-Anything but `undefined`.
-
-#### FetchPolicy
-
-<code>'cache-only' &#124; 'cache-first' &#124; 'cache-and-network' &#124; 'no-cache'</code>
