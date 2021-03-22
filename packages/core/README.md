@@ -20,6 +20,8 @@ const client = new Client({
 
 ##### Arguments
 
+###### `ClientOptions`
+
 | Name            | Type                                                                             | Description                                                                                                                                                                                    | Required |
 | --------------- | -------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
 | cache           | <code>[CACHE](#user-defined-types)</code>                                        | Cache for storing normalized data and errors.                                                                                                                                                  | Yes      |
@@ -72,10 +74,10 @@ const result = client.watchQuery(query, onChange);
 
 Extends [QueryState](#querystate).
 
-| Name        | Type                                                            | Description                                                                                                                                                                                                   |
-| ----------- | --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| request     | <code>Promise<[D](#user-defined-types)> &#124; undefined</code> | A promise representing network request. It will be `undefined`, if it wasn't required (or was required, but wasn't allowed) by internal flags. Internally, there may be more than one actual network request. |
-| unsubscribe | <code>() => void &#124; undefined</code>                        | A function for unsubscribing. Will be `undefined` if there was no subscription. It can happen when `onChange` argument wasn't passed, or if the query itself is not cacheable.                                |
+| Name        | Type                                                            | Description                                                                                                                                                                                                    |
+| ----------- | --------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| request     | <code>Promise<[D](#user-defined-types)> &#124; undefined</code> | A promise representing network request. It will be `undefined`, if it wasn't required (or was required, but wasn't allowed on the server side). Internally, there may be more than one actual network request. |
+| unsubscribe | <code>() => void &#124; undefined</code>                        | A function for unsubscribing. Will be `undefined` if there was no subscription. It can happen when `onChange` argument wasn't passed, or if the query itself is not cacheable.                                 |
 
 #### `client.getQueryState()`
 
@@ -95,10 +97,10 @@ const queryState = client.getQueryState(query);
 
 ###### `QueryState`
 
-| Name         | Type                                                    | Description                                                                                                          |
-| ------------ | ------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| cache        | <code>[QueryCache](#querycache) &#124; undefined</code> | Query state from the cache. Will be `undefined` if the given query is not cacheable (has `fetchPolicy: 'no-cache'`). |
-| requestFlags | <code>[QueryRequestFlags](#queryrequestflags)</code>    | Internal flags for the given query.                                                                                  |
+| Name            | Type                                                    | Description                                                                                                                                                                                                                                      |
+| --------------- | ------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| cache           | <code>[QueryCache](#querycache) &#124; undefined</code> | Query state from the cache. Will be `undefined` if the given query is not cacheable (has `fetchPolicy: 'no-cache'`).                                                                                                                             |
+| requestRequired | <code>boolean</code>                                    | Specifies whether a network request is required, based on cache state and fetch policy of the given query. The actual network request may still not be allowed on the server side. If `true`, the query should be rendered with `loading: true`. |
 
 ##### Related types
 
@@ -108,13 +110,6 @@ const queryState = client.getQueryState(query);
 | ----- | ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | data  | <code>[D](#user-defined-types) &#124; undefined</code>              | Data from the cache. `undefined` means no data. An unsuccessful request **will not** overwrite this field. It can be thought of as _the last known data_.                       |
 | error | <code>Error &#124; [E](#user-defined-types) &#124; undefined</code> | Error from the cache. `undefined` means no error. A successful request **will** overwrite this field to `undefined`. It can be thought of as _the error from the last request_. |
-
-###### `QueryRequestFlags`
-
-| Name     | Type    | Description                                                                                                                                                                                                                                                                                                                                                                                |
-| -------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| required | boolean | Specifies whether a network request is required, based on cache state and fetch policy of given query.                                                                                                                                                                                                                                                                                     |
-| allowed  | boolean | Specifies whether a network request is allowed. It's always `true` on the client side. On the server side it may be switched to `false` based on fetch policy, existing result from the previous request, or SSR disabling. It is possible to have a query with `required: true` and `allowed: false`. Such a query should be rendered as loading on the server and fetched on the client. |
 
 #### `client.mutate()`
 
@@ -214,6 +209,8 @@ const queryManager = new QueryManager({ forceUpdate });
 
 ##### Arguments
 
+###### `QueryManagerOptions`
+
 | Name        | Type                    | Description                                                                                                                                                                       | Required |
 | ----------- | ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
 | forceUpdate | <code>() => void</code> | The function that will be called on internal state change. When it's called, you should call <code>[queryManager.process()](#querymanagerprocess)</code> again to get new values. | Yes      |
@@ -265,6 +262,8 @@ const mutationManager = new MutationManager({ forceUpdate });
 ```
 
 ##### Arguments
+
+###### `MutationManagerOptions`
 
 | Name        | Type                    | Description                                                                                                                                                                             | Required |
 | ----------- | ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
@@ -380,7 +379,7 @@ This type describes base network request.
 | abortSignal       | `AbortSignal`                                                                                                               | Signal for aborting the request.                                                                                                                                                                                                                                                                                                                                                                           | No                                                      |
 | getRequestFactory | <code>(opts: [RequestOptions](#requestoptions)) => (abortSignal?: AbortSignal) => Promise<[D](#user-defined-types)>;</code> | A function that returns the factory for creating network requests.<br/>Note that `abortSignal` for the factory is created by the library. It is **not** the same signal as `abortSignal` field of `BaseRequest`.<br/> Also, note that the factory return value is actually typed as <code>Promise<D &#124; E></code>. It is done only to support error typing. You must always reject in case of an error. | No, a rejected promise will be used by default          |
 | getRequestId      | <code>(opts: [RequestOptions](#requestoptions)) => string;</code>                                                           | Function for calculating request id. It should take some hash from `requestParams`, excluding parts that are different between client and server.                                                                                                                                                                                                                                                          | No, a hash from `requestParams` will be used by default |
-| toCache           | <code>(opts: [CacheOptionsWithData](#cacheoptionswithdata)) => [C](#user-defined-types);</code>                             | A function that modifies cache data based on request data (from network or optimistic response).                                                                                                                                                                                                                                                                                                           | No                                                      |
+| toCache           | <code>(opts: [CacheAndDataOptions](#cacheanddataoptions)) => [C](#user-defined-types);</code>                               | A function that modifies cache data based on request data (from network or optimistic response).                                                                                                                                                                                                                                                                                                           | No                                                      |
 
 #### `BaseQuery`
 
@@ -392,7 +391,7 @@ Extends [BaseRequest](#baserequest). Base queries can be executed by [Client](#c
 | lazy                          | `boolean`                                                                                        | If `true`, the query will not be fetched automatically regardless of `fetchPolicy`. Such a query can only be executed manually. It's also useful if the query is depending on data from another query, which hasn't arrived yet. | No                                     |
 | disableSsr                    | `boolean`                                                                                        | If `true`, the query will not be fetched on the server.                                                                                                                                                                          | No                                     |
 | preventExcessRequestOnHydrate | `boolean`                                                                                        | If `true`, the query won't be fetched on the client during the hydrate stage, if there is data **or error** in the cache. `fetchPolicy` option is ignored.                                                                       | No                                     |
-| forceNewRequestOnMerge        | `boolean`                                                                                        | If `true`, the query will start a new network request, if it's merged with the existing query.                                                                                                                                   | No                                     |
+| forceRequestOnMerge           | `boolean`                                                                                        | If `true`, the query will start a new network request, if it's merged with the existing query.                                                                                                                                   | No                                     |
 | softAbortSignal               | `AbortSignal`                                                                                    | Soft aborting should be used to indicate loss of interest in the ongoing network request. The actual request won't be aborted if there are other interested parties.                                                             | No                                     |
 | fromCache                     | <code>(opts: [CacheOptions](#cacheoptions)) => [D](#user-defined-types) &#124; undefined </code> | Function for retrieving query data from cache data.                                                                                                                                                                              | No                                     |
 
@@ -400,10 +399,10 @@ Extends [BaseRequest](#baserequest). Base queries can be executed by [Client](#c
 
 Extends [BaseRequest](#baserequest). Base mutations can be executed by [Client](#client).
 
-| Name                 | Type                                                                                           | Description                                             | Required |
-| -------------------- | ---------------------------------------------------------------------------------------------- | ------------------------------------------------------- | -------- |
-| optimisticData       | <code>[D](#user-defined-types)</code>                                                          | Optimistic data (optimistic response).                  | No       |
-| removeOptimisticData | <code>(opts: [CacheOptionsWithData](#cacheoptionswithdata)) => [C](#user-defined-types)</code> | A function that removes optimistic data from the cache. | No       |
+| Name                 | Type                                                                                         | Description                                             | Required |
+| -------------------- | -------------------------------------------------------------------------------------------- | ------------------------------------------------------- | -------- |
+| optimisticData       | <code>[D](#user-defined-types)</code>                                                        | Optimistic data (optimistic response).                  | No       |
+| removeOptimisticData | <code>(opts: [CacheAndDataOptions](#cacheanddataoptions)) => [C](#user-defined-types)</code> | A function that removes optimistic data from the cache. | No       |
 
 #### `Query`
 
@@ -427,7 +426,7 @@ Extends [BaseMutation](#basemutation). Mutations can be processed by [MutationMa
 | requestParams | <code>[R](#user-defined-types)</code> | Arbitrary storage of request parameters. |
 | requestId     | `string`                              | Request id.                              |
 
-##### `CacheOptionsWithData`
+##### `CacheAndDataOptions`
 
 Extends <code>[CacheOptions](#cacheoptions)</code>
 
@@ -441,15 +440,15 @@ Extends <code>[CacheOptions](#cacheoptions)</code>
 
 #### `Cache`
 
-| Name            | Type                                                                   | Description                                                                                                    |
-| --------------- | ---------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| subscribe       | <code>(callback: () => void) => () => void</code>                      | Subscribe to the cache. The `callback` will be called on cache changes. Call returned function to unsubscribe. |
-| updateState     | <code>(opts: [UpdateStateOptions](#updatestateoptions)) => void</code> | Update cache state.                                                                                            |
-| getCacheData    | <code>() => [C](#user-defined-types)</code>                            | Get cache data.                                                                                                |
-| getRequestError | <code>(requestId: string) => Error &#124; undefined</code>             | Get cached error for the given request id.                                                                     |
-| purge           | <code>() => void</code>                                                | Reset the cache to empty state.                                                                                |
+| Name      | Type                                                         | Description                                                                                                    |
+| --------- | ------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------- |
+| subscribe | <code>(callback: () => void) => () => void</code>            | Subscribe to the cache. The `callback` will be called on cache changes. Call returned function to unsubscribe. |
+| update    | <code>(opts: [UpdateOptions](#updateoptions)) => void</code> | Update cache state.                                                                                            |
+| getData   | <code>() => [C](#user-defined-types)</code>                  | Get cache data.                                                                                                |
+| getError  | <code>(requestId: string) => Error &#124; undefined</code>   | Get cached error for the given request id.                                                                     |
+| purge     | <code>() => void</code>                                      | Reset the cache to empty state.                                                                                |
 
-##### `UpdateStateOptions`
+##### `UpdateOptions`
 
 | Name  | Type                                          | Description                                                                                                                                                                                            | Required |
 | ----- | --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------- |

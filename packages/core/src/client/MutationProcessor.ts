@@ -36,9 +36,9 @@ export class MutationProcessor<C extends NonUndefined> {
         const requestId = mutation.getRequestId ? mutation.getRequestId(mutation) : this.hash(mutation.requestParams);
 
         if (mutation.optimisticData && mutation.toCache) {
-            this.cache.updateState({
+            this.cache.update({
                 data: mutation.toCache({
-                    cacheData: this.cache.getCacheData(),
+                    cacheData: this.cache.getData(),
                     data: mutation.optimisticData!,
                     requestParams: mutation.requestParams,
                     requestId,
@@ -59,17 +59,17 @@ export class MutationProcessor<C extends NonUndefined> {
                         this.ongoingRequests.delete(mutationRequest);
 
                         if (mutation.toCache) {
-                            this.cache.updateState({
+                            this.cache.update({
                                 data: mutation.toCache({
                                     cacheData:
                                         mutation.optimisticData && mutation.removeOptimisticData
                                             ? mutation.removeOptimisticData({
-                                                  cacheData: this.cache.getCacheData(),
+                                                  cacheData: this.cache.getData(),
                                                   data: mutation.optimisticData,
                                                   requestParams: mutation.requestParams,
                                                   requestId,
                                               })
-                                            : this.cache.getCacheData(),
+                                            : this.cache.getData(),
                                     data,
                                     requestParams: mutation.requestParams,
                                     requestId,
@@ -85,9 +85,9 @@ export class MutationProcessor<C extends NonUndefined> {
                         this.ongoingRequests.delete(mutationRequest);
 
                         if (mutation.optimisticData && mutation.removeOptimisticData) {
-                            this.cache.updateState({
+                            this.cache.update({
                                 data: mutation.removeOptimisticData({
-                                    cacheData: this.cache.getCacheData(),
+                                    cacheData: this.cache.getData(),
                                     data: mutation.optimisticData!,
                                     requestParams: mutation.requestParams,
                                     requestId,

@@ -1,5 +1,5 @@
 import { devTools, ReduxDevTools } from './devTools';
-import { Cache, NonUndefined, UpdateStateOptions } from '@fetcher/core';
+import { Cache, NonUndefined, UpdateOptions } from '@fetcher/core';
 import { serializeError, deserializeError, ErrorObject } from 'serialize-error';
 
 interface CacheState<C extends NonUndefined, E = Error> {
@@ -53,11 +53,11 @@ class InMemoryCache<C extends NonUndefined> implements Cache<C> {
         return this._state;
     }
 
-    public getCacheData() {
+    public getData() {
         return this.state.data;
     }
 
-    public getRequestError(requestId: string): Error | undefined {
+    public getError(requestId: string): Error | undefined {
         return this.state.errors[requestId];
     }
 
@@ -101,12 +101,12 @@ class InMemoryCache<C extends NonUndefined> implements Cache<C> {
         };
     }
 
-    public updateState(opts: UpdateStateOptions<C>) {
+    public update(opts: UpdateOptions<C>) {
         this.updateStateInner(opts);
         this.devtools?.send({ type: 'UPDATE', ...opts }, this.state);
     }
 
-    private updateStateInner({ data, error }: UpdateStateOptions<C>) {
+    private updateStateInner({ data, error }: UpdateOptions<C>) {
         this.state = {
             errors: error ? this.insertError(this.state.errors, error) : this.state.errors,
             data: data !== undefined ? data : this.state.data,

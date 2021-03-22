@@ -8,7 +8,7 @@ export interface CacheOptions<C extends NonUndefined, R> {
     requestId: string;
 }
 
-export type CacheOptionsWithData<C extends NonUndefined, D extends NonUndefined, R> = CacheOptions<C, R> & { data: D };
+export type CacheAndDataOptions<C extends NonUndefined, D extends NonUndefined, R> = CacheOptions<C, R> & { data: D };
 
 export interface RequestOptions<R> {
     requestParams: R;
@@ -19,7 +19,7 @@ export interface BaseRequest<C extends NonUndefined, D extends NonUndefined, E e
     abortSignal?: AbortSignal;
     getRequestFactory?(opts: RequestOptions<R>): (abortSignal?: AbortSignal) => Promise<D | E>;
     getRequestId?(opts: RequestOptions<R>): string;
-    toCache?(opts: CacheOptionsWithData<C, D, R>): C;
+    toCache?(opts: CacheAndDataOptions<C, D, R>): C;
 }
 
 export interface BaseQuery<C extends NonUndefined, D extends NonUndefined, E extends Error, R>
@@ -28,7 +28,7 @@ export interface BaseQuery<C extends NonUndefined, D extends NonUndefined, E ext
     lazy?: boolean;
     disableSsr?: boolean;
     preventExcessRequestOnHydrate?: boolean;
-    forceNewRequestOnMerge?: boolean;
+    forceRequestOnMerge?: boolean;
     softAbortSignal?: AbortSignal;
     fromCache?(opts: CacheOptions<C, R>): D | undefined;
 }
@@ -36,7 +36,7 @@ export interface BaseQuery<C extends NonUndefined, D extends NonUndefined, E ext
 export interface BaseMutation<C extends NonUndefined, D extends NonUndefined, E extends Error, R>
     extends BaseRequest<C, D, E, R> {
     optimisticData?: D;
-    removeOptimisticData?(opts: CacheOptionsWithData<C, D, R>): C;
+    removeOptimisticData?(opts: CacheAndDataOptions<C, D, R>): C;
 }
 
 export interface Query<C extends NonUndefined, D extends NonUndefined, E extends Error, R>

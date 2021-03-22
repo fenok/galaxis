@@ -74,14 +74,14 @@ export class QueryManager<C extends NonUndefined, D extends NonUndefined, E exte
             ...this.query,
             abortSignal: this.abortController?.signal,
             softAbortSignal: this.softAbortController?.signal,
-            forceNewRequestOnMerge: refetch || this.query.forceNewRequestOnMerge,
+            forceRequestOnMerge: refetch || this.query.forceRequestOnMerge,
         };
 
         let request: Promise<D> | undefined;
 
         if (!refetch) {
             const queryResult = this.client.watchQuery(query, this.onExternalChange.bind(this));
-            this.loading = queryResult.requestFlags.required;
+            this.loading = queryResult.requestRequired;
             request = queryResult.request;
 
             if (queryResult.cache && queryResult.unsubscribe) {

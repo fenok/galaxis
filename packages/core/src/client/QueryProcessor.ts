@@ -8,14 +8,9 @@ export interface QueryCache<D extends NonUndefined, E extends Error> {
     data?: D;
 }
 
-export interface QueryRequestFlags {
-    required: boolean;
-    allowed: boolean;
-}
-
 export type QueryState<D extends NonUndefined, E extends Error> = {
     cache?: QueryCache<D, E>;
-    requestFlags: QueryRequestFlags;
+    requestRequired: boolean;
 };
 
 export interface WatchQueryResult<D extends NonUndefined, E extends Error> extends QueryState<D, E> {
@@ -74,7 +69,7 @@ export class QueryProcessor<C extends NonUndefined> {
         return {
             ...queryState,
             request:
-                queryState.requestFlags.required && queryState.requestFlags.allowed
+                queryState.requestRequired && this.isRequestAllowed(query, queryState.cache)
                     ? this.getRequestPromise(query, requestId)
                     : undefined,
             unsubscribe:
@@ -96,9 +91,9 @@ export class QueryProcessor<C extends NonUndefined> {
 
         const cache = !this.isFetchPolicy(query.fetchPolicy, 'no-cache')
             ? {
-                  error: this.cache.getRequestError(requestId),
+                  error: this.cache.getError(requestId),
                   data: query.fromCache?.({
-                      cacheData: this.cache.getCacheData(),
+                      cacheData: this.cache.getData(),
                       requestParams: query.requestParams,
                       requestId,
                   }),
@@ -107,10 +102,7 @@ export class QueryProcessor<C extends NonUndefined> {
 
         return {
             cache,
-            requestFlags: {
-                required: this.isRequestRequired(query, cache),
-                allowed: this.isRequestAllowed(query, cache),
-            },
+            requestRequired: this.isRequestRequired(query, cache),
         };
     }
 
@@ -169,7 +161,7 @@ export class QueryProcessor<C extends NonUndefined> {
                 currentQueryRequest.cacheableQuery = query;
             }
 
-            if (query.forceNewRequestOnMerge) {
+            if (query.forceRequestOnMerge) {
                 currentQueryRequest.shouldRerun = true;
                 currentQueryRequest.abortController?.abort();
             }
@@ -238,10 +230,10 @@ export class QueryProcessor<C extends NonUndefined> {
         action: { type: 'fail'; error: E } | { type: 'success'; data: D },
     ) {
         if (action.type === 'success') {
-            this.cache.updateState({
+            this.cache.update({
                 data: query.toCache
                     ? query.toCache({
-                          cacheData: this.cache.getCacheData(),
+                          cacheData: this.cache.getData(),
                           data: action.data,
                           requestParams: query.requestParams,
                           requestId,
@@ -250,7 +242,7 @@ export class QueryProcessor<C extends NonUndefined> {
                 error: [requestId, undefined],
             });
         } else {
-            this.cache.updateState({
+            this.cache.update({
                 error: [requestId, action.error],
             });
         }
