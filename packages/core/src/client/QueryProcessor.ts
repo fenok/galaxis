@@ -18,10 +18,9 @@ export type QueryState<D extends NonUndefined, E extends Error> = {
     requestFlags: QueryRequestFlags;
 };
 
-export interface QueryResult<D extends NonUndefined, E extends Error> {
-    cache?: QueryCache<D, E>;
-    requestFlags: QueryRequestFlags;
+export interface WatchQueryResult<D extends NonUndefined, E extends Error> extends QueryState<D, E> {
     request?: Promise<D>;
+    unsubscribe?(): void;
 }
 
 export interface QueryRequest {
@@ -68,7 +67,7 @@ export class QueryProcessor<C extends NonUndefined> {
     public watchQuery<D extends NonUndefined, E extends Error, R>(
         query: BaseQuery<C, D, E, R>,
         onChange?: (state: QueryState<D, E>) => void,
-    ) {
+    ): WatchQueryResult<D, E> {
         const requestId = query.getRequestId ? query.getRequestId(query) : this.hash(query.requestParams);
         let queryState = this.getQueryState(query);
 

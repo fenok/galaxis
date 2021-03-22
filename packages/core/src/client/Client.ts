@@ -1,4 +1,4 @@
-import { QueryProcessor, QueryState } from './QueryProcessor';
+import { QueryProcessor, QueryState, WatchQueryResult } from './QueryProcessor';
 import { MutationProcessor } from './MutationProcessor';
 import { RequestQueue } from './RequestQueue';
 import { BaseMutation, BaseQuery, BaseRequest, Cache, NonUndefined } from '../types';
@@ -60,6 +60,42 @@ class Client<
         this.staticDefaultMutation = defaultMutation;
     }
 
+    public query<D extends BD, E extends BE, R extends BR>(query: BaseQuery<C, D, E, R>): Promise<D> {
+        return this.queryProcessor.query(this.getMergedQuery(query));
+    }
+
+    public watchQuery<D extends BD, E extends BE, R extends BR>(
+        query: BaseQuery<C, D, E, R>,
+        onChange?: (state: QueryState<D, E>) => void,
+    ): WatchQueryResult<D, E> {
+        return this.queryProcessor.watchQuery(this.getMergedQuery(query), onChange);
+    }
+
+    public getQueryState<D extends BD, E extends BE, R extends BR>(query: BaseQuery<C, D, E, R>): QueryState<D, E> {
+        return this.queryProcessor.getQueryState(this.getMergedQuery(query));
+    }
+
+    public mutate<D extends BD, E extends BE, R extends BR>(mutation: BaseMutation<C, D, E, R>): Promise<D> {
+        return this.mutationProcessor.mutate(this.getMergedMutation(mutation));
+    }
+
+    public purge() {
+        this.dynamicDefaultRequest = undefined;
+        this.dynamicDefaultQuery = undefined;
+        this.dynamicDefaultMutation = undefined;
+        this.queryProcessor.purge();
+        this.mutationProcessor.purge();
+        this.cache.purge();
+    }
+
+    public getCache() {
+        return this.cache;
+    }
+
+    public onHydrateComplete() {
+        this.queryProcessor.onHydrateComplete();
+    }
+
     public getHash(value: unknown) {
         return this.hash(value);
     }
@@ -86,42 +122,6 @@ class Client<
 
     public setDynamicDefaultMutation(defaultMutation: Partial<BaseMutation<C, BD, BE, BR>>) {
         this.dynamicDefaultMutation = defaultMutation;
-    }
-
-    public purge() {
-        this.dynamicDefaultRequest = undefined;
-        this.dynamicDefaultQuery = undefined;
-        this.dynamicDefaultMutation = undefined;
-        this.queryProcessor.purge();
-        this.mutationProcessor.purge();
-        this.cache.purge();
-    }
-
-    public getCache() {
-        return this.cache;
-    }
-
-    public onHydrateComplete() {
-        this.queryProcessor.onHydrateComplete();
-    }
-
-    public getQueryState<D extends BD, E extends BE, R extends BR>(query: BaseQuery<C, D, E, R>): QueryState<D, E> {
-        return this.queryProcessor.getQueryState(this.getMergedQuery(query));
-    }
-
-    public query<D extends BD, E extends BE, R extends BR>(query: BaseQuery<C, D, E, R>): Promise<D> {
-        return this.queryProcessor.query(this.getMergedQuery(query));
-    }
-
-    public watchQuery<D extends BD, E extends BE, R extends BR>(
-        query: BaseQuery<C, D, E, R>,
-        onChange?: (state: QueryState<D, E>) => void,
-    ) {
-        return this.queryProcessor.watchQuery(this.getMergedQuery(query), onChange);
-    }
-
-    public async mutate<D extends BD, E extends BE, R extends BR>(mutation: BaseMutation<C, D, E, R>): Promise<D> {
-        return this.mutationProcessor.mutate(this.getMergedMutation(mutation));
     }
 
     private getMergedQuery<D extends BD, E extends BE, R extends BR>(
