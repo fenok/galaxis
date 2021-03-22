@@ -25,6 +25,7 @@ export interface BaseRequest<C extends NonUndefined, D extends NonUndefined, E e
 export interface BaseQuery<C extends NonUndefined, D extends NonUndefined, E extends Error, R>
     extends BaseRequest<C, D, E, R> {
     fetchPolicy?: FetchPolicy;
+    lazy?: boolean;
     disableSsr?: boolean;
     preventExcessRequestOnHydrate?: boolean;
     forceNewRequestOnMerge?: boolean;
@@ -39,9 +40,7 @@ export interface BaseMutation<C extends NonUndefined, D extends NonUndefined, E 
 }
 
 export interface Query<C extends NonUndefined, D extends NonUndefined, E extends Error, R>
-    extends BaseQuery<C, D, E, R> {
-    lazy?: boolean;
-}
+    extends BaseQuery<C, D, E, R> {}
 
 export interface Mutation<C extends NonUndefined, D extends NonUndefined, E extends Error, R>
     extends BaseMutation<C, D, E, R> {}

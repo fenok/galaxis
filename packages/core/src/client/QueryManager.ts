@@ -78,7 +78,6 @@ export class QueryManager<C extends NonUndefined, D extends NonUndefined, E exte
 
         const query = {
             ...this.query,
-            fetchPolicy: this.query.lazy ? 'cache-only' : this.query.fetchPolicy,
             abortSignal: this.abortController?.signal,
             softAbortSignal: this.softAbortController?.signal,
             forceNewRequestOnMerge: refetch || this.query.forceNewRequestOnMerge,
