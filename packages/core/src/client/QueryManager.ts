@@ -10,8 +10,9 @@ export interface QueryManagerOptions {
 
 export class QueryManager<C extends NonUndefined, D extends NonUndefined, E extends Error, R> {
     private forceUpdate: () => void;
-    private defaultQueryHash: string | number = '';
-    private queryHash: string | number = '';
+    private defaultRequestHash!: string;
+    private defaultQueryHash!: string;
+    private queryHash!: string;
     private query!: Query<C, D, E, R>;
     private client!: Client;
     private ssrPromisesManager?: SsrPromisesManager;
@@ -34,6 +35,7 @@ export class QueryManager<C extends NonUndefined, D extends NonUndefined, E exte
         if (
             this.client !== client ||
             this.queryHash !== this.client.getHash(query) ||
+            this.defaultRequestHash !== this.client.getDynamicDefaultRequestHash() ||
             this.defaultQueryHash !== this.client.getDynamicDefaultQueryHash() ||
             this.ssrPromisesManager !== ssrPromisesManager
         ) {
@@ -43,6 +45,7 @@ export class QueryManager<C extends NonUndefined, D extends NonUndefined, E exte
             this.ssrPromisesManager = ssrPromisesManager;
             this.query = query;
             this.queryHash = this.client.getHash(query);
+            this.defaultRequestHash = this.client.getDynamicDefaultRequestHash();
             this.defaultQueryHash = this.client.getDynamicDefaultQueryHash();
 
             this.performRequest()?.catch((error: Error) => {

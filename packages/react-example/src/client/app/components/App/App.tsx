@@ -11,11 +11,7 @@ interface Props {
 const App: React.FC<Props> = ({ client }) => {
     const [root, setRoot] = useState('https://jsonplaceholder.typicode.com');
     return (
-        <ClientProvider
-            client={client}
-            dynamicDefaultMutation={{ requestParams: { root } }}
-            dynamicDefaultQuery={{ requestParams: { root } }}
-        >
+        <ClientProvider client={client} dynamicDefaultRequest={{ requestParams: { root } }}>
             <input
                 style={{ width: '100%', marginBottom: '20px' }}
                 value={root}

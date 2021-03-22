@@ -1,7 +1,11 @@
 import { QueryProcessor, QueryState } from './QueryProcessor';
 import { MutationProcessor } from './MutationProcessor';
 import { RequestQueue } from './RequestQueue';
-import { BaseMutation, BaseQuery, Cache, NonUndefined } from '../types';
+import { BaseMutation, BaseQuery, BaseRequest, Cache, NonUndefined } from '../types';
+
+interface Merge {
+    <R1, R2, R3, R4, R5>(r1: R1, r2: R2, r3: R3, r4: R4, r5: R5): R1 & R2 & R3 & R4 & R5;
+}
 
 interface ClientOptions<
     C extends NonUndefined = NonUndefined,
@@ -11,8 +15,9 @@ interface ClientOptions<
     BR = unknown
 > {
     cache: CACHE;
-    merge<R1, R2, R3>(r1: R1, r2: R2, r3: R3): R1 & R2 & R3;
+    merge: Merge;
     hash(value: unknown): string;
+    defaultRequest?: Partial<BaseRequest<C, BD, BE, BR>>;
     defaultQuery?: Partial<BaseQuery<C, BD, BE, BR>>;
     defaultMutation?: Partial<BaseMutation<C, BD, BE, BR>>;
 }
@@ -27,20 +32,30 @@ class Client<
     private readonly cache: CACHE;
     private queryProcessor: QueryProcessor<C>;
     private mutationProcessor: MutationProcessor<C>;
-    private merge: <R1, R2, R3>(r1: R1, r2: R2, r3: R3) => R1 & R2 & R3;
+    private merge: Merge;
     private hash: (value: unknown) => string;
+    private staticDefaultRequest?: Partial<BaseRequest<C, BD, BE, BR>>;
     private staticDefaultQuery?: Partial<BaseQuery<C, BD, BE, BR>>;
     private staticDefaultMutation?: Partial<BaseMutation<C, BD, BE, BR>>;
+    private dynamicDefaultRequest?: Partial<BaseRequest<C, BD, BE, BR>>;
     private dynamicDefaultQuery?: Partial<BaseQuery<C, BD, BE, BR>>;
     private dynamicDefaultMutation?: Partial<BaseMutation<C, BD, BE, BR>>;
 
-    constructor({ cache, merge, defaultQuery, defaultMutation, hash }: ClientOptions<C, CACHE, BD, BE, BR>) {
+    constructor({
+        cache,
+        merge,
+        defaultRequest,
+        defaultQuery,
+        defaultMutation,
+        hash,
+    }: ClientOptions<C, CACHE, BD, BE, BR>) {
         const requestQueue = new RequestQueue();
         this.cache = cache;
         this.queryProcessor = new QueryProcessor({ cache, requestQueue, hash });
         this.mutationProcessor = new MutationProcessor({ cache, requestQueue, hash });
         this.merge = merge;
         this.hash = hash;
+        this.staticDefaultRequest = defaultRequest;
         this.staticDefaultQuery = defaultQuery;
         this.staticDefaultMutation = defaultMutation;
     }
@@ -49,12 +64,20 @@ class Client<
         return this.hash(value);
     }
 
+    public getDynamicDefaultRequestHash() {
+        return this.dynamicDefaultRequest ? this.hash(this.dynamicDefaultRequest) : '';
+    }
+
     public getDynamicDefaultQueryHash() {
-        return this.hash(this.dynamicDefaultQuery);
+        return this.dynamicDefaultQuery ? this.hash(this.dynamicDefaultQuery) : '';
     }
 
     public getDynamicDefaultMutationHash() {
-        return this.hash(this.dynamicDefaultMutation);
+        return this.dynamicDefaultMutation ? this.hash(this.dynamicDefaultMutation) : '';
+    }
+
+    public setDynamicDefaultRequest(defaultRequest: Partial<BaseRequest<C, BD, BE, BR>>) {
+        this.dynamicDefaultRequest = defaultRequest;
     }
 
     public setDynamicDefaultQuery(defaultQuery: Partial<BaseQuery<C, BD, BE, BR>>) {
@@ -66,6 +89,7 @@ class Client<
     }
 
     public purge() {
+        this.dynamicDefaultRequest = undefined;
         this.dynamicDefaultQuery = undefined;
         this.dynamicDefaultMutation = undefined;
         this.queryProcessor.purge();
@@ -103,13 +127,25 @@ class Client<
     private getMergedQuery<D extends BD, E extends BE, R extends BR>(
         query: BaseQuery<C, D, E, R>,
     ): BaseQuery<C, D, E, R> {
-        return this.merge(this.staticDefaultQuery, this.dynamicDefaultQuery, query);
+        return this.merge(
+            this.staticDefaultRequest,
+            this.staticDefaultQuery,
+            this.dynamicDefaultRequest,
+            this.dynamicDefaultQuery,
+            query,
+        );
     }
 
     private getMergedMutation<D extends BD, E extends BE, R extends BR>(
         mutation: BaseMutation<C, D, E, R>,
     ): BaseMutation<C, D, E, R> {
-        return this.merge(this.staticDefaultMutation, this.dynamicDefaultMutation, mutation);
+        return this.merge(
+            this.staticDefaultRequest,
+            this.staticDefaultMutation,
+            this.dynamicDefaultRequest,
+            this.dynamicDefaultMutation,
+            mutation,
+        );
     }
 }
 

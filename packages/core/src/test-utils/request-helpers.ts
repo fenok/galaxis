@@ -177,8 +177,8 @@ export function getClient(cache = getCache()) {
         hash(value: unknown): string {
             return JSON.stringify(value);
         },
-        merge<R1, R2, R3>(r1: R1, r2: R2, r3: R3): R1 & R2 & R3 {
-            return { ...r1, ...r2, ...r3 };
+        merge<R1, R2, R3, R4, R5>(r1: R1, r2: R2, r3: R3, r4: R4, r5: R5): R1 & R2 & R3 & R4 & R5 {
+            return { ...r1, ...r2, ...r3, ...r4, ...r5 };
         },
     });
 }

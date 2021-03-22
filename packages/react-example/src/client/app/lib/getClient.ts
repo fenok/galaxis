@@ -29,23 +29,20 @@ export type AppClient = Client<
 >;
 
 export function getClient({ fetch }: GetClientOptions): AppClient {
-    const defaultRequest = {
-        getRequestFactory: getRequestFactory({ fetch, processResponse: processResponseJson }),
-        getRequestId: getRequestId({ hash: objectHash }),
-    };
-
     return new Client({
         cache: new InMemoryCache({
             initialState: typeof window !== 'undefined' ? window.FETCHER_STATE : undefined,
             emptyData: EMPTY_DATA,
             enableDevTools: true,
         }),
+        defaultRequest: {
+            getRequestFactory: getRequestFactory({ fetch, processResponse: processResponseJson }),
+            getRequestId: getRequestId({ hash: objectHash }),
+        },
         defaultQuery: {
-            ...defaultRequest,
             preventExcessRequestOnHydrate: true,
             fetchPolicy: 'cache-and-network',
         },
-        defaultMutation: defaultRequest,
         hash: objectHash,
         merge: mergeDeepNonUndefined,
     });
