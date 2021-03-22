@@ -7,8 +7,6 @@ export interface MutationManagerOptions {
 
 export class MutationManager<C extends NonUndefined, D extends NonUndefined, E extends Error, R> {
     private forceUpdate: () => void;
-    private defaultRequestHash!: string;
-    private defaultMutationHash!: string;
     private mutationHash!: string;
     private mutation!: Mutation<C, D, E, R>;
     private client!: Client;
@@ -27,12 +25,7 @@ export class MutationManager<C extends NonUndefined, D extends NonUndefined, E e
     }
 
     public process(mutation: Mutation<C, D, E, R>, client: Client) {
-        if (
-            this.client !== client ||
-            this.mutationHash !== this.client.getHash(mutation) ||
-            this.defaultRequestHash !== this.client.getDynamicDefaultRequestHash() ||
-            this.defaultMutationHash !== this.client.getDynamicDefaultMutationHash()
-        ) {
+        if (this.client !== client || this.mutationHash !== this.client.getMutationHash(mutation)) {
             this.mutationId += 1;
             this.data = undefined;
             this.error = undefined;
@@ -40,9 +33,7 @@ export class MutationManager<C extends NonUndefined, D extends NonUndefined, E e
 
             this.client = client;
             this.mutation = mutation;
-            this.mutationHash = this.client.getHash(mutation);
-            this.defaultRequestHash = this.client.getDynamicDefaultRequestHash();
-            this.defaultMutationHash = this.client.getDynamicDefaultMutationHash();
+            this.mutationHash = this.client.getMutationHash(mutation);
         }
 
         return {

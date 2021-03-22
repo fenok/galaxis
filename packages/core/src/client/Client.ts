@@ -108,20 +108,12 @@ class Client<
         this.dynamicDefaultMutation = defaultMutation;
     }
 
-    public getHash(value: unknown) {
-        return this.hash(value);
+    public getQueryHash<D extends BD, E extends BE, R extends BR>(query: BaseQuery<C, D, E, R>) {
+        return this.hash(this.getMergedQuery(query));
     }
 
-    public getDynamicDefaultRequestHash() {
-        return this.dynamicDefaultRequest ? this.hash(this.dynamicDefaultRequest) : '';
-    }
-
-    public getDynamicDefaultQueryHash() {
-        return this.dynamicDefaultQuery ? this.hash(this.dynamicDefaultQuery) : '';
-    }
-
-    public getDynamicDefaultMutationHash() {
-        return this.dynamicDefaultMutation ? this.hash(this.dynamicDefaultMutation) : '';
+    public getMutationHash<D extends BD, E extends BE, R extends BR>(mutation: BaseMutation<C, D, E, R>) {
+        return this.hash(this.getMergedMutation(mutation));
     }
 
     private getMergedQuery<D extends BD, E extends BE, R extends BR>(
