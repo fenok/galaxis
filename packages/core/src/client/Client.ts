@@ -96,6 +96,18 @@ class Client<
         this.queryProcessor.onHydrateComplete();
     }
 
+    public setDynamicDefaultRequest(defaultRequest: Partial<BaseRequest<C, BD, BE, BR>>) {
+        this.dynamicDefaultRequest = defaultRequest;
+    }
+
+    public setDynamicDefaultQuery(defaultQuery: Partial<BaseQuery<C, BD, BE, BR>>) {
+        this.dynamicDefaultQuery = defaultQuery;
+    }
+
+    public setDynamicDefaultMutation(defaultMutation: Partial<BaseMutation<C, BD, BE, BR>>) {
+        this.dynamicDefaultMutation = defaultMutation;
+    }
+
     public getHash(value: unknown) {
         return this.hash(value);
     }
@@ -110,18 +122,6 @@ class Client<
 
     public getDynamicDefaultMutationHash() {
         return this.dynamicDefaultMutation ? this.hash(this.dynamicDefaultMutation) : '';
-    }
-
-    public setDynamicDefaultRequest(defaultRequest: Partial<BaseRequest<C, BD, BE, BR>>) {
-        this.dynamicDefaultRequest = defaultRequest;
-    }
-
-    public setDynamicDefaultQuery(defaultQuery: Partial<BaseQuery<C, BD, BE, BR>>) {
-        this.dynamicDefaultQuery = defaultQuery;
-    }
-
-    public setDynamicDefaultMutation(defaultMutation: Partial<BaseMutation<C, BD, BE, BR>>) {
-        this.dynamicDefaultMutation = defaultMutation;
     }
 
     private getMergedQuery<D extends BD, E extends BE, R extends BR>(

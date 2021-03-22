@@ -20,9 +20,14 @@ const client = new Client({
 
 ##### Arguments
 
-| Name  | Type                                      | Description                                   | Required |
-| ----- | ----------------------------------------- | --------------------------------------------- | -------- |
-| cache | <code>[CACHE](#user-defined-types)</code> | Cache for storing normalized data and errors. | Yes      |
+| Name            | Type                                                                             | Description                                                                                                                                                                                    | Required |
+| --------------- | -------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
+| cache           | <code>[CACHE](#user-defined-types)</code>                                        | Cache for storing normalized data and errors.                                                                                                                                                  | Yes      |
+| merge           | <code>(r1: R1, r2: R2, r3: R3, r4: R4, r5: R5) => R1 & R2 & R3 & R4 & R5;</code> | A function for merging queries and mutations with static and dynamic defaults.                                                                                                                 | Yes      |
+| hash            | <code>(value: unknown) => string</code>                                          | A function for hashing <code>[BaseRequest](#baserequest)</code>, <code>[BaseQuery](#basequery)</code> or <code>[BaseMutation](#basemutation)</code> objects, and their `requestParams` fields. | Yes      |
+| defaultRequest  | <code>Partial<[BaseRequest](#baserequest)></code>                                | Static default request. Can't be changed later.                                                                                                                                                | No       |
+| defaultQuery    | <code>Partial<[BaseQuery](#baserequest)></code>                                  | Static default query. Can't be changed later.                                                                                                                                                  | No       |
+| defaultMutation | <code>Partial<[BaseMutation](#baserequest)></code>                               | Static default mutation. Can't be changed later.                                                                                                                                               | No       |
 
 ##### Return value
 
@@ -30,50 +35,51 @@ const client = new Client({
 
 #### `client.query()`
 
-Execute query.
+Execute the query. This method will always trigger a network request.
 
 ```typescript
-const queryResult = client.query(query, requestFlags);
+const result = client.query(query);
 ```
 
 ##### Arguments
 
-| Name         | Type                                                          | Description                                                                                                                                                                                                                                   | Required |
-| ------------ | ------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
-| query        | <code>[BaseQuery](#basequery)</code>                          | Query to execute.                                                                                                                                                                                                                             | Yes      |
-| requestFlags | <code>Partial<[QueryRequestFlags](#queryrequestflags)></code> | Flags that will override internal values for this call. This way you can force-enable the network request. If you want to force-disable the network request, you should just use <code>[client.getQueryState()](#clientgetquerystate)</code>. | No       |
-
-##### Return value
-
-###### `QueryResult`
-
-| Name         | Type                                                            | Description                                                                                                                                                                                                                                                         |
-| ------------ | --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| cache        | <code>[QueryCache](#querycache) &#124; undefined</code>         | Query state from the cache **before network request**. Will be `undefined` if the given query is not cacheable (has `fetchPolicy: 'no-cache'`).                                                                                                                     |
-| requestFlags | <code>[QueryRequestFlags](#queryrequestflags)</code>            | Internal flags for the given query **before network request**. Not affected by `requestFlags` argument.                                                                                                                                                             |
-| request      | <code>Promise<[D](#user-defined-types)> &#124; undefined</code> | Promise representing network request. It will be `undefined`, if it wasn't required (or was required, but wasn't allowed) by internal flags, and they weren't overridden by `requestFlags` argument. Internally, there may be more than one actual network request. |
-
-#### `client.mutate()`
-
-Execute mutation.
-
-```typescript
-const mutationResult = client.mutate(mutation);
-```
-
-##### Arguments
-
-| Name     | Type                                       | Description          | Required |
-| -------- | ------------------------------------------ | -------------------- | -------- |
-| mutation | <code>[BaseMutation](#basemutation)</code> | Mutation to execute. | Yes      |
+| Name  | Type                                 | Description       | Required |
+| ----- | ------------------------------------ | ----------------- | -------- |
+| query | <code>[BaseQuery](#basequery)</code> | Query to execute. | Yes      |
 
 ##### Return value
 
 <code>Promise<[D](#user-defined-types)></code>
 
+#### `client.watchQuery()`
+
+Execute the query and subscribe to the changes in its state.
+
+```typescript
+const result = client.watchQuery(query, onChange);
+```
+
+##### Arguments
+
+| Name     | Type                                                    | Description                                             | Required |
+| -------- | ------------------------------------------------------- | ------------------------------------------------------- | -------- |
+| query    | <code>[BaseQuery](#basequery)</code>                    | A query to execute.                                     | Yes      |
+| onChange | <code>(state: [QueryState](#querystate)) => void</code> | A callback to call when the state of the query changes. | No       |
+
+##### Return value
+
+###### `WatchQueryResult`
+
+Extends [QueryState](#querystate).
+
+| Name        | Type                                                            | Description                                                                                                                                                                                                   |
+| ----------- | --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| request     | <code>Promise<[D](#user-defined-types)> &#124; undefined</code> | A promise representing network request. It will be `undefined`, if it wasn't required (or was required, but wasn't allowed) by internal flags. Internally, there may be more than one actual network request. |
+| unsubscribe | <code>() => void &#124; undefined</code>                        | A function for unsubscribing. Will be `undefined` if there was no subscription. It can happen when `onChange` argument wasn't passed, or if the query itself is not cacheable.                                |
+
 #### `client.getQueryState()`
 
-Get state of given query.
+Get state of the given query.
 
 ```typescript
 const queryState = client.getQueryState(query);
@@ -94,39 +100,27 @@ const queryState = client.getQueryState(query);
 | cache        | <code>[QueryCache](#querycache) &#124; undefined</code> | Query state from the cache. Will be `undefined` if the given query is not cacheable (has `fetchPolicy: 'no-cache'`). |
 | requestFlags | <code>[QueryRequestFlags](#queryrequestflags)</code>    | Internal flags for the given query.                                                                                  |
 
-#### `client.subscribe()`
+#### `client.mutate()`
 
-Subscribe to state changes of the given query.
+Execute mutation.
 
 ```typescript
-const subscription = client.subscribe(query, onChange);
+const mutationResult = client.mutate(mutation);
 ```
 
 ##### Arguments
 
-| Name     | Type                                                    | Description                  | Required |
-| -------- | ------------------------------------------------------- | ---------------------------- | -------- |
-| query    | <code>[BaseQuery](#basequery)</code>                    | Query.                       | Yes      |
-| onChange | <code>(state: [QueryState](#querystate)) => void</code> | Callback to call on changes. | Yes      |
+| Name     | Type                                       | Description          | Required |
+| -------- | ------------------------------------------ | -------------------- | -------- |
+| mutation | <code>[BaseMutation](#basemutation)</code> | Mutation to execute. | Yes      |
 
 ##### Return value
 
-| Name        | Type                                   | Description                        |
-| ----------- | -------------------------------------- | ---------------------------------- |
-| queryState  | <code>[QueryState](#querystate)</code> | Current query state.               |
-| unsubscribe | <code>() => void</code>                | Call this function to unsubscribe. |
-
-#### `client.onHydrateComplete()`
-
-Report to the client that the hydrate stage is complete. The client always starts in the hydrate stage, and it's a one-way operation.
-
-```typescript
-client.onHydrateComplete();
-```
+<code>Promise<[D](#user-defined-types)></code>
 
 #### `client.purge()`
 
-Reset the client. Specifically, abort all requests and clear the cache. You should call this method on logout.
+Reset the client. Specifically, abort all requests, clear the cache and clear dynamic defaults. You should call this method on logout.
 
 ```typescript
 client.purge();
@@ -143,6 +137,56 @@ const cache = client.getCache();
 ##### Return value
 
 [CACHE](#user-defined-types)
+
+#### `client.onHydrateComplete()`
+
+Report to the client that the hydrate stage is complete. The client always starts in the hydrate stage, and it's a one-way operation.
+
+```typescript
+client.onHydrateComplete();
+```
+
+#### `client.setDynamicDefaultRequest()`
+
+Set dynamic default request.
+
+```typescript
+client.setDynamicDefaultRequest(defaultRequest);
+```
+
+##### Arguments
+
+| Name           | Type                                              | Description      | Required |
+| -------------- | ------------------------------------------------- | ---------------- | -------- |
+| defaultRequest | <code>Partial<[BaseRequest](#baserequest)></code> | Default request. | Yes      |
+
+#### `client.setDynamicDefaultQuery()`
+
+Set dynamic default query.
+
+```typescript
+client.setDynamicDefaultQuery(defaultQuery);
+```
+
+##### Arguments
+
+| Name         | Type                                          | Description    | Required |
+| ------------ | --------------------------------------------- | -------------- | -------- |
+| defaultQuery | <code>Partial<[BaseQuery](#basequery)></code> | Default query. | Yes      |
+
+#### `client.setDynamicDefaultMutation()`
+
+Set dynamic default mutation.
+
+```typescript
+client.setDynamicDefault<Mutation>(defaultMutation);
+```
+
+##### Arguments
+
+| Name            | Type                                                | Description       | Required |
+| --------------- | --------------------------------------------------- | ----------------- | -------- |
+| defaultMutation | <code>Partial<[BaseMutation](#basemutation)></code> | Default mutation. | Yes      |
 
 ### QueryManager
 
@@ -164,7 +208,7 @@ Call it on each component update. If arguments didn't change, a new object with 
 
 If `ssrPromisesManager` was provided, and there was a network request, it will be added to the manager.
 
-Note that the arguments are compared by reference.
+Note that `client` and `ssrPromisesManager` arguments are compared by reference, and `query` argument is compared by hash, calculated by the function that was passed to the <code>[Client](#client)</code>.
 
 ```typescript
 const result = queryManager.process(query, client, ssrPromisesManager);
@@ -252,38 +296,42 @@ const hasPromises = ssrPromisesManager.hasPromises();
 
 #### User-defined types
 
-| Name    | Scope            | Constraint                                             | Description                                    |
-| ------- | ---------------- | ------------------------------------------------------ | ---------------------------------------------- |
-| `CACHE` | Client-specific  | Must extend <code>[Cache](#cache)</code>               | Cache for storing normalized data and errors.  |
-| `C`     | Client-specific  | Must extend <code>[NonUndefined](#nonundefined)</code> | Cache data. Normalized data from all requests. |
-| `D`     | Request-specific | Must extend <code>[NonUndefined](#nonundefined)</code> | Query or mutation data.                        |
-| `E`     | Request-specific | Must extend `Error`                                    | Query or mutation error.                       |
-| `R`     | Request-specific | None                                                   | Query or mutation request parameters.          |
+| Name    | Scope            | Constraint                                             | Description                                                                       |
+| ------- | ---------------- | ------------------------------------------------------ | --------------------------------------------------------------------------------- |
+| `CACHE` | Client-specific  | Must extend <code>[Cache](#cache)</code>               | Cache for storing normalized data and errors.                                     |
+| `C`     | Client-specific  | Must extend <code>[NonUndefined](#nonundefined)</code> | Cache data. Normalized data from all requests.                                    |
+| `BD`    | Client-specific  | Must extend <code>[NonUndefined](#nonundefined)</code> | Query or mutation data, common for all requests. Used for defaults.               |
+| `BE`    | Client-specific  | Must extend `Error`                                    | Query or mutation error, common for all requests. Used for defaults.              |
+| `BR`    | Client-specific  | None                                                   | Query or mutation request parameters, common for all requests. Used for defaults. |
+| `D`     | Request-specific | Must extend <code>BD</code>                            | Query or mutation data.                                                           |
+| `E`     | Request-specific | Must extend `BE`                                       | Query or mutation error.                                                          |
+| `R`     | Request-specific | Must extend `BR`                                       | Query or mutation request parameters.                                             |
 
 #### BaseRequest
 
 This type describes base network request.
 
-| Name              | Type                                                                                                                        | Description                                                                                                                                                                                                                                                                                                                                                                                                | Required |
-| ----------------- | --------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
-| requestParams     | <code>[R](#user-defined-types)</code>                                                                                       | Arbitrary storage of request parameters.                                                                                                                                                                                                                                                                                                                                                                   | Yes      |
-| abortSignal       | `AbortSignal`                                                                                                               | Signal for aborting the request.                                                                                                                                                                                                                                                                                                                                                                           | No       |
-| getRequestFactory | <code>(opts: [RequestOptions](#requestoptions)) => (abortSignal?: AbortSignal) => Promise<[D](#user-defined-types)>;</code> | A function that returns the factory for creating network requests.<br/>Note that `abortSignal` for the factory is created by the library. It is **not** the same signal as `abortSignal` field of `BaseRequest`.<br/> Also, note that the factory return value is actually typed as <code>Promise<D &#124; E></code>. It is done only to support error typing. You must always reject in case of an error. | Yes      |
-| getRequestId      | <code>(opts: [RequestOptions](#requestoptions)) => string;</code>                                                           | Function for calculating request id. It should take some hash from `requestParams`, excluding parts that are different between client and server.                                                                                                                                                                                                                                                          | Yes      |
-| toCache           | <code>(opts: [CacheOptionsWithData](#cacheoptionswithdata)) => [C](#user-defined-types);</code>                             | A function that modifies cache data based on request data (from network or optimistic response).                                                                                                                                                                                                                                                                                                           | No       |
+| Name              | Type                                                                                                                        | Description                                                                                                                                                                                                                                                                                                                                                                                                | Required                                                |
+| ----------------- | --------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------- |
+| requestParams     | <code>[R](#user-defined-types)</code>                                                                                       | Arbitrary storage of request parameters.                                                                                                                                                                                                                                                                                                                                                                   | Yes                                                     |
+| abortSignal       | `AbortSignal`                                                                                                               | Signal for aborting the request.                                                                                                                                                                                                                                                                                                                                                                           | No                                                      |
+| getRequestFactory | <code>(opts: [RequestOptions](#requestoptions)) => (abortSignal?: AbortSignal) => Promise<[D](#user-defined-types)>;</code> | A function that returns the factory for creating network requests.<br/>Note that `abortSignal` for the factory is created by the library. It is **not** the same signal as `abortSignal` field of `BaseRequest`.<br/> Also, note that the factory return value is actually typed as <code>Promise<D &#124; E></code>. It is done only to support error typing. You must always reject in case of an error. | No, a rejected promise will be used by default          |
+| getRequestId      | <code>(opts: [RequestOptions](#requestoptions)) => string;</code>                                                           | Function for calculating request id. It should take some hash from `requestParams`, excluding parts that are different between client and server.                                                                                                                                                                                                                                                          | No, a hash from `requestParams` will be used by default |
+| toCache           | <code>(opts: [CacheOptionsWithData](#cacheoptionswithdata)) => [C](#user-defined-types);</code>                             | A function that modifies cache data based on request data (from network or optimistic response).                                                                                                                                                                                                                                                                                                           | No                                                      |
 
 #### BaseQuery
 
 Extends [BaseRequest](#baserequest). Base queries can be executed by [Client](#client).
 
-| Name                          | Type                                                                                             | Description                                                                                                                                                          | Required                                 |
-| ----------------------------- | ------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------- |
-| fetchPolicy                   | <code>[FetchPolicy](#fetchpolicy)</code>                                                         | [Fetch policy](../../README.md#fetch-policies).                                                                                                                      | Yes                                      |
-| disableSsr                    | `boolean`                                                                                        | If `true`, the query will not be fetched on the server.                                                                                                              | No                                       |
-| preventExcessRequestOnHydrate | `boolean`                                                                                        | If `true`, the query won't be fetched on the client during the hydrate stage, if there is data **or error** in the cache. `fetchPolicy` option is ignored.           | No                                       |
-| forceNewRequestOnMerge        | `boolean`                                                                                        | If `true`, the query will start a new network request, if it's merged with the existing query.                                                                       | No                                       |
-| softAbortSignal               | `AbortSignal`                                                                                    | Soft aborting should be used to indicate loss of interest in the ongoing network request. The actual request won't be aborted if there are other interested parties. | No                                       |
-| fromCache                     | <code>(opts: [CacheOptions](#cacheoptions)) => [D](#user-defined-types) &#124; undefined </code> | Function for retrieving query data from cache data.                                                                                                                  | Yes, if `fetchPolicy` is not `no-cache`. |
+| Name                          | Type                                                                                             | Description                                                                                                                                                                                                                      | Required                               |
+| ----------------------------- | ------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------- |
+| fetchPolicy                   | <code>[FetchPolicy](#fetchpolicy)</code>                                                         | [Fetch policy](../../README.md#fetch-policies).                                                                                                                                                                                  | No, `'cache-only'` is used by default. |
+| lazy                          | `boolean`                                                                                        | If `true`, the query will not be fetched automatically regardless of `fetchPolicy`. Such a query can only be executed manually. It's also useful if the query is depending on data from another query, which hasn't arrived yet. | No                                     |
+| disableSsr                    | `boolean`                                                                                        | If `true`, the query will not be fetched on the server.                                                                                                                                                                          | No                                     |
+| preventExcessRequestOnHydrate | `boolean`                                                                                        | If `true`, the query won't be fetched on the client during the hydrate stage, if there is data **or error** in the cache. `fetchPolicy` option is ignored.                                                                       | No                                     |
+| forceNewRequestOnMerge        | `boolean`                                                                                        | If `true`, the query will start a new network request, if it's merged with the existing query.                                                                                                                                   | No                                     |
+| softAbortSignal               | `AbortSignal`                                                                                    | Soft aborting should be used to indicate loss of interest in the ongoing network request. The actual request won't be aborted if there are other interested parties.                                                             | No                                     |
+| fromCache                     | <code>(opts: [CacheOptions](#cacheoptions)) => [D](#user-defined-types) &#124; undefined </code> | Function for retrieving query data from cache data.                                                                                                                                                                              | No                                     |
 
 #### BaseMutation
 
@@ -298,13 +346,9 @@ Extends [BaseRequest](#baserequest). Base mutations can be executed by [Client](
 
 Extends [BaseQuery](#basequery). Queries can be processed by [QueryManager](#querymanager).
 
-| Name | Type                 | Description                                                                                                                                                                                                                               | Required |
-| ---- | -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
-| lazy | <code>boolean</code> | If `true`, `fetchPolicy` will be overridden with `'cache-only'` value. Such a query can only be executed manually via `refetch()` call. It's also useful if this query is depending on data from another query, which hasn't arrived yet. | No       |
-
 #### Mutation
 
-At the moment it is an alias for [BaseMutation](#basemutation). Reserved for potential MutationManager.
+Extends [BaseMutation](#basemutation). Mutations can be processed by [MutationManager](#mutationmanager).
 
 #### RequestOptions
 
@@ -322,12 +366,11 @@ At the moment it is an alias for [BaseMutation](#basemutation). Reserved for pot
 
 #### CacheOptionsWithData
 
-| Name          | Type                                  | Description                                                      |
-| ------------- | ------------------------------------- | ---------------------------------------------------------------- |
-| cacheData     | <code>[C](#user-defined-types)</code> | Cache data.                                                      |
-| requestParams | <code>[R](#user-defined-types)</code> | Arbitrary storage of request parameters.                         |
-| requestId     | `string`                              | Request id.                                                      |
-| data          | <code>[D](#user-defined-types)</code> | Data of the given request (from network or optimistic response). |
+Extends <code>[CacheOptions](#cacheoptions)</code>
+
+| Name | Type                                  | Description                                                      |
+| ---- | ------------------------------------- | ---------------------------------------------------------------- |
+| data | <code>[D](#user-defined-types)</code> | Data of the given request (from network or optimistic response). |
 
 #### QueryRequestFlags
 
