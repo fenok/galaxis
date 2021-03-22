@@ -218,7 +218,7 @@ const result = queryManager.process(query, client, ssrPromisesManager);
 
 | Name               | Type                                                   | Description                  | Required |
 | ------------------ | ------------------------------------------------------ | ---------------------------- | -------- |
-| query              | <code>[Query](#basequery)</code>                       | Query to process.            | Yes      |
+| query              | <code>[Query](#query)</code>                           | Query to process.            | Yes      |
 | client             | <code>[Client](#client)</code>                         | Client to use.               | Yes      |
 | ssrPromisesManager | <code>[SsrPromisesManager](#ssrpromisesmanager)</code> | Ssr promises manager to use. | No       |
 
@@ -239,6 +239,49 @@ Call it on component unmount to perform the internal cleanup.
 ```typescript
 queryManager.cleanup();
 ```
+
+### MutationManager
+
+Mutation manager helps with dealing with mutations in a declarative way. It should be instantiated on the application component mount and destroyed on the component unmount. Each mutation usage inside the component requires its own instance of `MutationManager`.
+
+```typescript
+const mutationManager = new MutationManager({ forceUpdate });
+```
+
+##### Arguments
+
+| Name        | Type                    | Description                                                                                                                                                                             | Required |
+| ----------- | ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
+| forceUpdate | <code>() => void</code> | The function that will be called on internal state change. When it's called, you should call <code>[mutationManager.process()](#mutationmanagerprocess)</code> again to get new values. | Yes      |
+
+#### `mutationManager.process()`
+
+Call it on each component update. If arguments didn't change, a new object with the same values will be returned. If arguments did change, the manager will switch to the new mutation.
+
+The manager will not execute the mutation on `process` call. It also will **not** cancel the previous mutation after switching to the new one.
+
+Note that `client` argument is compared by reference, and `mutation` argument is compared by hash, calculated by the function that was passed to the <code>[Client](#client)</code>.
+
+```typescript
+const result = mutationManager.process(mutation, client);
+```
+
+##### Arguments
+
+| Name     | Type                               | Description          | Required |
+| -------- | ---------------------------------- | -------------------- | -------- |
+| mutation | <code>[Mutation](#mutation)</code> | Mutation to process. | Yes      |
+| client   | <code>[Client](#client)</code>     | Client to use.       | Yes      |
+
+##### Return value
+
+| Name    | Type                                                                | Description                                                               |
+| ------- | ------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| mutate  | <code>() => Promise<[D](#user-defined-types)></code>                | Execute the mutation.                                                     |
+| loading | <code>boolean</code>                                                | If `true`, there is a network request in progress for the given mutation. |
+| data    | <code>[D](#user-defined-types) &#124; undefined</code>              | Last known data for the given mutation.                                   |
+| error   | <code>[E](#user-defined-types) &#124; Error &#124; undefined</code> | Error from the last network request for the given mutation.               |
+| abort   | <code>() => void</code>                                             | Abort current network request.                                            |
 
 ### SsrPromisesManager
 
