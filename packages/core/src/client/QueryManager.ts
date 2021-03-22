@@ -8,6 +8,14 @@ export interface QueryManagerOptions {
     forceUpdate(): void;
 }
 
+export interface QueryManagerResult<D extends NonUndefined, E extends Error> {
+    loading: boolean;
+    data: D | undefined;
+    error: E | Error | undefined;
+    refetch(): Promise<D>;
+    abort(): void;
+}
+
 export class QueryManager<C extends NonUndefined, D extends NonUndefined, E extends Error, R> {
     private forceUpdate: () => void;
     private queryHash!: string;
@@ -29,7 +37,11 @@ export class QueryManager<C extends NonUndefined, D extends NonUndefined, E exte
         this.boundAbort = this.abort.bind(this);
     }
 
-    public process(query: Query<C, D, E, R>, client: Client, ssrPromisesManager?: SsrPromisesManager) {
+    public process(
+        query: Query<C, D, E, R>,
+        client: Client,
+        ssrPromisesManager?: SsrPromisesManager,
+    ): QueryManagerResult<D, E> {
         if (
             this.client !== client ||
             this.queryHash !== this.client.getQueryHash(query) ||

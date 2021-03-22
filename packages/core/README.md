@@ -237,6 +237,8 @@ const result = queryManager.process(query, client, ssrPromisesManager);
 
 ##### Return value
 
+###### `QueryManagerResult`
+
 | Name    | Type                                                                | Description                                                                              |
 | ------- | ------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
 | loading | <code>boolean</code>                                                | If `true`, there is a network request in progress, **initiated by the manager**.         |
@@ -289,6 +291,8 @@ const result = mutationManager.process(mutation, client);
 | client   | <code>[Client](#client)</code>     | Client to use.       | Yes      |
 
 ##### Return value
+
+###### `MutationManagerResult`
 
 | Name    | Type                                                                | Description                                                               |
 | ------- | ------------------------------------------------------------------- | ------------------------------------------------------------------------- |

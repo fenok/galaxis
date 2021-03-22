@@ -5,6 +5,14 @@ export interface MutationManagerOptions {
     forceUpdate(): void;
 }
 
+export interface MutationManagerResult<D extends NonUndefined, E extends Error> {
+    loading: boolean;
+    data: D | undefined;
+    error: E | Error | undefined;
+    mutate(): Promise<D>;
+    abort(): void;
+}
+
 export class MutationManager<C extends NonUndefined, D extends NonUndefined, E extends Error, R> {
     private forceUpdate: () => void;
     private mutationHash!: string;
@@ -24,7 +32,7 @@ export class MutationManager<C extends NonUndefined, D extends NonUndefined, E e
         this.boundMutate = this.mutate.bind(this);
     }
 
-    public process(mutation: Mutation<C, D, E, R>, client: Client) {
+    public process(mutation: Mutation<C, D, E, R>, client: Client): MutationManagerResult<D, E> {
         if (this.client !== client || this.mutationHash !== this.client.getMutationHash(mutation)) {
             this.mutationId += 1;
             this.data = undefined;
