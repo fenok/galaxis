@@ -3,7 +3,7 @@ import { getUrl } from './getUrl';
 import { RequestOptions } from '@fetcher/core';
 
 export interface GetRequestIdOptions {
-    hash(value: unknown): string | number;
+    hash(value: unknown): string;
 }
 
 export function getRequestId({ hash }: GetRequestIdOptions) {
