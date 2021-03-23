@@ -37,11 +37,9 @@ export class QueryManager<C extends NonUndefined, D extends NonUndefined, E exte
         this.boundAbort = this.abort.bind(this);
     }
 
-    public process(
-        query: Query<C, D, E, R>,
-        client: Client,
-        ssrPromisesManager?: SsrPromisesManager,
-    ): QueryManagerResult<D, E> {
+    // TODO: Enforce return type: QueryManagerResult<D, E>
+    // Currently removed to fix @typescript-eslint/unbound-method error. Typing this as void didn't help.
+    public process(query: Query<C, D, E, R>, client: Client, ssrPromisesManager?: SsrPromisesManager) {
         if (
             this.client !== client ||
             this.queryHash !== this.client.getQueryHash(query) ||

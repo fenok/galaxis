@@ -32,7 +32,9 @@ export class MutationManager<C extends NonUndefined, D extends NonUndefined, E e
         this.boundMutate = this.mutate.bind(this);
     }
 
-    public process(mutation: Mutation<C, D, E, R>, client: Client): MutationManagerResult<D, E> {
+    // TODO: Enforce return type: MutationManagerResult<D, E>
+    // Currently removed to fix @typescript-eslint/unbound-method error. Typing this as void didn't help.
+    public process(mutation: Mutation<C, D, E, R>, client: Client) {
         if (this.client !== client || this.mutationHash !== this.client.getMutationHash(mutation)) {
             this.mutationId += 1;
             this.data = undefined;
