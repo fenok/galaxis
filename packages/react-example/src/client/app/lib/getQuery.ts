@@ -1,5 +1,5 @@
 import { NonUndefined, Query } from '@fetcher/react';
-import { getParametrizedQuery } from '@fetcher/utils';
+import { getParametrizedRequest, getStaticRequest, mergeDeepNonUndefined } from '@fetcher/utils';
 import {
     RequestParams,
     ResponseError,
@@ -14,5 +14,11 @@ export function getQuery<
     R extends RequestParamsConstraint = RequestParamsConstraint,
     P = DynamicRequestParams<R>
 >(factory: (params: P) => Query<CacheData, D, ResponseError<ErrorResponse>, RequestParams<R>>) {
-    return getParametrizedQuery(factory);
+    return getParametrizedRequest(factory, mergeDeepNonUndefined);
+}
+
+export function getStaticQuery<D extends NonUndefined, R extends RequestParamsConstraint = RequestParamsConstraint>(
+    query: Query<CacheData, D, ResponseError<ErrorResponse>, RequestParams<R>>,
+) {
+    return getStaticRequest(query, mergeDeepNonUndefined);
 }

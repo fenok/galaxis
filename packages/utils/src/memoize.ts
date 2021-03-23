@@ -1,17 +1,17 @@
 import { NonUndefined, CacheOptions } from '@fetcher/core';
 
-const cache: Record<string, { keys: unknown[]; value: unknown } | undefined> = {};
+const cache: Record<string, { deps: unknown[]; value: unknown } | undefined> = {};
 
 export function memoize<C extends NonUndefined, D extends NonUndefined, R>(
     fromCache: (opts: CacheOptions<C, R>) => D | undefined,
-    getKeys: (opts: CacheOptions<C, R>) => unknown[],
+    getDeps: (opts: CacheOptions<C, R>) => unknown[],
 ) {
     if (typeof window !== 'undefined') {
         return (opts: CacheOptions<C, R>) => {
             const cacheEntry = cache[opts.requestId];
-            const keys = getKeys(opts);
-            if (!cacheEntry || cacheEntry.keys.some((cacheKey, cacheKeyIndex) => cacheKey !== keys[cacheKeyIndex])) {
-                cache[opts.requestId] = { keys, value: fromCache(opts) };
+            const deps = getDeps(opts);
+            if (!cacheEntry || cacheEntry.deps.some((cacheDep, cacheDepIndex) => cacheDep !== deps[cacheDepIndex])) {
+                cache[opts.requestId] = { deps, value: fromCache(opts) };
             }
 
             return cache[opts.requestId]?.value as D | undefined;
