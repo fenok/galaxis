@@ -15,6 +15,11 @@ Fetcher core is dependency-free, framework-agnostic and as unopinionated as poss
 ```typescript
 const client = new Client({
     cache: new MyCache(),
+    merge,
+    hash,
+    defaultRequest,
+    defaultQuery,
+    defaultMutation,
 });
 ```
 
