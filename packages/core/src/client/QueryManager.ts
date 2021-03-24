@@ -90,7 +90,7 @@ export class QueryManager<C extends NonUndefined, D extends NonUndefined, E exte
         let request: Promise<D> | undefined;
 
         if (!refetch) {
-            const queryResult = this.client.watchQuery(query, this.onExternalChange.bind(this));
+            const queryResult = this.client.query(query, this.onExternalChange.bind(this));
             this.loading = queryResult.requestRequired;
             request = queryResult.request;
 
@@ -102,7 +102,7 @@ export class QueryManager<C extends NonUndefined, D extends NonUndefined, E exte
                 this.queryCache = { data: undefined, error: undefined };
             }
         } else {
-            request = this.client.query(query);
+            request = this.client.fetchQuery(query);
             this.loading = true;
         }
 

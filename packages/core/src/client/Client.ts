@@ -1,4 +1,4 @@
-import { QueryProcessor, QueryState, WatchQueryResult } from './QueryProcessor';
+import { QueryProcessor, QueryState, QueryResult } from './QueryProcessor';
 import { MutationProcessor } from './MutationProcessor';
 import { RequestQueue } from './RequestQueue';
 import { BaseMutation, BaseQuery, BaseRequest, Cache, NonUndefined } from '../types';
@@ -60,18 +60,18 @@ class Client<
         this.staticDefaultMutation = defaultMutation;
     }
 
-    public query<D extends BD, E extends BE, R extends BR>(query: BaseQuery<C, D, E, R>): Promise<D> {
-        return this.queryProcessor.query(this.getMergedQuery(query));
-    }
-
-    public watchQuery<D extends BD, E extends BE, R extends BR>(
+    public query<D extends BD, E extends BE, R extends BR>(
         query: BaseQuery<C, D, E, R>,
         onChange?: (state: QueryState<D, E>) => void,
-    ): WatchQueryResult<D, E> {
+    ): QueryResult<D, E> {
         return this.queryProcessor.watchQuery(this.getMergedQuery(query), onChange);
     }
 
-    public getQueryState<D extends BD, E extends BE, R extends BR>(query: BaseQuery<C, D, E, R>): QueryState<D, E> {
+    public fetchQuery<D extends BD, E extends BE, R extends BR>(query: BaseQuery<C, D, E, R>): Promise<D> {
+        return this.queryProcessor.query(this.getMergedQuery(query));
+    }
+
+    public readQuery<D extends BD, E extends BE, R extends BR>(query: BaseQuery<C, D, E, R>): QueryState<D, E> {
         return this.queryProcessor.getQueryState(this.getMergedQuery(query));
     }
 
