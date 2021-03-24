@@ -64,15 +64,18 @@ class Client<
         query: BaseQuery<C, D, E, R>,
         onChange?: (state: QueryState<D, E>) => void,
     ): QueryResult<D, E> {
-        return this.queryProcessor.watchQuery(this.getMergedQuery(query), onChange);
+        return this.queryProcessor.query(this.getMergedQuery(query), onChange);
     }
 
     public fetchQuery<D extends BD, E extends BE, R extends BR>(query: BaseQuery<C, D, E, R>): Promise<D> {
-        return this.queryProcessor.query(this.getMergedQuery(query));
+        return this.queryProcessor.fetchQuery(this.getMergedQuery(query));
     }
 
-    public readQuery<D extends BD, E extends BE, R extends BR>(query: BaseQuery<C, D, E, R>): QueryState<D, E> {
-        return this.queryProcessor.getQueryState(this.getMergedQuery(query));
+    public readQuery<D extends BD, E extends BE, R extends BR>(
+        query: BaseQuery<C, D, E, R>,
+        onChange?: (state: QueryState<D, E>) => void,
+    ): QueryState<D, E> {
+        return this.queryProcessor.readQuery(this.getMergedQuery(query), onChange);
     }
 
     public mutate<D extends BD, E extends BE, R extends BR>(mutation: BaseMutation<C, D, E, R>): Promise<D> {

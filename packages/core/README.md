@@ -61,10 +61,9 @@ const result = client.query(query, onChange);
 
 Extends [QueryState](#querystate).
 
-| Name        | Type                                                            | Description                                                                                                                                                                                                    |
-| ----------- | --------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| request     | <code>Promise<[D](#user-defined-types)> &#124; undefined</code> | A promise representing network request. It will be `undefined`, if it wasn't required (or was required, but wasn't allowed on the server side). Internally, there may be more than one actual network request. |
-| unsubscribe | <code>() => void &#124; undefined</code>                        | A function for unsubscribing. Will be `undefined` if there was no subscription. It can happen when `onChange` argument wasn't passed, or if the query itself is not cacheable.                                 |
+| Name    | Type                                                            | Description                                                                                                                                                                                                    |
+| ------- | --------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| request | <code>Promise<[D](#user-defined-types)> &#124; undefined</code> | A promise representing network request. It will be `undefined`, if it wasn't required (or was required, but wasn't allowed on the server side). Internally, there may be more than one actual network request. |
 
 #### `client.fetchQuery()`
 
@@ -89,14 +88,15 @@ const result = client.fetchQuery(query);
 Get state of the given query.
 
 ```typescript
-const queryState = client.readQuery(query);
+const queryState = client.readQuery(query, onChange);
 ```
 
 ##### Arguments
 
-| Name  | Type                                 | Description | Required |
-| ----- | ------------------------------------ | ----------- | -------- |
-| query | <code>[BaseQuery](#basequery)</code> | Query.      | Yes      |
+| Name     | Type                                                    | Description                                             | Required |
+| -------- | ------------------------------------------------------- | ------------------------------------------------------- | -------- |
+| query    | <code>[BaseQuery](#basequery)</code>                    | Query.                                                  | Yes      |
+| onChange | <code>(state: [QueryState](#querystate)) => void</code> | A callback to call when the state of the query changes. | No       |
 
 ##### Return value
 
@@ -106,6 +106,7 @@ const queryState = client.readQuery(query);
 | --------------- | ------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | cache           | <code>[QueryCache](#querycache) &#124; undefined</code> | Query state from the cache. Will be `undefined` if the given query is not cacheable (has `fetchPolicy: 'no-cache'`).                                                                                                                             |
 | requestRequired | <code>boolean</code>                                    | Specifies whether a network request is required, based on cache state and fetch policy of the given query. The actual network request may still not be allowed on the server side. If `true`, the query should be rendered with `loading: true`. |
+| unsubscribe     | <code>() => void &#124; undefined</code>                | A function for unsubscribing. Will be `undefined` if there was no subscription. It can happen when `onChange` argument wasn't passed, or if the query itself is not cacheable.                                                                   |
 
 ##### Related types
 

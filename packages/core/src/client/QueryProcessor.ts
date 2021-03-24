@@ -11,11 +11,11 @@ export interface QueryCache<D extends NonUndefined, E extends Error> {
 export type QueryState<D extends NonUndefined, E extends Error> = {
     cache?: QueryCache<D, E>;
     requestRequired: boolean;
+    unsubscribe?(): void;
 };
 
 export interface QueryResult<D extends NonUndefined, E extends Error> extends QueryState<D, E> {
     request?: Promise<D>;
-    unsubscribe?(): void;
 }
 
 export interface QueryRequest {
@@ -54,17 +54,17 @@ export class QueryProcessor<C extends NonUndefined> {
         this.ongoingRequests = {};
     }
 
-    public query<D extends NonUndefined, E extends Error, R>(query: BaseQuery<C, D, E, R>): Promise<D> {
+    public fetchQuery<D extends NonUndefined, E extends Error, R>(query: BaseQuery<C, D, E, R>): Promise<D> {
         const requestId = query.getRequestId ? query.getRequestId(query) : this.hash(query.requestParams);
         return this.getRequestPromise(query, requestId);
     }
 
-    public watchQuery<D extends NonUndefined, E extends Error, R>(
+    public query<D extends NonUndefined, E extends Error, R>(
         query: BaseQuery<C, D, E, R>,
         onChange?: (state: QueryState<D, E>) => void,
     ): QueryResult<D, E> {
         const requestId = query.getRequestId ? query.getRequestId(query) : this.hash(query.requestParams);
-        let queryState = this.getQueryState(query);
+        const queryState = this.readQuery(query, onChange);
 
         return {
             ...queryState,
@@ -72,21 +72,13 @@ export class QueryProcessor<C extends NonUndefined> {
                 queryState.requestRequired && this.isRequestAllowed(query, queryState.cache)
                     ? this.getRequestPromise(query, requestId)
                     : undefined,
-            unsubscribe:
-                queryState.cache && onChange
-                    ? this.cache.subscribe(() => {
-                          const newState = this.getQueryState(query);
-
-                          if (!this.areQueryStatesEqual(queryState, newState)) {
-                              queryState = newState;
-                              onChange(newState);
-                          }
-                      })
-                    : undefined,
         };
     }
 
-    public getQueryState<D extends NonUndefined, E extends Error, R>(query: BaseQuery<C, D, E, R>): QueryState<D, E> {
+    public readQuery<D extends NonUndefined, E extends Error, R>(
+        query: BaseQuery<C, D, E, R>,
+        onChange?: (state: QueryState<D, E>) => void,
+    ): QueryState<D, E> {
         const requestId = query.getRequestId ? query.getRequestId(query) : this.hash(query.requestParams);
 
         const cache = !this.isFetchPolicy(query.fetchPolicy, 'no-cache')
@@ -100,10 +92,24 @@ export class QueryProcessor<C extends NonUndefined> {
               }
             : undefined;
 
-        return {
+        let queryState: QueryState<D, E> = {
             cache,
             requestRequired: this.isRequestRequired(query, cache),
+            unsubscribe:
+                cache && onChange
+                    ? this.cache.subscribe(() => {
+                          // eslint-disable-next-line @typescript-eslint/unbound-method
+                          const newState = { ...this.readQuery(query), unsubscribe: queryState.unsubscribe };
+
+                          if (!this.areQueryStatesEqual(queryState, newState)) {
+                              queryState = newState;
+                              onChange(queryState);
+                          }
+                      })
+                    : undefined,
         };
+
+        return queryState;
     }
 
     private getRequestPromise<D extends NonUndefined, E extends Error, R>(

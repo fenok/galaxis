@@ -12,11 +12,11 @@ it('can query data', async () => {
 
     const firstItemRequest = getFirstItemRequest();
 
-    const queryResult = queryProcessor.watchQuery(firstItemRequest);
+    const queryResult = queryProcessor.query(firstItemRequest);
 
     const networkResponse = await queryResult.request;
 
-    const dataFromCache = queryProcessor.getQueryState(firstItemRequest);
+    const dataFromCache = queryProcessor.readQuery(firstItemRequest);
 
     expect(networkResponse).toEqual(FIRST_ITEM);
     expect(dataFromCache.cache).toMatchObject({ data: FIRST_ITEM, error: undefined });
@@ -27,19 +27,19 @@ it('respects fetch policies', async () => {
 
     const firstItemRequest = getFirstItemRequest();
 
-    let cacheOnlyQueryResult = queryProcessor.watchQuery({
+    let cacheOnlyQueryResult = queryProcessor.query({
         ...firstItemRequest,
         fetchPolicy: 'cache-only',
     });
     expect(cacheOnlyQueryResult.cache).toMatchObject({ data: undefined, error: undefined });
 
-    let cacheFirstQueryResult = queryProcessor.watchQuery({
+    let cacheFirstQueryResult = queryProcessor.query({
         ...firstItemRequest,
         fetchPolicy: 'cache-first',
     });
     expect(cacheFirstQueryResult.cache).toMatchObject({ data: undefined, error: undefined });
 
-    let cacheAndNetworkQueryResult = queryProcessor.watchQuery({
+    let cacheAndNetworkQueryResult = queryProcessor.query({
         ...firstItemRequest,
         fetchPolicy: 'cache-and-network',
     });
@@ -49,19 +49,19 @@ it('respects fetch policies', async () => {
     await expect(cacheFirstQueryResult.request).resolves.toEqual(FIRST_ITEM);
     await expect(cacheAndNetworkQueryResult.request).resolves.toEqual(FIRST_ITEM);
 
-    cacheOnlyQueryResult = queryProcessor.watchQuery({
+    cacheOnlyQueryResult = queryProcessor.query({
         ...firstItemRequest,
         fetchPolicy: 'cache-only',
     });
     expect(cacheOnlyQueryResult.cache).toMatchObject({ data: FIRST_ITEM, error: undefined });
 
-    cacheFirstQueryResult = queryProcessor.watchQuery({
+    cacheFirstQueryResult = queryProcessor.query({
         ...firstItemRequest,
         fetchPolicy: 'cache-first',
     });
     expect(cacheFirstQueryResult.cache).toMatchObject({ data: FIRST_ITEM, error: undefined });
 
-    cacheAndNetworkQueryResult = queryProcessor.watchQuery({
+    cacheAndNetworkQueryResult = queryProcessor.query({
         ...firstItemRequest,
         fetchPolicy: 'cache-and-network',
     });
@@ -71,7 +71,7 @@ it('respects fetch policies', async () => {
     expect(cacheFirstQueryResult.request).toEqual(undefined);
     await expect(cacheAndNetworkQueryResult.request).resolves.toEqual(FIRST_ITEM);
 
-    const dataFromCache = queryProcessor.getQueryState({ ...firstItemRequest });
+    const dataFromCache = queryProcessor.readQuery({ ...firstItemRequest });
 
     expect(dataFromCache.cache).toMatchObject({ data: FIRST_ITEM, error: undefined });
 });
@@ -81,16 +81,16 @@ it('can reuse network requests', async () => {
 
     const firstItemRequest = getFirstItemRequest();
 
-    const firstQueryResult = queryProcessor.watchQuery({ ...firstItemRequest });
+    const firstQueryResult = queryProcessor.query({ ...firstItemRequest });
 
-    expect(queryProcessor.getQueryState({ ...firstItemRequest }).cache).toMatchObject({
+    expect(queryProcessor.readQuery({ ...firstItemRequest }).cache).toMatchObject({
         data: undefined,
         error: undefined,
     });
 
-    const secondQueryResult = queryProcessor.watchQuery({ ...firstItemRequest });
+    const secondQueryResult = queryProcessor.query({ ...firstItemRequest });
 
-    expect(queryProcessor.getQueryState({ ...firstItemRequest }).cache).toMatchObject({
+    expect(queryProcessor.readQuery({ ...firstItemRequest }).cache).toMatchObject({
         data: undefined,
         error: undefined,
     });
@@ -100,8 +100,8 @@ it('can reuse network requests', async () => {
 
     const networkResponse = await Promise.all([firstQueryResult.request, secondQueryResult.request]);
 
-    const firstDataFromCache = queryProcessor.getQueryState({ ...firstItemRequest });
-    const secondDataFromCache = queryProcessor.getQueryState({ ...firstItemRequest });
+    const firstDataFromCache = queryProcessor.readQuery({ ...firstItemRequest });
+    const secondDataFromCache = queryProcessor.readQuery({ ...firstItemRequest });
 
     expect(networkResponse[0]).toEqual(FIRST_ITEM);
     expect(networkResponse[1]).toBe(networkResponse[0]);
@@ -116,13 +116,13 @@ it('can abort network request', async () => {
 
     const abortController = new AbortController();
 
-    const queryResult = queryProcessor.watchQuery({ ...firstItemRequest, abortSignal: abortController.signal });
+    const queryResult = queryProcessor.query({ ...firstItemRequest, abortSignal: abortController.signal });
 
     abortController.abort();
 
     await expect(queryResult.request).rejects.toEqual(getAbortError());
 
-    const dataFromCache = queryProcessor.getQueryState(firstItemRequest);
+    const dataFromCache = queryProcessor.readQuery(firstItemRequest);
 
     expect(dataFromCache.cache).toMatchObject({ data: undefined, error: getAbortError() });
 });
@@ -135,12 +135,12 @@ it('can abort network request for multiple requesters', async () => {
     const firstAbortController = new AbortController();
     const secondAbortController = new AbortController();
 
-    const firstQueryResult = queryProcessor.watchQuery({
+    const firstQueryResult = queryProcessor.query({
         ...firstItemRequest,
         abortSignal: firstAbortController.signal,
     });
 
-    const secondQueryResult = queryProcessor.watchQuery({
+    const secondQueryResult = queryProcessor.query({
         ...firstItemRequest,
         abortSignal: secondAbortController.signal,
     });
@@ -151,7 +151,7 @@ it('can abort network request for multiple requesters', async () => {
     await expect(firstQueryResult.request).rejects.toEqual(getAbortError());
     await expect(secondQueryResult.request).rejects.toEqual(getAbortError());
 
-    const dataFromCache = queryProcessor.getQueryState({
+    const dataFromCache = queryProcessor.readQuery({
         ...firstItemRequest,
         abortSignal: firstAbortController.signal,
     });
@@ -166,19 +166,19 @@ it('does not abort network request if not all requesters asked so', async () => 
 
     const abortController = new AbortController();
 
-    const firstQueryResult = queryProcessor.watchQuery({
+    const firstQueryResult = queryProcessor.query({
         ...firstItemRequest,
         softAbortSignal: abortController.signal,
     });
 
-    const secondQueryResult = queryProcessor.watchQuery({ ...firstItemRequest });
+    const secondQueryResult = queryProcessor.query({ ...firstItemRequest });
 
     abortController.abort();
 
     await expect(firstQueryResult.request).resolves.toEqual(FIRST_ITEM);
     await expect(secondQueryResult.request).resolves.toEqual(FIRST_ITEM);
 
-    const dataFromCache = queryProcessor.getQueryState(firstItemRequest);
+    const dataFromCache = queryProcessor.readQuery(firstItemRequest);
 
     expect(dataFromCache.cache).toMatchObject({ data: FIRST_ITEM, error: undefined });
 });
@@ -191,7 +191,7 @@ it('correctly aborts previous request when the next one is executed immediately 
 
     const abortController = new AbortController();
 
-    const firstQueryResult = queryProcessor.watchQuery({
+    const firstQueryResult = queryProcessor.query({
         ...firstItemRequest,
         getRequestId: () => 'one-and-only',
         abortSignal: abortController.signal,
@@ -199,12 +199,12 @@ it('correctly aborts previous request when the next one is executed immediately 
 
     abortController.abort();
 
-    const secondQueryResult = queryProcessor.watchQuery({ ...secondItemRequest, getRequestId: () => 'one-and-only' });
+    const secondQueryResult = queryProcessor.query({ ...secondItemRequest, getRequestId: () => 'one-and-only' });
 
     await expect(firstQueryResult.request).rejects.toEqual(getAbortError());
     await expect(secondQueryResult.request).resolves.toEqual(SECOND_ITEM);
 
-    const dataFromCache = queryProcessor.getQueryState({
+    const dataFromCache = queryProcessor.readQuery({
         ...secondItemRequest,
         getRequestId: () => 'one-and-only',
     });
@@ -217,13 +217,13 @@ it('on purge all requests are aborted and do not affect cache anymore', async ()
 
     const firstItemRequest = getFirstItemRequest();
 
-    const queryResult = queryProcessor.watchQuery(firstItemRequest);
+    const queryResult = queryProcessor.query(firstItemRequest);
 
     queryProcessor.purge();
 
     await expect(queryResult.request).rejects.toEqual(getAbortError());
 
-    const dataFromCacheAfterPurge = queryProcessor.getQueryState(firstItemRequest);
+    const dataFromCacheAfterPurge = queryProcessor.readQuery(firstItemRequest);
 
     expect(dataFromCacheAfterPurge.cache).toMatchObject({ data: undefined, error: undefined });
 });
@@ -233,16 +233,16 @@ it('resets persisted loading state if there is no network request', async () => 
 
     const firstItemRequest = getFirstItemRequest();
 
-    const queryResult = queryProcessor.watchQuery(firstItemRequest);
+    const queryResult = queryProcessor.query(firstItemRequest);
 
     queryProcessor.purge();
 
     await expect(queryResult.request).rejects.toEqual(getAbortError());
 
-    const loadingDataFromCache = queryProcessor.getQueryState(firstItemRequest);
+    const loadingDataFromCache = queryProcessor.readQuery(firstItemRequest);
     expect(loadingDataFromCache.cache).toMatchObject({ data: undefined, error: undefined });
 
-    const cacheOnlyQueryResult = queryProcessor.watchQuery({
+    const cacheOnlyQueryResult = queryProcessor.query({
         ...firstItemRequest,
         fetchPolicy: 'cache-only',
     });
@@ -250,7 +250,7 @@ it('resets persisted loading state if there is no network request', async () => 
     expect(cacheOnlyQueryResult.request).toEqual(undefined);
     expect(cacheOnlyQueryResult.cache).toMatchObject({ data: undefined, error: undefined });
 
-    const dataFromCache = queryProcessor.getQueryState({
+    const dataFromCache = queryProcessor.readQuery({
         ...firstItemRequest,
         fetchPolicy: 'cache-only',
     });
