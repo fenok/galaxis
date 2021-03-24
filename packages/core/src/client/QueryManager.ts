@@ -18,8 +18,8 @@ export interface QueryManagerResult<D extends NonUndefined, E extends Error> {
 
 export class QueryManager<C extends NonUndefined, D extends NonUndefined, E extends Error, R> {
     private forceUpdate: () => void;
-    private queryHash!: string;
-    private query!: Query<C, D, E, R>;
+    private queryHash?: string;
+    private query?: Query<C, D, E, R>;
     private client!: Client;
     private ssrPromisesManager?: SsrPromisesManager;
     private loading = false;
@@ -39,10 +39,10 @@ export class QueryManager<C extends NonUndefined, D extends NonUndefined, E exte
 
     // TODO: Enforce return type: QueryManagerResult<D, E>
     // Currently removed to fix @typescript-eslint/unbound-method error. Typing this as void didn't help.
-    public process(query: Query<C, D, E, R>, client: Client, ssrPromisesManager?: SsrPromisesManager) {
+    public process(query: Query<C, D, E, R> | undefined, client: Client, ssrPromisesManager?: SsrPromisesManager) {
         if (
             this.client !== client ||
-            this.queryHash !== this.client.getQueryHash(query) ||
+            this.queryHash !== (query ? this.client.getQueryHash(query) : undefined) ||
             this.ssrPromisesManager !== ssrPromisesManager
         ) {
             this.cleanup();
@@ -50,7 +50,7 @@ export class QueryManager<C extends NonUndefined, D extends NonUndefined, E exte
             this.client = client;
             this.ssrPromisesManager = ssrPromisesManager;
             this.query = query;
-            this.queryHash = this.client.getQueryHash(query);
+            this.queryHash = query ? this.client.getQueryHash(query) : undefined;
 
             this.performRequest()?.catch((error: Error) => {
                 if (error !== this.queryCache?.error) {
@@ -78,6 +78,18 @@ export class QueryManager<C extends NonUndefined, D extends NonUndefined, E exte
     }
 
     private performRequest(refetch?: boolean): Promise<D> | undefined {
+        const callId = ++this.requestCallId;
+
+        if (!this.query) {
+            this.loading = false;
+            this.queryCache = {
+                data: undefined,
+                error: undefined,
+            };
+
+            return;
+        }
+
         this.ensureAbortControllers();
 
         const query = {
@@ -109,8 +121,6 @@ export class QueryManager<C extends NonUndefined, D extends NonUndefined, E exte
         if (this.ssrPromisesManager && request && !refetch) {
             this.ssrPromisesManager.addPromise(request);
         }
-
-        const callId = ++this.requestCallId;
 
         return request
             ?.then((data) => {
@@ -158,6 +168,10 @@ export class QueryManager<C extends NonUndefined, D extends NonUndefined, E exte
     }
 
     private refetch() {
+        if (!this.query) {
+            return Promise.reject(new Error('No query to refetch.'));
+        }
+
         this.softAbort();
         const request = this.performRequest(true);
         this.forceUpdate();

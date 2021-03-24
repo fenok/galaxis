@@ -3,7 +3,7 @@ import { Mutation, NonUndefined, MutationManager } from '@fetcher/core';
 import { useReducer, useRef } from 'react';
 
 export function useMutation<C extends NonUndefined, D extends NonUndefined, E extends Error, R>(
-    mutation: Mutation<C, D, E, R>,
+    mutation?: Mutation<C, D, E, R>,
 ) {
     const client = useClient();
 

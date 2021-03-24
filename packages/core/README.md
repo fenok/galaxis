@@ -235,11 +235,11 @@ const result = queryManager.process(query, client, ssrPromisesManager);
 
 ##### Arguments
 
-| Name               | Type                                                   | Description                  | Required |
-| ------------------ | ------------------------------------------------------ | ---------------------------- | -------- |
-| query              | <code>[Query](#query)</code>                           | Query to process.            | Yes      |
-| client             | <code>[Client](#client)</code>                         | Client to use.               | Yes      |
-| ssrPromisesManager | <code>[SsrPromisesManager](#ssrpromisesmanager)</code> | Ssr promises manager to use. | No       |
+| Name               | Type                                                   | Description                                                                                                                                | Required |
+| ------------------ | ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------ | -------- |
+| query              | <code>[Query](#query) &#124; undefined</code>          | Query to process. Pass `undefined` to indicate that this query will appear later, e.g. because it depends on data that hasn't arrived yet. | Yes      |
+| client             | <code>[Client](#client)</code>                         | Client to use.                                                                                                                             | Yes      |
+| ssrPromisesManager | <code>[SsrPromisesManager](#ssrpromisesmanager)</code> | Ssr promises manager to use.                                                                                                               | No       |
 
 ##### Return value
 
@@ -291,10 +291,10 @@ const result = mutationManager.process(mutation, client);
 
 ##### Arguments
 
-| Name     | Type                               | Description          | Required |
-| -------- | ---------------------------------- | -------------------- | -------- |
-| mutation | <code>[Mutation](#mutation)</code> | Mutation to process. | Yes      |
-| client   | <code>[Client](#client)</code>     | Client to use.       | Yes      |
+| Name     | Type                                                | Description                                                                                                                                      | Required |
+| -------- | --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ | -------- |
+| mutation | <code>[Mutation](#mutation) &#124; undefined</code> | Mutation to process. Pass `undefined` to indicate that this mutation will appear later, e.g. because it depends on data that hasn't arrived yet. | Yes      |
+| client   | <code>[Client](#client)</code>                      | Client to use.                                                                                                                                   | Yes      |
 
 ##### Return value
 

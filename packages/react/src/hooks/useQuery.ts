@@ -3,7 +3,9 @@ import { useContext, useEffect, useReducer, useRef } from 'react';
 import { useClient } from '../providers';
 import { SsrPromisesManagerContext } from '../ssr';
 
-export function useQuery<C extends NonUndefined, D extends NonUndefined, E extends Error, R>(query: Query<C, D, E, R>) {
+export function useQuery<C extends NonUndefined, D extends NonUndefined, E extends Error, R>(
+    query?: Query<C, D, E, R>,
+) {
     const client = useClient();
     const ssrPromisesManager = useContext(SsrPromisesManagerContext);
 

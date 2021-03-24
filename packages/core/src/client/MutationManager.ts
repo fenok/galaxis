@@ -15,8 +15,8 @@ export interface MutationManagerResult<D extends NonUndefined, E extends Error> 
 
 export class MutationManager<C extends NonUndefined, D extends NonUndefined, E extends Error, R> {
     private forceUpdate: () => void;
-    private mutationHash!: string;
-    private mutation!: Mutation<C, D, E, R>;
+    private mutationHash?: string;
+    private mutation?: Mutation<C, D, E, R>;
     private client!: Client;
     private loading = false;
     private data?: D;
@@ -34,8 +34,11 @@ export class MutationManager<C extends NonUndefined, D extends NonUndefined, E e
 
     // TODO: Enforce return type: MutationManagerResult<D, E>
     // Currently removed to fix @typescript-eslint/unbound-method error. Typing this as void didn't help.
-    public process(mutation: Mutation<C, D, E, R>, client: Client) {
-        if (this.client !== client || this.mutationHash !== this.client.getMutationHash(mutation)) {
+    public process(mutation: Mutation<C, D, E, R> | undefined, client: Client) {
+        if (
+            this.client !== client ||
+            this.mutationHash !== (mutation ? this.client.getMutationHash(mutation) : undefined)
+        ) {
             this.mutationId += 1;
             this.data = undefined;
             this.error = undefined;
@@ -43,7 +46,7 @@ export class MutationManager<C extends NonUndefined, D extends NonUndefined, E e
 
             this.client = client;
             this.mutation = mutation;
-            this.mutationHash = this.client.getMutationHash(mutation);
+            this.mutationHash = mutation ? this.client.getMutationHash(mutation) : undefined;
         }
 
         return {
@@ -56,6 +59,10 @@ export class MutationManager<C extends NonUndefined, D extends NonUndefined, E e
     }
 
     private mutate() {
+        if (!this.mutation) {
+            return Promise.reject(new Error('No mutation to execute.'));
+        }
+
         this.ensureAbortController();
 
         const mutationId = this.mutationId;
