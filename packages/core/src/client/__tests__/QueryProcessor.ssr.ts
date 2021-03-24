@@ -20,18 +20,18 @@ it('does not return promise if there is error in cache', async () => {
     await expect(queryResult.request).rejects.toEqual(getNetworkError());
 
     const dataFromCache = queryProcessor.readQuery(firstItemRequest);
-    expect(dataFromCache.cache).toMatchObject({ data: undefined, error: getNetworkError() });
+    expect(dataFromCache).toMatchObject({ data: undefined, error: getNetworkError() });
 
     const nextQueryResult = queryProcessor.query(firstItemRequest);
 
     const postQueryDataFromCache = queryProcessor.readQuery(firstItemRequest);
-    expect(postQueryDataFromCache.cache).toMatchObject({ data: undefined, error: getNetworkError() });
+    expect(postQueryDataFromCache).toMatchObject({ data: undefined, error: getNetworkError() });
 
     expect(nextQueryResult.request).toEqual(undefined);
 
     const nextDataFromCache = queryProcessor.readQuery(firstItemRequest);
 
-    expect(nextDataFromCache.cache).toMatchObject({ data: undefined, error: getNetworkError() });
+    expect(nextDataFromCache).toMatchObject({ data: undefined, error: getNetworkError() });
 });
 
 it('does not return promise if there is data in cache', async () => {
@@ -45,7 +45,7 @@ it('does not return promise if there is data in cache', async () => {
 
     const dataFromCache = queryProcessor.readQuery(firstItemRequest);
 
-    expect(dataFromCache.cache).toMatchObject({ data: FIRST_ITEM, error: undefined });
+    expect(dataFromCache).toMatchObject({ data: FIRST_ITEM, error: undefined });
 
     const nextQueryResult = queryProcessor.query(firstItemRequest);
 
@@ -53,7 +53,7 @@ it('does not return promise if there is data in cache', async () => {
 
     const nextDataFromCache = queryProcessor.readQuery(firstItemRequest);
 
-    expect(nextDataFromCache.cache).toMatchObject({ data: FIRST_ITEM, error: undefined });
+    expect(nextDataFromCache).toMatchObject({ data: FIRST_ITEM, error: undefined });
 });
 
 it('can opt-out from returning the promise', () => {
@@ -65,5 +65,5 @@ it('can opt-out from returning the promise', () => {
     expect(queryResult.request).toEqual(undefined);
 
     const dataFromCache = queryProcessor.readQuery(firstItemRequest);
-    expect(dataFromCache.cache).toMatchObject({ data: undefined, error: undefined });
+    expect(dataFromCache).toMatchObject({ data: undefined, error: undefined });
 });

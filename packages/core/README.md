@@ -169,20 +169,14 @@ const queryState = client.readQuery(query, onChange);
 
 ###### `QueryState`
 
-| Name            | Type                                                    | Description                                                                                                                                                                                                                                      |
-| --------------- | ------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| cache           | <code>[QueryCache](#querycache) &#124; undefined</code> | Query state from the cache. Will be `undefined` if the given query is not cacheable (has `fetchPolicy: 'no-cache'`).                                                                                                                             |
-| requestRequired | <code>boolean</code>                                    | Specifies whether a network request is required, based on cache state and fetch policy of the given query. The actual network request may still not be allowed on the server side. If `true`, the query should be rendered with `loading: true`. |
-| unsubscribe     | <code>() => void &#124; undefined</code>                | A function for unsubscribing. Will be `undefined` if there was no subscription. It can happen when `onChange` argument wasn't passed, or if the query itself is not cacheable.                                                                   |
-
-##### Related types
-
-###### `QueryCache`
-
-| Name  | Type                                                                | Description                                                                                                                                                                     |
-| ----- | ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| data  | <code>[D](#user-defined-types) &#124; undefined</code>              | Data from the cache. `undefined` means no data. An unsuccessful request **will not** overwrite this field. It can be thought of as _the last known data_.                       |
-| error | <code>Error &#124; [E](#user-defined-types) &#124; undefined</code> | Error from the cache. `undefined` means no error. A successful request **will** overwrite this field to `undefined`. It can be thought of as _the error from the last request_. |
+| Name            | Type                                                                | Description                                                                                                                                                                                                                                      |
+| --------------- | ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| data            | <code>[D](#user-defined-types) &#124; undefined</code>              | Data from the cache. `undefined` means no data. An unsuccessful request **will not** overwrite this field. It can be thought of as _the last known data_. Always `undefined` for non-cacheable query.                                            |
+| error           | <code>Error &#124; [E](#user-defined-types) &#124; undefined</code> | Error from the cache. `undefined` means no error. A successful request **will** overwrite this field to `undefined`. It can be thought of as _the error from the last request_. Always `undefined` for non-cacheable query.                      |
+| requestRequired | <code>boolean</code>                                                | Specifies whether a network request is required, based on cache state and fetch policy of the given query. The actual network request may still not be allowed on the server side. If `true`, the query should be rendered with `loading: true`. |
+| requestAllowed  | <code>boolean</code>                                                | Specifies whether a network request is allowed. Always `true` on the client side.                                                                                                                                                                |
+| cacheable       | <code>boolean</code>                                                | A query is not cacheable, if it has `fetchPolicy: 'no-cache'`.                                                                                                                                                                                   |
+| unsubscribe     | <code>() => void &#124; undefined</code>                            | A function for unsubscribing. Will be `undefined` if there was no subscription. It can happen when `onChange` argument wasn't passed, or if the query itself is not cacheable.                                                                   |
 
 #### `client.mutate()`
 

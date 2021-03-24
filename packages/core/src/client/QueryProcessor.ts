@@ -8,11 +8,12 @@ export interface QueryCache<D extends NonUndefined, E extends Error> {
     data?: D;
 }
 
-export type QueryState<D extends NonUndefined, E extends Error> = {
-    cache?: QueryCache<D, E>;
+export interface QueryState<D extends NonUndefined, E extends Error> extends QueryCache<D, E> {
     requestRequired: boolean;
+    requestAllowed: boolean;
+    cacheable: boolean;
     unsubscribe?(): void;
-};
+}
 
 export interface QueryResult<D extends NonUndefined, E extends Error> extends QueryState<D, E> {
     request?: Promise<D>;
@@ -69,7 +70,7 @@ export class QueryProcessor<C extends NonUndefined> {
         return {
             ...queryState,
             request:
-                queryState.requestRequired && this.isRequestAllowed(query, queryState.cache)
+                queryState.requestRequired && queryState.requestAllowed
                     ? this.getRequestPromise(query, requestId)
                     : undefined,
         };
@@ -93,8 +94,10 @@ export class QueryProcessor<C extends NonUndefined> {
             : undefined;
 
         let queryState: QueryState<D, E> = {
-            cache,
+            ...cache,
             requestRequired: this.isRequestRequired(query, cache),
+            requestAllowed: this.isRequestAllowed(query, cache),
+            cacheable: Boolean(cache),
             unsubscribe:
                 cache && onChange
                     ? this.cache.subscribe(() => {
@@ -289,6 +292,6 @@ export class QueryProcessor<C extends NonUndefined> {
         b: QueryState<D, E>,
     ): boolean {
         // Since we compare states of the same query, that's all we need, as flags are the same if data and error are.
-        return a.cache?.error === b.cache?.error && a.cache?.data === b.cache?.data;
+        return a.error === b.error && a.data === b.data;
     }
 }

@@ -1,7 +1,7 @@
 import { NonUndefined, Query } from '../types';
 import { Client } from './Client';
 import { SsrPromisesManager } from './SsrPromisesManager';
-import { QueryCache, QueryState } from './QueryProcessor';
+import { QueryState } from './QueryProcessor';
 import { logger } from '../logger';
 
 export interface QueryManagerOptions {
@@ -23,7 +23,8 @@ export class QueryManager<C extends NonUndefined, D extends NonUndefined, E exte
     private client!: Client;
     private ssrPromisesManager?: SsrPromisesManager;
     private loading = false;
-    private queryCache?: QueryCache<D, E>;
+    private data?: D;
+    private error?: E | Error;
     private abortController?: AbortController;
     private softAbortController?: AbortController;
     private requestCallId = 1;
@@ -53,7 +54,7 @@ export class QueryManager<C extends NonUndefined, D extends NonUndefined, E exte
             this.queryHash = query ? this.client.getQueryHash(query) : undefined;
 
             this.performRequest()?.catch((error: Error) => {
-                if (error !== this.queryCache?.error) {
+                if (error !== this.error) {
                     logger.warn(
                         'Query request promise returned an error that is different from the cached one:',
                         error,
@@ -64,8 +65,8 @@ export class QueryManager<C extends NonUndefined, D extends NonUndefined, E exte
 
         return {
             loading: this.loading,
-            data: this.queryCache?.data,
-            error: this.queryCache?.error,
+            data: this.data,
+            error: this.error,
             refetch: this.boundRefetch,
             abort: this.boundAbort,
         };
@@ -82,10 +83,8 @@ export class QueryManager<C extends NonUndefined, D extends NonUndefined, E exte
 
         if (!this.query) {
             this.loading = false;
-            this.queryCache = {
-                data: undefined,
-                error: undefined,
-            };
+            this.data = undefined;
+            this.error = undefined;
 
             return;
         }
@@ -106,12 +105,14 @@ export class QueryManager<C extends NonUndefined, D extends NonUndefined, E exte
             this.loading = queryResult.requestRequired;
             request = queryResult.request;
 
-            if (queryResult.cache && queryResult.unsubscribe) {
-                this.queryCache = queryResult.cache;
+            if (queryResult.cacheable) {
+                this.data = queryResult.data;
+                this.error = queryResult.error;
                 // eslint-disable-next-line @typescript-eslint/unbound-method
                 this.unsubscribe = queryResult.unsubscribe;
             } else {
-                this.queryCache = { data: undefined, error: undefined };
+                this.data = undefined;
+                this.error = undefined;
             }
         } else {
             request = this.client.fetchQuery(query);
@@ -127,7 +128,8 @@ export class QueryManager<C extends NonUndefined, D extends NonUndefined, E exte
                 if (this.requestCallId === callId) {
                     this.loading = false;
                     if (!this.unsubscribe) {
-                        this.queryCache = { data, error: undefined };
+                        this.data = data;
+                        this.error = undefined;
                     }
                     this.forceUpdate();
                 }
@@ -138,7 +140,7 @@ export class QueryManager<C extends NonUndefined, D extends NonUndefined, E exte
                 if (this.requestCallId === callId) {
                     this.loading = false;
                     if (!this.unsubscribe) {
-                        this.queryCache = { data: this.queryCache?.data, error };
+                        this.error = error;
                     }
                     this.forceUpdate();
                 }
@@ -185,7 +187,9 @@ export class QueryManager<C extends NonUndefined, D extends NonUndefined, E exte
     }
 
     private onExternalChange(queryState: QueryState<D, E>) {
-        this.queryCache = queryState.cache;
+        this.data = queryState.data;
+        this.error = queryState.error;
+
         if (!this.loading) {
             this.forceUpdate();
         }
