@@ -16,15 +16,10 @@ export type RequestParamsConstraint = {
 export type DynamicRequestParams<T extends RequestParamsConstraint = RequestParamsConstraint> = T &
     Omit<RequestInit, 'body' | 'headers'>;
 
-export type StaticRequestParams = {
+export type GlobalRequestParams<T extends RequestParamsConstraint = RequestParamsConstraint> = {
     root?: string;
+} & DynamicRequestParams<T>;
+
+export type RequestParams<T extends RequestParamsConstraint = RequestParamsConstraint> = {
     path: string;
-};
-
-export type GlobalStaticRequestParams = {
-    root?: string;
-};
-
-export type RequestParams<T extends RequestParamsConstraint = RequestParamsConstraint> = DynamicRequestParams<T> &
-    StaticRequestParams &
-    GlobalStaticRequestParams;
+} & GlobalRequestParams<T>;

@@ -127,22 +127,28 @@ Extends `Error`.
 
 It's a generic that takes the given type `T`, which is constrained by <code>[RequestParamsConstraint](#requestparamsconstraint)</code>, and adds fields from `RequestInit`, omitting `body` and `headers`. `RequestInit` is from Fetch API.
 
-It describes the part of `requestParams` that is dynamic for the given resource. Note how all fields are optional.
+It describes the part of `requestParams` that is dynamic for the given resource. Note how all fields are optional by default.
 
 ```typescript
-export type DynamicRequestParams<T extends RequestParamsConstraint = RequestParamsConstraint> = T &
-    Omit<RequestInit, 'body' | 'headers'>;
+export type DynamicParams<T extends ParamsConstraint = ParamsConstraint> = T & Omit<RequestInit, 'body' | 'headers'>;
 ```
 
-#### `StaticRequestParams`
+#### `GlobalRequestParams`
 
-| Name | Type     | Description                                                                                                                          | Required |
-| ---- | -------- | ------------------------------------------------------------------------------------------------------------------------------------ | -------- |
-| path | `string` | Path to the given resource, e.g. `'/entity/:id'`. It is processed by [path-to-regexp](https://www.npmjs.com/package/path-to-regexp). | Yes      |
-| root | `string` | Url part that is common for all resources, e.g. `'https://domain.com/api'`. May be different between client and server.              | No       |
+This type describes `requestParams` that can be specified globally, for all resources. Note how all fields are optional by default.
 
-#### `GlobalStaticRequestParams`
+Extends <code>[DynamicRequestParams](#dynamicrequestparams)</code>.
 
 | Name | Type     | Description                                                                                                             | Required |
 | ---- | -------- | ----------------------------------------------------------------------------------------------------------------------- | -------- |
 | root | `string` | Url part that is common for all resources, e.g. `'https://domain.com/api'`. May be different between client and server. | No       |
+
+#### `RequestParams`
+
+This type describes `requestParams` for a specific resource. Note how all fields are optional by default, except `path`.
+
+Extends <code>[GlobalRequestParams](#globalrequestparams)</code>.
+
+| Name | Type     | Description                                                                                                                          | Required |
+| ---- | -------- | ------------------------------------------------------------------------------------------------------------------------------------ | -------- |
+| path | `string` | Path to the given resource, e.g. `'/entity/:id'`. It is processed by [path-to-regexp](https://www.npmjs.com/package/path-to-regexp). | Yes      |

@@ -4,7 +4,7 @@ import { CacheData } from './CacheData';
 import {
     getRequestFactory,
     getRequestId,
-    GlobalStaticRequestParams,
+    GlobalRequestParams,
     processResponseJson,
     ResponseError,
 } from '@fetcher/typed-fetch-request';
@@ -25,7 +25,7 @@ export type AppClient = Client<
     InMemoryCache<CacheData>,
     NonUndefined,
     ResponseError<ErrorResponse>,
-    GlobalStaticRequestParams
+    GlobalRequestParams
 >;
 
 export function getClient({ fetch }: GetClientOptions): AppClient {
