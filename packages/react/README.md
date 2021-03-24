@@ -43,7 +43,7 @@ const MyComponent: FC = () => {
     const client = useClient();
 
     const onClick = () => {
-        client.query(query).then((data) => console.log(data));
+        client.fetchQuery(query).then((data) => console.log(data));
     };
 
     return <button onClick={onClick}>Perform query manually</button>;
@@ -66,7 +66,7 @@ const MyComponent: FC = () => {
 
 | Name  | Type                                       | Description         | Required |
 | ----- | ------------------------------------------ | ------------------- | -------- |
-| query | <code>[Query](/packages/core#query)</code> | A query to process. | Yes      |
+| query | <code>[Query](/packages/core#query)</code> | A query to process. | No       |
 
 #### Return value
 
@@ -88,7 +88,7 @@ const MyComponent: FC = () => {
 
 | Name     | Type                                             | Description            | Required |
 | -------- | ------------------------------------------------ | ---------------------- | -------- |
-| mutation | <code>[Mutation](/packages/core#mutation)</code> | A mutation to process. | Yes      |
+| mutation | <code>[Mutation](/packages/core#mutation)</code> | A mutation to process. | No       |
 
 #### Return value
 

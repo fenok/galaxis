@@ -175,7 +175,7 @@ const myQuery = getQuery<MyQueryData>((params) => ({
 }));
 
 client
-    .query(
+    .fetchQuery(
         myQuery({
             // Existence of 'requestParams' is checked, typed as DynamicParams
             requestParams: {
@@ -214,7 +214,7 @@ const myQuery = getQuery<MyQueryData, MyQueryParams>((params) => ({
 }));
 
 client
-    .query(
+    .fetchQuery(
         myQuery({
             // Existence of 'requestParams' is checked, typed as MyQueryParams
             requestParams: {
@@ -260,7 +260,7 @@ const myQuery = getQuery<MyQueryData, MyQueryParams, MyQueryCustomParams>((param
 }));
 
 client
-    .query(
+    .fetchQuery(
         myQuery({
             requestParams: { foo: 'foo' }, // Existence of 'requestParams' is checked, typed as MyQueryCustomParams
             fetchPolicy: 'cache-first', // We can optionally override other Query fields
@@ -299,7 +299,7 @@ const myQuery = getStaticQuery<MyQueryData, MyQueryParams>({
 });
 
 client
-    .query(
+    .fetchQuery(
         myQuery({
             // We could override 'requestParams' as well
             fetchPolicy: 'cache-first', // We can optionally override other Query fields
