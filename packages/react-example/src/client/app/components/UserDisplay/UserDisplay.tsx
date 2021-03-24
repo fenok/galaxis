@@ -15,7 +15,6 @@ const UserDisplay: React.FC<Props> = ({ variant }) => {
         userQuery({
             requestParams: { pathParams: { id: userId } },
             fetchPolicy: variant === 1 ? 'cache-and-network' : variant === 2 ? 'cache-only' : 'no-cache',
-            lazy: false,
         }),
     );
 

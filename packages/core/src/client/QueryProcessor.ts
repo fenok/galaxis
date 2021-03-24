@@ -259,7 +259,6 @@ export class QueryProcessor<C extends NonUndefined> {
         queryCache?: QueryCache<D, E>,
     ): boolean {
         return !(
-            query.lazy ||
             this.isFetchPolicy(query.fetchPolicy, 'cache-only') ||
             (this.isFetchPolicy(query.fetchPolicy, 'cache-first') && queryCache?.data !== undefined) ||
             (query.optimizeOnHydrate &&

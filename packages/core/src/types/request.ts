@@ -25,7 +25,6 @@ export interface BaseRequest<C extends NonUndefined, D extends NonUndefined, E e
 export interface BaseQuery<C extends NonUndefined, D extends NonUndefined, E extends Error, R>
     extends BaseRequest<C, D, E, R> {
     fetchPolicy?: FetchPolicy;
-    lazy?: boolean;
     disableSsr?: boolean;
     optimizeOnHydrate?: boolean;
     forceRequestOnMerge?: boolean;
