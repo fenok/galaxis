@@ -4,7 +4,7 @@ import { serializeError, deserializeError, ErrorObject } from 'serialize-error';
 
 interface CacheState<C extends NonUndefined, E = Error> {
     data: C;
-    errors: { [id: string]: E | undefined };
+    errors: Record<string, E | undefined>;
 }
 
 interface CacheOptions<C extends NonUndefined> {
@@ -44,13 +44,17 @@ class InMemoryCache<C extends NonUndefined> implements Cache<C> {
         }
     }
 
-    private set state(newState: CacheState<C>) {
-        this._state = newState;
-        this.subscribers.forEach((subscriber) => subscriber(newState));
+    public subscribe(callback: (state: CacheState<C>) => void) {
+        this.subscribers.push(callback);
+
+        return () => {
+            this.subscribers = this.subscribers.filter((subscriber) => subscriber !== callback);
+        };
     }
 
-    private get state() {
-        return this._state;
+    public update(opts: UpdateOptions<C>) {
+        this.updateStateInner(opts);
+        this.devtools?.send({ type: 'UPDATE', ...opts }, this.state);
     }
 
     public getData() {
@@ -59,6 +63,13 @@ class InMemoryCache<C extends NonUndefined> implements Cache<C> {
 
     public getError(requestId: string): Error | undefined {
         return this.state.errors[requestId];
+    }
+
+    public purge() {
+        this.state = {
+            errors: {},
+            data: this.emptyData,
+        };
     }
 
     public extract(): CacheState<C, ErrorObject> {
@@ -70,6 +81,15 @@ class InMemoryCache<C extends NonUndefined> implements Cache<C> {
             ...this.state,
             errors: serializableErrors,
         };
+    }
+
+    private set state(newState: CacheState<C>) {
+        this._state = newState;
+        this.subscribers.forEach((subscriber) => subscriber(newState));
+    }
+
+    private get state() {
+        return this._state;
     }
 
     private deserializeState(serializableState: CacheState<C, ErrorObject>): CacheState<C> {
@@ -84,26 +104,6 @@ class InMemoryCache<C extends NonUndefined> implements Cache<C> {
             ...serializableState,
             errors: deserializedErrors,
         };
-    }
-
-    public subscribe(callback: (state: CacheState<C>) => void) {
-        this.subscribers.push(callback);
-
-        return () => {
-            this.subscribers = this.subscribers.filter((subscriber) => subscriber !== callback);
-        };
-    }
-
-    public purge() {
-        this.state = {
-            errors: {},
-            data: this.emptyData,
-        };
-    }
-
-    public update(opts: UpdateOptions<C>) {
-        this.updateStateInner(opts);
-        this.devtools?.send({ type: 'UPDATE', ...opts }, this.state);
     }
 
     private updateStateInner({ data, error }: UpdateOptions<C>) {
@@ -130,12 +130,7 @@ class InMemoryCache<C extends NonUndefined> implements Cache<C> {
     }
 
     private subscribeToDevtools() {
-        // TODO: React to all messages
-        this.devtools?.subscribe((message) => {
-            if (message.type === 'DISPATCH' && message.payload.type === 'JUMP_TO_ACTION') {
-                this.state = JSON.parse(message.state) as CacheState<C>;
-            }
-        });
+        // TODO: React to devtools messages
     }
 }
 
