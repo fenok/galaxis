@@ -1,5 +1,5 @@
 import { RequestQueue } from '../client/RequestQueue';
-import { BaseQuery, BaseRequest, RequestOptions } from '../types';
+import { Query, BaseRequest, RequestOptions } from '../types';
 import { QueryProcessor } from '../client/QueryProcessor';
 import { TestCache } from './TestCache';
 import { wait } from '../promise';
@@ -95,13 +95,13 @@ export const BASE_REQUEST: Pick<BaseRequest<TestCacheData, ItemEntity, Error, Te
 };
 
 export const BASE_QUERY: typeof BASE_REQUEST &
-    Pick<BaseQuery<TestCacheData, ItemEntity, Error, TestRequestInit>, 'fetchPolicy'> = {
+    Pick<Query<TestCacheData, ItemEntity, Error, TestRequestInit>, 'fetchPolicy'> = {
     ...BASE_REQUEST,
     fetchPolicy: 'cache-and-network',
 };
 
 export const ITEM_REQUEST: Omit<
-    BaseQuery<TestCacheData, ItemEntity, Error, TestRequestInit>,
+    Query<TestCacheData, ItemEntity, Error, TestRequestInit>,
     'requestParams' | 'getRequestFactory'
 > = {
     ...BASE_QUERY,
@@ -115,7 +115,7 @@ export const ITEM_REQUEST: Omit<
 
 export function getFirstItemRequest(
     getRequestFactory = getGetRequestFactory(),
-): BaseQuery<TestCacheData, ItemEntity, Error, TestRequestInit> {
+): Query<TestCacheData, ItemEntity, Error, TestRequestInit> {
     return {
         ...ITEM_REQUEST,
         getRequestFactory,
@@ -123,7 +123,7 @@ export function getFirstItemRequest(
     };
 }
 
-export function getFailingFirstItemRequest(): BaseQuery<TestCacheData, ItemEntity, Error, TestRequestInit> {
+export function getFailingFirstItemRequest(): Query<TestCacheData, ItemEntity, Error, TestRequestInit> {
     return {
         ...ITEM_REQUEST,
         getRequestFactory: () => () => Promise.reject(getNetworkError()),
@@ -133,7 +133,7 @@ export function getFailingFirstItemRequest(): BaseQuery<TestCacheData, ItemEntit
 
 export function getSecondItemRequest(
     getRequestFactory = getGetRequestFactory(),
-): BaseQuery<TestCacheData, ItemEntity, Error, TestRequestInit> {
+): Query<TestCacheData, ItemEntity, Error, TestRequestInit> {
     return {
         ...ITEM_REQUEST,
         getRequestFactory,
@@ -177,8 +177,8 @@ export function getClient(cache = getCache()) {
         hash(value: unknown): string {
             return JSON.stringify(value);
         },
-        merge<R1, R2, R3, R4, R5>(r1: R1, r2: R2, r3: R3, r4: R4, r5: R5): R1 & R2 & R3 & R4 & R5 {
-            return { ...r1, ...r2, ...r3, ...r4, ...r5 };
+        merge<R1, R2, R3>(r1: R1, r2: R2, r3: R3): R1 & R2 & R3 {
+            return { ...r1, ...r2, ...r3 };
         },
     });
 }

@@ -1,94 +1,107 @@
 import { Mutation, NonUndefined } from '../types';
-import { Client } from './Client';
+import { MutationProcessor } from './MutationProcessor';
 
-export interface MutationManagerOptions {
-    forceUpdate(): void;
+export interface MutationManagerOptions<C extends NonUndefined, D extends NonUndefined, E extends Error, R> {
+    mutation: Mutation<C, D, E, R> | undefined;
+    mutationProcessor: MutationProcessor<C>;
+    onChange(result: MutationManagerResult<D, E>): void;
 }
 
-export interface MutationManagerResult<D extends NonUndefined, E extends Error> {
+export interface MutationManagerState<D extends NonUndefined, E extends Error> {
     loading: boolean;
     data: D | undefined;
     error: E | Error | undefined;
-    mutate(): Promise<D>;
-    abort(): void;
+    executed: boolean;
 }
 
-export class MutationManager<C extends NonUndefined, D extends NonUndefined, E extends Error, R> {
-    private forceUpdate: () => void;
-    private mutationHash?: string;
-    private mutation?: Mutation<C, D, E, R>;
-    private client!: Client;
-    private loading = false;
-    private data?: D;
-    private error?: E | Error;
-    private abortController?: AbortController;
-    private mutationId = 1;
-    private boundAbort: () => void;
-    private boundMutate: () => Promise<D>;
+export interface MutationManagerApi<D extends NonUndefined> {
+    execute(): Promise<D>;
+    abort(): void;
+    reset(): void;
+}
 
-    constructor({ forceUpdate }: MutationManagerOptions) {
-        this.forceUpdate = forceUpdate;
+export type MutationManagerResult<D extends NonUndefined, E extends Error> = MutationManagerState<D, E> &
+    MutationManagerApi<D>;
+
+export class MutationManager<C extends NonUndefined, D extends NonUndefined, E extends Error, R> {
+    private onChange?: (result: MutationManagerResult<D, E>) => void;
+    private mutation?: Mutation<C, D, E, R>;
+    private mutationProcessor: MutationProcessor<C>;
+    private state: MutationManagerState<D, E> = {
+        loading: false,
+        data: undefined,
+        error: undefined,
+        executed: false,
+    };
+    private abortController?: AbortController;
+    private networkRequestId = 1;
+    private boundAbort: () => void;
+    private boundExecute: () => Promise<D>;
+    private boundReset: () => void;
+
+    constructor({ onChange, mutation, mutationProcessor }: MutationManagerOptions<C, D, E, R>) {
+        this.mutation = mutation;
+        this.onChange = onChange;
+        this.mutationProcessor = mutationProcessor;
         this.boundAbort = this.abort.bind(this);
-        this.boundMutate = this.mutate.bind(this);
+        this.boundExecute = this.execute.bind(this);
+        this.boundReset = this.reset.bind(this);
     }
 
-    // TODO: Enforce return type: MutationManagerResult<D, E>
-    // Currently removed to fix @typescript-eslint/unbound-method error. Typing this as void didn't help.
-    public process(mutation: Mutation<C, D, E, R> | undefined, client: Client) {
-        if (
-            this.client !== client ||
-            this.mutationHash !== (mutation ? this.client.getMutationHash(mutation) : undefined)
-        ) {
-            this.mutationId += 1;
-            this.data = undefined;
-            this.error = undefined;
-            this.loading = false;
+    public getState() {
+        return this.state;
+    }
 
-            this.client = client;
-            this.mutation = mutation;
-            this.mutationHash = mutation ? this.client.getMutationHash(mutation) : undefined;
-        }
-
+    public getApi() {
         return {
-            loading: this.loading,
-            data: this.data,
-            error: this.error,
-            mutate: this.boundMutate,
+            execute: this.boundExecute,
             abort: this.boundAbort,
+            reset: this.boundReset,
         };
     }
 
-    private mutate() {
+    public getResult() {
+        return { ...this.getState(), ...this.getApi() };
+    }
+
+    public cleanup() {
+        this.networkRequestId += 1;
+        this.onChange = undefined;
+    }
+
+    private abort() {
+        this.abortController?.abort();
+    }
+
+    private reset() {
+        this.networkRequestId += 1;
+        this.abortController = undefined;
+
+        this.setState({ executed: false, data: undefined, error: undefined, loading: false });
+    }
+
+    private execute() {
         if (!this.mutation) {
             return Promise.reject(new Error('No mutation to execute.'));
         }
 
         this.ensureAbortController();
 
-        const mutationId = this.mutationId;
-        this.loading = true;
+        const networkRequestId = ++this.networkRequestId;
+        this.setState({ loading: true, executed: true });
 
-        this.forceUpdate();
-
-        return this.client
+        return this.mutationProcessor
             .mutate({ ...this.mutation, abortSignal: this.abortController?.signal })
             .then((data) => {
-                if (mutationId === this.mutationId) {
-                    this.loading = false;
-                    this.data = data;
-                    this.error = undefined;
-
-                    this.forceUpdate();
+                if (networkRequestId === this.networkRequestId) {
+                    this.setState({ loading: false, data, error: undefined });
                 }
 
                 return data;
             })
             .catch((error: Error) => {
-                if (mutationId === this.mutationId) {
-                    this.loading = false;
-                    this.error = error;
-
-                    this.forceUpdate();
+                if (networkRequestId === this.networkRequestId) {
+                    this.setState({ loading: false, error });
                 }
 
                 throw Error;
@@ -97,13 +110,22 @@ export class MutationManager<C extends NonUndefined, D extends NonUndefined, E e
 
     private ensureAbortController() {
         if (typeof AbortController !== 'undefined') {
-            if (!this.abortController || this.abortController.signal.aborted) {
-                this.abortController = new AbortController();
-            }
+            this.abortController = new AbortController();
         }
     }
 
-    private abort() {
-        this.abortController?.abort();
+    private setState(state: Partial<MutationManagerState<D, E>>) {
+        const nextState = { ...this.state, ...state };
+        const shouldUpdate = !this.areStatesEqual(this.state, nextState);
+
+        this.state = nextState;
+
+        if (shouldUpdate) {
+            this.onChange?.(this.getResult());
+        }
+    }
+
+    private areStatesEqual(a: MutationManagerState<D, E>, b: MutationManagerState<D, E>) {
+        return a.data === b.data && a.error === b.error && a.loading === b.loading && a.executed === b.executed;
     }
 }

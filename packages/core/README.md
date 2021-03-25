@@ -8,32 +8,35 @@ Fetcher core is dependency-free, framework-agnostic and as unopinionated as poss
 
 ### Queries
 
-Queries are requests that **do not** change the system state. They are described as <code>[BaseQuery](#basequery)</code> objects.
+Queries are requests that **do not** change the system state. They are described as <code>[Query](#query)</code> objects. Note that some options are ignored in the contexts where they are not applicable. For instance, the `lazy` option only works for _managed queries_.
+
+You can work with queries manually via <code>[client.query()](#clientquery)</code>, <code>[client.fetchQuery()](#clientfetchquery)</code> and <code>[client.readQuery()](#clientreadquery)</code>, or you can create a _managed query_ via <code>[client.manageQuery()](#clientmanagequery)</code>. Note that managed queries should be hidden behind some framework-specific wrapper. The library provides <code>[useQuery](../react#usequery)</code> for React.
+
+A query _execution_ may or may not result in returning the state (data and error) from the cache and/or performing a network request, depending on the <code>[fetchPolicy](#fetchpolicy)</code> and the cache state.
+
+A query can also be _(re)fetched_ from the network, which always leads to a network request.
 
 ### Mutations
 
-Mutations are requests that **do** change the system state. They are described as <code>[BaseMutation](#basemutation)</code> objects.
+Mutations are requests that **do** change the system state. They are described as <code>[Mutation](#mutation)</code> objects.
 
-### Fetch Policies
+You can work with mutations manually via <code>[client.mutate()](#clientmutate)</code>, or you can create a _managed mutation_ via <code>[client.manageMutation()](#clientmanagemutation)</code>. Note that managed mutations should be hidden behind some framework-specific wrapper. The library provides <code>[useMutation](../react#usemutation)</code> for React.
 
-You must specify query `fetchPolicy` to indicate how this query should be updated.
-
-| `fetchPolicy`         | Query execution result                                                                                                                                               |
-| --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `'cache-only'`        | No network request. Returns state from the cache.                                                                                                                    |
-| `'cache-first'`       | Network request, if there is no data in the cache. Returns state from the cache. The cache is then updated with the request result (if there was a network request). |
-| `'cache-and-network'` | Network request regardless of cache state. Returns state from the cache. The cache is then updated with the request result.                                          |
-| `'no-cache'`          | Network request regardless of cache state. Does not touch the cache in any way.                                                                                      |
+A mutation _execution_ always leads to a network request.
 
 ### Query Merging
 
 The library encourages executing queries at arbitrary parts of code and points in time. This way, any component of the application can express its data requirements in isolation from other components.
 
-That would lead to duplicate requests to the same resources. To prevent that, the library uses **query merging**.
+That would lead to duplicate network requests to the same resources. To prevent that, the library uses **query merging**.
 
-Query merging works as follows. The query will reuse ongoing network request with the same id. The cache will also be updated just once, using the first _cacheable_ query that created or reused the request. A query is cacheable if its `fetchPolicy` is not `no-cache`.
+Query merging means that if a query execution (or fetching) results in performing a network request, the library will reuse an ongoing network request with the same id, if there is one. Network request id is calculated by the `getRequestId` function of <code>[BaseRequest](#baserequest)</code>.
 
-This means that queries with the same request id must update the cache in the same way. It shouldn't be an issue, as the opposite makes no sense.
+The cache will also be updated just once, using the first _cacheable_ query that created or reused the network request. A query is cacheable if its `fetchPolicy` is not `no-cache`.
+
+This means that queries with the same network request id must update the cache in the same way. It shouldn't be an issue, as the opposite makes no sense.
+
+You can't really opt-out of query merging, but you can use the `forceRequestOnMerge` option of <code>[Query](#query)</code> to force a new network request (essentially re-run the existing one) if this query is being merged with another. This means that a promise representing a network request may hide more than one actual network request behind it.
 
 ### Request Queueing
 
@@ -47,25 +50,33 @@ A typical queue may look like this:
 [a bunch of queries] -> [mutation] -> [mutation] -> [a bunch of queries]
 ```
 
-It's worth noting that queued requests can be aborted at any time, regardless of position in the queue.
+Note that request queueing means that a promise representing a network request may hide an actual network request that wasn't started yet. Such a request can still be aborted at any time, regardless of its position in the queue.
 
-### Server-side rendering
+### Race Conditions Handling
 
-The library is built with SSR in mind. There is no SSR-specific code in components, so they are SSR-ready by default.
+Query merging and request queueing, alongside other techniques, make sure that there are no race conditions, **as long as data from queries with different network request ids does not overlap**. Even if it does, you are still fine, if you only change the system state by mutations, since you don't really care in which order the same data arrives.
 
-The server waits until all queries are executed and the cache is filled with data and errors, then renders the app based on the cache, and sends resulting HTML with embedded cache to the client.
+Otherwise, beware that you have a razor-thin chance of overwriting an up-to-date data with an outdated one, if you execute such queries simultaneously. In the future, the library may provide means for relative queueing of such queries.
+
+### Server-Side Rendering
+
+The library is built with SSR in mind. _Managed queries_ can be executed on the server side, and, assuming they are wrapped in a framework-specific wrapper, there is no SSR-specific code in the application components, so they are SSR-ready by default. Note that you can disable fetching on the server by the `disableSsr` option of <code>[Query](#query)</code>.
+
+The server uses an instance of <code>[SsrPromisesManager](#ssrpromisesmanager)</code> to wait until all _managed queries_ network requests are finished and the cache is filled with data and errors, then renders the app based on the cache, and sends resulting HTML with embedded cache to the client.
+
+The exact server rendering logic and means of providing a <code>[SsrPromisesManager](#ssrpromisesmanager)</code> instance to managed queries are framework-specific. The library provides <code>[getDataFromTree](../react#getdatafromtree)</code> for React.
 
 ### Hydrate Stage Optimization
 
 If you're doing SSR, you're going to have a hydrate stage on the client, which is the initial render with cached data. By default, queries with `fetchPolicy: 'cache-and-network'` will be fetched during the hydrate stage. This is likely undesirable because these requests were just performed on the server.
 
-It can be fixed by setting `preventExcessRequestOnHydrate: true` for all queries by default. In general, you should always do that, unless your cache is not coming from just-performed requests (e.g. you are not doing SSR, but persist the cache to local storage).
+It can be fixed by setting `optimizeOnHydrate: true` for all queries by default. In general, you should always do that, unless your cache is not coming from just-performed requests (e.g. you are not doing SSR, but persist the cache to local storage).
 
 ### Optimistic Responses
 
 You can specify `optimisticData` for mutations. During mutation execution, the cache will immediately be updated with this data, and then with the real data when it arrives. Note that you also have to specify the `removeOptimisticData()` and `toCache()` functions, so the library knows how to remove the optimistic data from the cache, and how to put the real data in.
 
-### Great customization capabilities
+### Great Customization Capabilities
 
 The library is completely unopinionated about the network level. You can use fetch, axios, XMLHttpRequest, or any other solution. You can add network requests logging, retries, or timeouts. See [BaseRequest](#baserequest) for details.
 
@@ -77,7 +88,7 @@ The library is also unopinionated about [Cache](#cache) internals. You can add c
 
 ### Client
 
-`Client` is responsible for executing queries and mutations imperatively. Note that normally you should execute queries in a declarative way with the help of <code>[QueryManager](#querymanager)</code>.
+`Client` is the heart of the library that does all the heavy-lifting.
 
 ```typescript
 const client = new Client({
@@ -94,18 +105,96 @@ const client = new Client({
 
 ###### `ClientOptions`
 
-| Name            | Type                                                                             | Description                                                                                                                                                                                    | Required |
-| --------------- | -------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
-| cache           | <code>[CACHE](#user-defined-types)</code>                                        | Cache for storing normalized data and errors.                                                                                                                                                  | Yes      |
-| merge           | <code>(r1: R1, r2: R2, r3: R3, r4: R4, r5: R5) => R1 & R2 & R3 & R4 & R5;</code> | A function for merging queries and mutations with static and dynamic defaults.                                                                                                                 | Yes      |
-| hash            | <code>(value: unknown) => string</code>                                          | A function for hashing <code>[BaseRequest](#baserequest)</code>, <code>[BaseQuery](#basequery)</code> or <code>[BaseMutation](#basemutation)</code> objects, and their `requestParams` fields. | Yes      |
-| defaultRequest  | <code>Partial<[BaseRequest](#baserequest)></code>                                | Static default request. Can't be changed later.                                                                                                                                                | No       |
-| defaultQuery    | <code>Partial<[BaseQuery](#baserequest)></code>                                  | Static default query. Can't be changed later.                                                                                                                                                  | No       |
-| defaultMutation | <code>Partial<[BaseMutation](#baserequest)></code>                               | Static default mutation. Can't be changed later.                                                                                                                                               | No       |
+> ⚠ Note that defaults are static for the given client instance. Dynamic defaults would add too much complexity. If you really need dynamic defaults, such as a user-specific header that is common for all requests, you should do it on the network level, somewhere inside the `getRequestFactory` option of the <code>[BaseRequest](#baserequest)</code>. Ideally, if we're talking about authorization, you should rely on a `HttpOnly` cookie set by the server.
+
+| Name            | Type                                                   | Description                                                                                                                                                                                                                                                                                                | Required |
+| --------------- | ------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
+| cache           | <code>[CACHE](#user-defined-types)</code>              | A cache for storing normalized data and errors. The library provides <code>[InMemoryCache](../in-memory-cache#inmemorycache)</code> that should work in a lot of cases.                                                                                                                                    | Yes      |
+| merge           | <code>(r1: R1, r2: R2, r3: R3) => R1 & R2 & R3;</code> | A function for merging queries and mutations with defaults. `R1` is `defaultRequest`, `R2` is `defaultQuery` or `defaultMutation` and `R3` is the given query or mutation. The library provides <code>[mergeDeepNonUndefined()](../utils#mergedeepnonundefined)</code> that should work in a lot of cases. | Yes      |
+| hash            | <code>(value: unknown) => string</code>                | A function for hashing <code>[BaseRequest](#baserequest)</code>, <code>[Query](#query)</code> or <code>[Mutation](#mutation)</code> objects, and their `requestParams` fields. The library provides <code>[objectHash()](../utils#objecthash)</code> that should work in a lot of cases.                   | Yes      |
+| defaultRequest  | <code>Partial<[BaseRequest](#baserequest)></code>      | Default request. Can't be changed later.                                                                                                                                                                                                                                                                   | No       |
+| defaultQuery    | <code>Partial<[Query](#baserequest)></code>            | Default query. Can't be changed later.                                                                                                                                                                                                                                                                     | No       |
+| defaultMutation | <code>Partial<[Mutation](#baserequest)></code>         | Default mutation. Can't be changed later.                                                                                                                                                                                                                                                                  | No       |
+
+#### `client.manageQuery()`
+
+Starts managing of the given query. If the query is not `lazy`, it is executed immediately.
+
+Note that this method is supposed to be wrapped in some framework-specific wrapper. You should use <code>[client.query()](#clientquery)</code>, <code>[client.fetchQuery()](#clientfetchquery)</code> and <code>[client.readQuery()](#clientreadquery)</code> to work with queries manually.
+
+```typescript
+const [result, dispose] = client.manageQuery(query, onChange, ssrPromisesManager);
+```
+
+##### Arguments
+
+| Name               | Type                                                                     | Description                                                                                                                                                       | Required |
+| ------------------ | ------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
+| query              | <code>[Query](#query) &#124; undefined</code>                            | A query to create a manager for. Pass `undefined` to create an empty manager. It's useful when you can't call the function optionally, e.g. in React Hooks.       | Yes      |
+| onChange           | <code>(result: [QueryManagerResult](#querymanagerresult)) => void</code> | A callback that will be called when the state of the manager changes.                                                                                             | Yes      |
+| ssrPromisesManager | <code>[SsrPromisesManager](#ssrpromisesmanager)</code>                   | Should only be passed on the server side. If a non-`lazy` query produces a network request during its initial execution, it is added to the `ssrPromisesManager`. | No       |
 
 ##### Return value
 
-[Client](#client)
+| Name    | Type                                                   | Description                                                                                                                        |
+| ------- | ------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------- |
+| result  | <code>[QueryManagerResult](#querymanagerresult)</code> | Current manager state and API for manipulating it.                                                                                 |
+| dispose | <code>() => void</code>                                | Call it when you don't need the manager anymore to perform the internal cleanup. The ongoing network request will be soft-aborted. |
+
+##### Related types
+
+###### `QueryManagerResult`
+
+| Name     | Type                                                                | Description                                                                                                                                                                                                                                                                                                                  |
+| -------- | ------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| data     | <code>[D](#user-defined-types) &#124; undefined</code>              | The last known data of the query, **stored inside the manager**. Can be updated by the cache update, depending on the `fetchPolicy`.                                                                                                                                                                                         |
+| error    | <code>[E](#user-defined-types) &#124; Error &#124; undefined</code> | The error from the last network request, **stored inside the manager**. Can be updated by the cache update, depending on the `fetchPolicy`.                                                                                                                                                                                  |
+| loading  | <code>boolean</code>                                                | If `true`, there is a network request in progress, **initiated by the manager**. If the query is loading, its `data` and `error` updates are paused.                                                                                                                                                                         |
+| executed | <code>boolean</code>                                                | If `true`, the query was executed. Initially `true` for non-`lazy` queries, and it's switched to `true` after the first call of `execute`.                                                                                                                                                                                   |
+| execute  | <code>() => [QueryResult](#queryresult)</code>                      | Call it to execute the query. If the query is already `executed`, you most likely want to `refetch` it instead. Note that query execution will immediately update the `data` and `error` fields with the cached values (`undefined` in case of `fetchPolicy: 'no-cache'`). The ongoing network request will be soft-aborted. |
+| refetch  | <code>() => Promise<[D](#user-defined-types)></code>                | Call it to fetch the query from the network, even for `fetchPolicy: cache-only`. The query has to be executed first. Note that this method will **always** (`forceRequestOnMerge: true`) create a new network request, aborting the previous one.                                                                            |
+| abort    | <code>() => void</code>                                             | Call it to abort current network request. If there is no network request in progress, it's a no-op.                                                                                                                                                                                                                          |
+| reset    | <code>() => void</code>                                             | Call it to reset the manager to the non-executed state. This will reset `data` and `error` to `undefined` and `executed` to `false`. The ongoing network request will be soft-aborted.                                                                                                                                       |
+
+#### `client.manageMutation()`
+
+Starts managing of the given mutation.
+
+Note that this method is supposed to be wrapped in some framework-specific wrapper. You should use <code>[client.mutate()](#clientmutate)</code> to work with mutations manually.
+
+```typescript
+const [result, dispose] = client.manageMutation(mutation, onChange);
+```
+
+##### Arguments
+
+| Name     | Type                                                                           | Description                                                                                                                                                    | Required |
+| -------- | ------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
+| mutation | <code>[Mutation](#mutation) &#124; undefined</code>                            | A mutation to create a manager for. Pass `undefined` to create an empty manager. It's useful when you can't call the function optionally, e.g. in React Hooks. | Yes      |
+| onChange | <code>(result: [MutationManagerResult](#mutationmanagerresult)) => void</code> | A callback that will be called when the state of the manager changes.                                                                                          | Yes      |
+
+##### Return value
+
+| Name    | Type                                                         | Description                                                                                                                                                   |
+| ------- | ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| result  | <code>[MutationManagerResult](#mutationmanagerresult)</code> | Current manager state and API for manipulating it.                                                                                                            |
+| dispose | <code>() => void</code>                                      | Call it when you don't need the manager anymore to perform the internal cleanup. Note that the ongoing network request will **not** be aborted automatically. |
+
+##### Related types
+
+###### `MutationManagerResult`
+
+> ⚠ Note that mutation manager only tracks the latest mutation execution.
+
+| Name     | Type                                                                | Description                                                                                                                                                                                                                 |
+| -------- | ------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| data     | <code>[D](#user-defined-types) &#124; undefined</code>              | The last known data of the mutation, **stored inside the manager**. Note that mutation execution doesn't reset this value.                                                                                                  |
+| error    | <code>[E](#user-defined-types) &#124; Error &#124; undefined</code> | The error from the last network request, **stored inside the manager**. Note that mutation execution doesn't reset this value.                                                                                              |
+| loading  | <code>boolean</code>                                                | If `true`, there is a network request in progress, **initiated by the manager**.                                                                                                                                            |
+| executed | <code>boolean</code>                                                | If `true`, the mutation was executed. Initially it's `false`, and it's switched to `true` after the first call of `execute()`.                                                                                              |
+| execute  | <code>() => Promise<[D](#user-defined-types)></code>                | Call it to execute the mutation. Note that the ongoing network request will **not** be aborted automatically.                                                                                                               |
+| abort    | <code>() => void</code>                                             | Call it to abort current network request. If there is no network request in progress, it's a no-op.                                                                                                                         |
+| reset    | <code>() => void</code>                                             | Call it to reset the manager to the initial (non-executed) state. This will reset `data` and `error` to `undefined` and `executed` to `false`. Note that the ongoing network request will **not** be aborted automatically. |
 
 #### `client.query()`
 
@@ -119,7 +208,7 @@ const result = client.query(query, onChange);
 
 | Name     | Type                                                    | Description                                             | Required |
 | -------- | ------------------------------------------------------- | ------------------------------------------------------- | -------- |
-| query    | <code>[BaseQuery](#basequery)</code>                    | A query to execute.                                     | Yes      |
+| query    | <code>[Query](#query)</code>                            | A query to execute.                                     | Yes      |
 | onChange | <code>(state: [QueryState](#querystate)) => void</code> | A callback to call when the state of the query changes. | No       |
 
 ##### Return value
@@ -134,7 +223,7 @@ Extends [QueryState](#querystate).
 
 #### `client.fetchQuery()`
 
-Force-fetch the query. This method will always trigger a network request.
+Fetch the query. This method will always lead to a network request. Note that this method respects the `forceRequestOnMerge` option of <code>[Query](#query)</code>.
 
 ```typescript
 const result = client.fetchQuery(query);
@@ -142,9 +231,9 @@ const result = client.fetchQuery(query);
 
 ##### Arguments
 
-| Name  | Type                                 | Description       | Required |
-| ----- | ------------------------------------ | ----------------- | -------- |
-| query | <code>[BaseQuery](#basequery)</code> | Query to execute. | Yes      |
+| Name  | Type                         | Description       | Required |
+| ----- | ---------------------------- | ----------------- | -------- |
+| query | <code>[Query](#query)</code> | A query to fetch. | Yes      |
 
 ##### Return value
 
@@ -152,7 +241,7 @@ const result = client.fetchQuery(query);
 
 #### `client.readQuery()`
 
-Get state of the given query.
+Get state of the given query and optionally subscribe to its changes.
 
 ```typescript
 const queryState = client.readQuery(query, onChange);
@@ -162,7 +251,7 @@ const queryState = client.readQuery(query, onChange);
 
 | Name     | Type                                                    | Description                                             | Required |
 | -------- | ------------------------------------------------------- | ------------------------------------------------------- | -------- |
-| query    | <code>[BaseQuery](#basequery)</code>                    | Query.                                                  | Yes      |
+| query    | <code>[Query](#query)</code>                            | A query to read.                                        | Yes      |
 | onChange | <code>(state: [QueryState](#querystate)) => void</code> | A callback to call when the state of the query changes. | No       |
 
 ##### Return value
@@ -172,7 +261,7 @@ const queryState = client.readQuery(query, onChange);
 | Name            | Type                                                                | Description                                                                                                                                                                                                                                      |
 | --------------- | ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | data            | <code>[D](#user-defined-types) &#124; undefined</code>              | Data from the cache. `undefined` means no data. An unsuccessful request **will not** overwrite this field. It can be thought of as _the last known data_. Always `undefined` for non-cacheable query.                                            |
-| error           | <code>Error &#124; [E](#user-defined-types) &#124; undefined</code> | Error from the cache. `undefined` means no error. A successful request **will** overwrite this field to `undefined`. It can be thought of as _the error from the last request_. Always `undefined` for non-cacheable query.                      |
+| error           | <code>[E](#user-defined-types) &#124; Error &#124; undefined</code> | Error from the cache. `undefined` means no error. A successful request **will** overwrite this field to `undefined`. It can be thought of as _the error from the last request_. Always `undefined` for non-cacheable query.                      |
 | requestRequired | <code>boolean</code>                                                | Specifies whether a network request is required, based on cache state and fetch policy of the given query. The actual network request may still not be allowed on the server side. If `true`, the query should be rendered with `loading: true`. |
 | requestAllowed  | <code>boolean</code>                                                | Specifies whether a network request is allowed. Always `true` on the client side.                                                                                                                                                                |
 | cacheable       | <code>boolean</code>                                                | A query is not cacheable, if it has `fetchPolicy: 'no-cache'`.                                                                                                                                                                                   |
@@ -180,7 +269,7 @@ const queryState = client.readQuery(query, onChange);
 
 #### `client.mutate()`
 
-Execute mutation.
+Execute the mutation.
 
 ```typescript
 const mutationResult = client.mutate(mutation);
@@ -188,9 +277,9 @@ const mutationResult = client.mutate(mutation);
 
 ##### Arguments
 
-| Name     | Type                                       | Description          | Required |
-| -------- | ------------------------------------------ | -------------------- | -------- |
-| mutation | <code>[BaseMutation](#basemutation)</code> | Mutation to execute. | Yes      |
+| Name     | Type                               | Description            | Required |
+| -------- | ---------------------------------- | ---------------------- | -------- |
+| mutation | <code>[Mutation](#mutation)</code> | A mutation to execute. | Yes      |
 
 ##### Return value
 
@@ -198,7 +287,9 @@ const mutationResult = client.mutate(mutation);
 
 #### `client.purge()`
 
-Reset the client. Specifically, abort all requests, clear the cache and clear dynamic defaults. You should call this method on logout.
+Reset the client. Specifically, abort all requests, clear the cache, execute all executed managed queries and reset all managed mutations.
+
+You should call this method on logout.
 
 ```typescript
 client.purge();
@@ -224,150 +315,23 @@ Report to the client that the hydrate stage is complete. The client always start
 client.onHydrateComplete();
 ```
 
-#### `client.setDynamicDefaultRequest()`
+#### `client.hash()`
 
-Set dynamic default request.
+Get hash of the given value using the `hash` function that was passed to the constructor.
 
 ```typescript
-client.setDynamicDefaultRequest(defaultRequest);
+const hash = client.hash(value);
 ```
 
 ##### Arguments
 
-| Name           | Type                                              | Description      | Required |
-| -------------- | ------------------------------------------------- | ---------------- | -------- |
-| defaultRequest | <code>Partial<[BaseRequest](#baserequest)></code> | Default request. | Yes      |
-
-#### `client.setDynamicDefaultQuery()`
-
-Set dynamic default query.
-
-```typescript
-client.setDynamicDefaultQuery(defaultQuery);
-```
-
-##### Arguments
-
-| Name         | Type                                          | Description    | Required |
-| ------------ | --------------------------------------------- | -------------- | -------- |
-| defaultQuery | <code>Partial<[BaseQuery](#basequery)></code> | Default query. | Yes      |
-
-#### `client.setDynamicDefaultMutation()`
-
-Set dynamic default mutation.
-
-```typescript
-client.setDynamicDefault<Mutation>(defaultMutation);
-```
-
-##### Arguments
-
-| Name            | Type                                                | Description       | Required |
-| --------------- | --------------------------------------------------- | ----------------- | -------- |
-| defaultMutation | <code>Partial<[BaseMutation](#basemutation)></code> | Default mutation. | Yes      |
-
-### QueryManager
-
-Query manager helps with executing queries in a declarative way. It should be instantiated on the application component mount and destroyed on the component unmount. Each query usage inside the component requires its own instance of `QueryManager`.
-
-```typescript
-const queryManager = new QueryManager({ forceUpdate });
-```
-
-##### Arguments
-
-###### `QueryManagerOptions`
-
-| Name        | Type                    | Description                                                                                                                                                                       | Required |
-| ----------- | ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
-| forceUpdate | <code>() => void</code> | The function that will be called on internal state change. When it's called, you should call <code>[queryManager.process()](#querymanagerprocess)</code> again to get new values. | Yes      |
-
-#### `queryManager.process()`
-
-Call it on each component update. If arguments didn't change, a new object with the same values will be returned. If arguments did change, the previous query will be soft-aborted, and a new query will be executed.
-
-If `ssrPromisesManager` was provided, and there was a network request, it will be added to the manager.
-
-Note that `client` and `ssrPromisesManager` arguments are compared by reference, and `query` argument is compared by hash, calculated by the function that was passed to the <code>[Client](#client)</code>.
-
-```typescript
-const result = queryManager.process(query, client, ssrPromisesManager);
-```
-
-##### Arguments
-
-| Name               | Type                                                   | Description                                                                                                                                | Required |
-| ------------------ | ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------ | -------- |
-| query              | <code>[Query](#query) &#124; undefined</code>          | Query to process. Pass `undefined` to indicate that this query will appear later, e.g. because it depends on data that hasn't arrived yet. | Yes      |
-| client             | <code>[Client](#client)</code>                         | Client to use.                                                                                                                             | Yes      |
-| ssrPromisesManager | <code>[SsrPromisesManager](#ssrpromisesmanager)</code> | Ssr promises manager to use.                                                                                                               | No       |
+| Name  | Type                 | Description      | Required |
+| ----- | -------------------- | ---------------- | -------- |
+| value | <code>unknown</code> | A value to hash. | Yes      |
 
 ##### Return value
 
-###### `QueryManagerResult`
-
-| Name    | Type                                                                | Description                                                                              |
-| ------- | ------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| loading | <code>boolean</code>                                                | If `true`, there is a network request in progress, **initiated by the manager**.         |
-| data    | <code>[D](#user-defined-types) &#124; undefined</code>              | Last known data for the given query.                                                     |
-| error   | <code>[E](#user-defined-types) &#124; Error &#124; undefined</code> | Error from the last network request for the given query.                                 |
-| refetch | <code>() => Promise<[D](#user-defined-types)></code>                | Call to force network request, even for a query with `fetchPolicy: 'cache-only'`.        |
-| abort   | <code>() => void</code>                                             | Abort current network request. It is **not** a soft abort (see [BaseQuery](#basequery)). |
-
-#### `queryManager.cleanup()`
-
-Call it on component unmount to perform the internal cleanup.
-
-```typescript
-queryManager.cleanup();
-```
-
-### MutationManager
-
-Mutation manager helps with dealing with mutations in a declarative way. It should be instantiated on the application component mount and destroyed on the component unmount. Each mutation usage inside the component requires its own instance of `MutationManager`.
-
-```typescript
-const mutationManager = new MutationManager({ forceUpdate });
-```
-
-##### Arguments
-
-###### `MutationManagerOptions`
-
-| Name        | Type                    | Description                                                                                                                                                                             | Required |
-| ----------- | ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
-| forceUpdate | <code>() => void</code> | The function that will be called on internal state change. When it's called, you should call <code>[mutationManager.process()](#mutationmanagerprocess)</code> again to get new values. | Yes      |
-
-#### `mutationManager.process()`
-
-Call it on each component update. If arguments didn't change, a new object with the same values will be returned. If arguments did change, the manager will switch to the new mutation.
-
-The manager will not execute the mutation on `process` call. It also will **not** cancel the previous mutation after switching to the new one.
-
-Note that `client` argument is compared by reference, and `mutation` argument is compared by hash, calculated by the function that was passed to the <code>[Client](#client)</code>.
-
-```typescript
-const result = mutationManager.process(mutation, client);
-```
-
-##### Arguments
-
-| Name     | Type                                                | Description                                                                                                                                      | Required |
-| -------- | --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ | -------- |
-| mutation | <code>[Mutation](#mutation) &#124; undefined</code> | Mutation to process. Pass `undefined` to indicate that this mutation will appear later, e.g. because it depends on data that hasn't arrived yet. | Yes      |
-| client   | <code>[Client](#client)</code>                      | Client to use.                                                                                                                                   | Yes      |
-
-##### Return value
-
-###### `MutationManagerResult`
-
-| Name    | Type                                                                | Description                                                               |
-| ------- | ------------------------------------------------------------------- | ------------------------------------------------------------------------- |
-| mutate  | <code>() => Promise<[D](#user-defined-types)></code>                | Execute the mutation.                                                     |
-| loading | <code>boolean</code>                                                | If `true`, there is a network request in progress for the given mutation. |
-| data    | <code>[D](#user-defined-types) &#124; undefined</code>              | Last known data for the given mutation.                                   |
-| error   | <code>[E](#user-defined-types) &#124; Error &#124; undefined</code> | Error from the last network request for the given mutation.               |
-| abort   | <code>() => void</code>                                             | Abort current network request.                                            |
+<code>string</code>
 
 ### SsrPromisesManager
 
@@ -399,7 +363,7 @@ ssrPromisesManager.addPromise(promise);
 
 #### `ssrPromisesManager.awaitPromises()`
 
-Returns promise that resolves when all added promises are resolved or rejected.
+Returns a promise that resolves when all added promises are resolved or rejected. Note that you can't use the manager while this promise is pending.
 
 ```typescript
 await ssrPromisesManager.awaitPromises();
@@ -449,38 +413,31 @@ This type describes base network request.
 | requestParams     | <code>[R](#user-defined-types)</code>                                                                                       | Arbitrary storage of request parameters.                                                                                                                                                                                                                                                                                                                                                                   | Yes                                                     |
 | abortSignal       | `AbortSignal`                                                                                                               | Signal for aborting the request.                                                                                                                                                                                                                                                                                                                                                                           | No                                                      |
 | getRequestFactory | <code>(opts: [RequestOptions](#requestoptions)) => (abortSignal?: AbortSignal) => Promise<[D](#user-defined-types)>;</code> | A function that returns the factory for creating network requests.<br/>Note that `abortSignal` for the factory is created by the library. It is **not** the same signal as `abortSignal` field of `BaseRequest`.<br/> Also, note that the factory return value is actually typed as <code>Promise<D &#124; E></code>. It is done only to support error typing. You must always reject in case of an error. | No, a rejected promise will be used by default          |
-| getRequestId      | <code>(opts: [RequestOptions](#requestoptions)) => string;</code>                                                           | Function for calculating request id. It should take some hash from `requestParams`, excluding parts that are different between client and server.                                                                                                                                                                                                                                                          | No, a hash from `requestParams` will be used by default |
+| getRequestId      | <code>(opts: [RequestOptions](#requestoptions)) => string;</code>                                                           | A function for calculating a network request id. It should take some hash from `requestParams`, excluding parts that are different between client and server.                                                                                                                                                                                                                                              | No, a hash from `requestParams` will be used by default |
 | toCache           | <code>(opts: [CacheAndDataOptions](#cacheanddataoptions)) => [C](#user-defined-types);</code>                               | A function that modifies cache data based on request data (from network or optimistic response).                                                                                                                                                                                                                                                                                                           | No                                                      |
 
-#### `BaseQuery`
+#### `Query`
 
-Extends [BaseRequest](#baserequest). Base queries can be executed by [Client](#client).
+Extends [BaseRequest](#baserequest).
 
 | Name                | Type                                                                                             | Description                                                                                                                                                          | Required                               |
 | ------------------- | ------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------- |
-| fetchPolicy         | <code>[FetchPolicy](#fetchpolicy)</code>                                                         | [Fetch policy](#fetch-policies).                                                                                                                                     | No, `'cache-only'` is used by default. |
+| fetchPolicy         | <code>[FetchPolicy](#fetchpolicy)</code>                                                         | [FetchPolicy](#fetchpolicy).                                                                                                                                         | No, `'cache-only'` is used by default. |
+| lazy                | `boolean`                                                                                        | If `true`, the query will not be executed automatically.                                                                                                             | No                                     |
 | disableSsr          | `boolean`                                                                                        | If `true`, the query will not be fetched on the server.                                                                                                              | No                                     |
 | optimizeOnHydrate   | `boolean`                                                                                        | If `true`, the query won't be fetched on the client during the hydrate stage, if there is data **or error** in the cache. `fetchPolicy` option is ignored.           | No                                     |
 | forceRequestOnMerge | `boolean`                                                                                        | If `true`, the query will start a new network request, if it's merged with the existing query.                                                                       | No                                     |
 | softAbortSignal     | `AbortSignal`                                                                                    | Soft aborting should be used to indicate loss of interest in the ongoing network request. The actual request won't be aborted if there are other interested parties. | No                                     |
-| fromCache           | <code>(opts: [CacheOptions](#cacheoptions)) => [D](#user-defined-types) &#124; undefined </code> | Function for retrieving query data from cache data.                                                                                                                  | No                                     |
+| fromCache           | <code>(opts: [CacheOptions](#cacheoptions)) => [D](#user-defined-types) &#124; undefined </code> | A function for retrieving query data from cache data.                                                                                                                | No                                     |
 
-#### `BaseMutation`
+#### `Mutation`
 
-Extends [BaseRequest](#baserequest). Base mutations can be executed by [Client](#client).
+Extends [BaseRequest](#baserequest).
 
 | Name                 | Type                                                                                         | Description                                             | Required |
 | -------------------- | -------------------------------------------------------------------------------------------- | ------------------------------------------------------- | -------- |
 | optimisticData       | <code>[D](#user-defined-types)</code>                                                        | Optimistic data (optimistic response).                  | No       |
 | removeOptimisticData | <code>(opts: [CacheAndDataOptions](#cacheanddataoptions)) => [C](#user-defined-types)</code> | A function that removes optimistic data from the cache. | No       |
-
-#### `Query`
-
-Extends [BaseQuery](#basequery). Queries can be processed by [QueryManager](#querymanager).
-
-#### `Mutation`
-
-Extends [BaseMutation](#basemutation). Mutations can be processed by [MutationManager](#mutationmanager).
 
 ##### `RequestOptions`
 
@@ -506,7 +463,12 @@ Extends <code>[CacheOptions](#cacheoptions)</code>
 
 ##### `FetchPolicy`
 
-<code>'cache-only' &#124; 'cache-first' &#124; 'cache-and-network' &#124; 'no-cache'</code>
+| `fetchPolicy`         | Query execution result                                                                                                                                               |
+| --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `'cache-only'`        | No network request. Returns state from the cache.                                                                                                                    |
+| `'cache-first'`       | Network request, if there is no data in the cache. Returns state from the cache. The cache is then updated with the request result (if there was a network request). |
+| `'cache-and-network'` | Network request regardless of cache state. Returns state from the cache. The cache is then updated with the request result.                                          |
+| `'no-cache'`          | Network request regardless of cache state. Does not touch the cache in any way.                                                                                      |
 
 #### `Cache`
 

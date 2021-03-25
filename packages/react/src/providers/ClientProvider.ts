@@ -1,4 +1,4 @@
-import { BaseMutation, BaseQuery, Cache, Client, NonUndefined, BaseRequest } from '@fetcher/core';
+import { Cache, Client, NonUndefined } from '@fetcher/core';
 import { createContext, createElement, PropsWithChildren, useContext, useEffect } from 'react';
 
 const ClientContext = createContext<Client | undefined>(undefined);
@@ -11,9 +11,6 @@ export interface ClientProviderProps<
     BR = unknown
 > {
     client: Client<C, CACHE, BD, BE, BR>;
-    dynamicDefaultRequest?: Partial<BaseRequest<C, BD, BE, BR>>;
-    dynamicDefaultQuery?: Partial<BaseQuery<C, BD, BE, BR>>;
-    dynamicDefaultMutation?: Partial<BaseMutation<C, BD, BE, BR>>;
     preventOnHydrateCompleteCall?: boolean;
 }
 
@@ -26,9 +23,6 @@ const ClientProvider = <
 >({
     children,
     client,
-    dynamicDefaultRequest,
-    dynamicDefaultQuery,
-    dynamicDefaultMutation,
     preventOnHydrateCompleteCall,
 }: PropsWithChildren<ClientProviderProps<C, CACHE, BD, BE, BR>>) => {
     useEffect(() => {
@@ -36,18 +30,6 @@ const ClientProvider = <
             client.onHydrateComplete();
         }
     }, [client, preventOnHydrateCompleteCall]);
-
-    if (dynamicDefaultRequest) {
-        client.setDynamicDefaultRequest(dynamicDefaultRequest);
-    }
-
-    if (dynamicDefaultQuery) {
-        client.setDynamicDefaultQuery(dynamicDefaultQuery);
-    }
-
-    if (dynamicDefaultMutation) {
-        client.setDynamicDefaultMutation(dynamicDefaultMutation);
-    }
 
     return createElement(ClientContext.Provider, { value: client }, children);
 };

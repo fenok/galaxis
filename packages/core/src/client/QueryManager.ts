@@ -1,152 +1,222 @@
 import { NonUndefined, Query } from '../types';
-import { Client } from './Client';
 import { SsrPromisesManager } from './SsrPromisesManager';
-import { QueryState } from './QueryProcessor';
+import { QueryProcessor, QueryResult, QueryState } from './QueryProcessor';
 import { logger } from '../logger';
 
-export interface QueryManagerOptions {
-    forceUpdate(): void;
+export interface QueryManagerOptions<C extends NonUndefined, D extends NonUndefined, E extends Error, R> {
+    query: Query<C, D, E, R> | undefined;
+    queryProcessor: QueryProcessor<C>;
+    ssrPromisesManager?: SsrPromisesManager;
+    onChange(result: QueryManagerResult<D, E>): void;
 }
 
-export interface QueryManagerResult<D extends NonUndefined, E extends Error> {
+export interface QueryManagerExternalState<D extends NonUndefined, E extends Error> {
+    data: D | undefined;
+    error: E | Error | undefined;
+}
+
+export interface QueryManagerState<D extends NonUndefined, E extends Error> {
     loading: boolean;
     data: D | undefined;
     error: E | Error | undefined;
-    refetch(): Promise<D>;
-    abort(): void;
+    executed: boolean;
 }
 
+export interface QueryManagerApi<D extends NonUndefined> {
+    refetch(): Promise<D>;
+    abort(): void;
+    execute(): void;
+    reset(): void;
+}
+
+export type QueryManagerResult<D extends NonUndefined, E extends Error> = QueryManagerState<D, E> & QueryManagerApi<D>;
+
 export class QueryManager<C extends NonUndefined, D extends NonUndefined, E extends Error, R> {
-    private forceUpdate: () => void;
-    private queryHash?: string;
+    private onChange?: (result: QueryManagerResult<D, E>) => void;
     private query?: Query<C, D, E, R>;
-    private client!: Client;
+    private queryProcessor: QueryProcessor<C>;
     private ssrPromisesManager?: SsrPromisesManager;
-    private loading = false;
-    private data?: D;
-    private error?: E | Error;
+    private state: QueryManagerState<D, E> = {
+        loading: false,
+        data: undefined,
+        error: undefined,
+        executed: false,
+    };
+    private externalState?: QueryManagerExternalState<D, E>;
     private abortController?: AbortController;
     private softAbortController?: AbortController;
-    private requestCallId = 1;
+    private networkRequestId = 1;
     private unsubscribe?: () => void;
     private boundRefetch: () => Promise<D>;
     private boundAbort: () => void;
+    private boundReset: () => void;
+    private boundExecute: () => QueryResult<D, E>;
+    private instantiated = false;
 
-    constructor({ forceUpdate }: QueryManagerOptions) {
-        this.forceUpdate = forceUpdate;
+    constructor({ onChange, queryProcessor, query, ssrPromisesManager }: QueryManagerOptions<C, D, E, R>) {
+        this.onChange = onChange;
+        this.query = query;
+        this.queryProcessor = queryProcessor;
+        this.ssrPromisesManager = ssrPromisesManager;
         this.boundRefetch = this.refetch.bind(this);
         this.boundAbort = this.abort.bind(this);
-    }
+        this.boundReset = this.reset.bind(this);
+        this.boundExecute = this.execute.bind(this);
 
-    // TODO: Enforce return type: QueryManagerResult<D, E>
-    // Currently removed to fix @typescript-eslint/unbound-method error. Typing this as void didn't help.
-    public process(query: Query<C, D, E, R> | undefined, client: Client, ssrPromisesManager?: SsrPromisesManager) {
-        if (
-            this.client !== client ||
-            this.queryHash !== (query ? this.client.getQueryHash(query) : undefined) ||
-            this.ssrPromisesManager !== ssrPromisesManager
-        ) {
-            this.cleanup();
-
-            this.client = client;
-            this.ssrPromisesManager = ssrPromisesManager;
-            this.query = query;
-            this.queryHash = query ? this.client.getQueryHash(query) : undefined;
-
-            this.performRequest()?.catch((error: Error) => {
-                if (error !== this.error) {
-                    logger.warn(
-                        'Query request promise returned an error that is different from the cached one:',
-                        error,
-                    );
-                }
-            });
+        if (!query?.lazy) {
+            this.execute();
         }
 
+        this.instantiated = true;
+    }
+
+    public getState() {
+        return this.state;
+    }
+
+    public getApi() {
         return {
-            loading: this.loading,
-            data: this.data,
-            error: this.error,
             refetch: this.boundRefetch,
             abort: this.boundAbort,
+            execute: this.boundExecute,
+            reset: this.boundReset,
         };
+    }
+
+    public getResult() {
+        return { ...this.getState(), ...this.getApi() };
     }
 
     public cleanup() {
+        this.networkRequestId += 1;
         this.unsubscribe?.();
-        this.unsubscribe = undefined;
         this.softAbort();
+        this.onChange = undefined;
     }
 
-    private performRequest(refetch?: boolean): Promise<D> | undefined {
-        const callId = ++this.requestCallId;
+    private reset() {
+        this.networkRequestId += 1;
+        this.unsubscribe?.();
+        this.softAbort();
+        this.externalState = undefined;
+        this.setState({ loading: false, error: undefined, data: undefined, executed: false });
+    }
 
-        if (!this.query) {
-            this.loading = false;
-            this.data = undefined;
-            this.error = undefined;
+    private abort() {
+        this.abortController?.abort();
+    }
 
-            return;
+    private softAbort() {
+        this.softAbortController?.abort();
+    }
+
+    private execute() {
+        if (this.query) {
+            return this.executeInner(this.query);
         }
 
-        this.ensureAbortControllers();
+        throw new Error('No query to execute');
+    }
 
-        const query = {
-            ...this.query,
-            abortSignal: this.abortController?.signal,
-            softAbortSignal: this.softAbortController?.signal,
-            forceRequestOnMerge: refetch || this.query.forceRequestOnMerge,
+    private refetch() {
+        if (this.state.executed && this.query) {
+            return this.fetchInner(this.query);
+        }
+
+        return Promise.reject(new Error('No query or the query is not executed yet.'));
+    }
+
+    private executeInner(nonPatchedQuery: Query<C, D, E, R>): QueryResult<D, E> {
+        const networkRequestId = ++this.networkRequestId;
+
+        this.unsubscribe?.();
+        this.softAbort();
+
+        const query = this.getPatchedQuery(nonPatchedQuery);
+
+        const queryResult = this.queryProcessor.query(query, this.onExternalChange.bind(this));
+
+        this.setState({
+            executed: true,
+            loading: queryResult.requestRequired,
+            data: queryResult.data,
+            error: queryResult.error,
+        });
+
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        this.unsubscribe = queryResult.unsubscribe;
+
+        if (this.ssrPromisesManager && queryResult.request && !this.instantiated) {
+            this.ssrPromisesManager.addPromise(queryResult.request);
+        }
+
+        const result = {
+            ...queryResult,
+            request: queryResult.request && this.updateStateWithResult(queryResult.request, networkRequestId),
         };
 
-        let request: Promise<D> | undefined;
+        result.request && this.catchExecutionError(result.request, networkRequestId);
 
-        if (!refetch) {
-            const queryResult = this.client.query(query, this.onExternalChange.bind(this));
-            this.loading = queryResult.requestRequired;
-            request = queryResult.request;
+        return { ...result, unsubscribe: undefined };
+    }
 
-            if (queryResult.cacheable) {
-                this.data = queryResult.data;
-                this.error = queryResult.error;
-                // eslint-disable-next-line @typescript-eslint/unbound-method
-                this.unsubscribe = queryResult.unsubscribe;
-            } else {
-                this.data = undefined;
-                this.error = undefined;
-            }
-        } else {
-            request = this.client.fetchQuery(query);
-            this.loading = true;
-        }
+    private fetchInner(nonPatchedQuery: Query<C, D, E, R>): Promise<D> {
+        const callId = ++this.networkRequestId;
 
-        if (this.ssrPromisesManager && request && !refetch) {
-            this.ssrPromisesManager.addPromise(request);
-        }
+        this.softAbort();
 
-        return request
-            ?.then((data) => {
-                if (this.requestCallId === callId) {
-                    this.loading = false;
-                    if (!this.unsubscribe) {
-                        this.data = data;
-                        this.error = undefined;
-                    }
-                    this.forceUpdate();
+        const query = this.getPatchedQuery(nonPatchedQuery, true);
+
+        const request = this.queryProcessor.fetchQuery(query);
+        this.setState({ loading: true });
+
+        return this.updateStateWithResult(request, callId);
+    }
+
+    private getPatchedQuery(query: Query<C, D, E, R>, refetch?: boolean): Query<C, D, E, R> {
+        this.ensureAbortControllers();
+
+        return {
+            ...query,
+            abortSignal: this.abortController?.signal,
+            softAbortSignal: this.softAbortController?.signal,
+            forceRequestOnMerge: refetch || query.forceRequestOnMerge,
+        };
+    }
+
+    private updateStateWithResult(promise: Promise<D>, networkRequestId: number): Promise<D> {
+        return promise
+            .then((data) => {
+                if (this.networkRequestId === networkRequestId) {
+                    this.setState({
+                        data: this.externalState ? this.externalState.data : data,
+                        error: undefined,
+                        loading: false,
+                    });
                 }
 
                 return data;
             })
             .catch((error: Error) => {
-                if (this.requestCallId === callId) {
-                    this.loading = false;
-                    if (!this.unsubscribe) {
-                        this.error = error;
-                    }
-                    this.forceUpdate();
+                if (this.networkRequestId === networkRequestId) {
+                    this.setState({ error: this.externalState ? this.externalState.error : error, loading: false });
                 }
 
                 throw error;
             });
+    }
+
+    private catchExecutionError(promise: Promise<D>, callId: number): Promise<D | void> {
+        return promise.catch((error: Error) => {
+            if (this.networkRequestId === callId) {
+                if (error !== this.state.error) {
+                    logger.warn(
+                        'Query request promise returned an error that is different from the cached one:',
+                        error,
+                    );
+                }
+            }
+        });
     }
 
     private ensureAbortControllers() {
@@ -161,37 +231,28 @@ export class QueryManager<C extends NonUndefined, D extends NonUndefined, E exte
         }
     }
 
-    private abort() {
-        this.abortController?.abort();
-    }
-
-    private softAbort() {
-        this.softAbortController?.abort();
-    }
-
-    private refetch() {
-        if (!this.query) {
-            return Promise.reject(new Error('No query to refetch.'));
-        }
-
-        this.softAbort();
-        const request = this.performRequest(true);
-        this.forceUpdate();
-
-        return (
-            request ||
-            Promise.reject(
-                new Error('Failed to make network request. If this is happening on client side, file an issue.'),
-            )
-        );
-    }
-
     private onExternalChange(queryState: QueryState<D, E>) {
-        this.data = queryState.data;
-        this.error = queryState.error;
+        const externalState = { data: queryState.data, error: queryState.error };
 
-        if (!this.loading) {
-            this.forceUpdate();
+        if (!this.state.loading) {
+            this.setState(externalState);
+        } else {
+            this.externalState = externalState;
         }
+    }
+
+    private setState(state: Partial<QueryManagerState<D, E>>) {
+        const nextState = { ...this.state, ...state };
+        const shouldUpdate = !this.areStatesEqual(this.state, nextState);
+
+        this.state = nextState;
+
+        if (shouldUpdate && this.instantiated) {
+            this.onChange?.(this.getResult());
+        }
+    }
+
+    private areStatesEqual(a: QueryManagerState<D, E>, b: QueryManagerState<D, E>) {
+        return a.loading === b.loading && a.data === b.data && a.error === b.error && a.executed === b.executed;
     }
 }

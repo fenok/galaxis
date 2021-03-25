@@ -26,13 +26,13 @@ const App: FC<AppProps> = ({ client }) => (
 
 ##### `ClientProviderProps`
 
-| Name                         | Type                                                              | Description                                                                                                                                                                                             | Required |
-| ---------------------------- | ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
-| client                       | <code>[Client](/packages/core#client)</code>                      | A `Client` instance that will be used by the application.                                                                                                                                               | Yes      |
-| dynamicDefaultRequest        | <code>Partial<[BaseRequest](/packages/core#baserequest)></code>   | Dynamic default request for the given client.                                                                                                                                                           | No       |
-| dynamicDefaultQuery          | <code>Partial<[BaseQuery](/packages/core#basequery)></code>       | Dynamic default query for the given client.                                                                                                                                                             | No       |
-| dynamicDefaultMutation       | <code>Partial<[BaseMutation](/packages/core#basemutation)></code> | Dynamic default mutation for the given client.                                                                                                                                                          | No       |
-| preventOnHydrateCompleteCall | `boolean`                                                         | By default, `client.onHydrateComplete()` will be called in `useEffect`. It should be fine in most cases, but you can use this option as an escape hatch and call `client.onHydrateComplete()` manually. | No       |
+| Name                         | Type                                                            | Description                                                                                                                                                                                             | Required |
+| ---------------------------- | --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
+| client                       | <code>[Client](/packages/core#client)</code>                    | A `Client` instance that will be used by the application.                                                                                                                                               | Yes      |
+| dynamicDefaultRequest        | <code>Partial<[BaseRequest](/packages/core#baserequest)></code> | Dynamic default request for the given client.                                                                                                                                                           | No       |
+| dynamicDefaultQuery          | <code>Partial<[Query](/packages/core#query)></code>             | Dynamic default query for the given client.                                                                                                                                                             | No       |
+| dynamicDefaultMutation       | <code>Partial<[Mutation](/packages/core#mutation)></code>       | Dynamic default mutation for the given client.                                                                                                                                                          | No       |
+| preventOnHydrateCompleteCall | `boolean`                                                       | By default, `client.onHydrateComplete()` will be called in `useEffect`. It should be fine in most cases, but you can use this option as an escape hatch and call `client.onHydrateComplete()` manually. | No       |
 
 ### `useClient()`
 
@@ -74,7 +74,7 @@ const MyComponent: FC = () => {
 
 ### `useMutation()`
 
-`useMutation` is a wrapper around <code>[MutationManager](/packages/core#mutationmanager)</code>.
+`useMutation` is a wrapper around <code>[MutationExecutor](/packages/core#mutationmanager)</code>.
 
 ```typescript jsx
 const MyComponent: FC = () => {

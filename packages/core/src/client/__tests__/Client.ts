@@ -10,7 +10,7 @@ it('guarantees that mutation waits for loading queries', async () => {
     const client = getClient();
     const firstItemRequest = getFirstItemRequest();
 
-    const queryResult = client.query({
+    const queryResult = client.fetchQuery({
         ...firstItemRequest,
         requestParams: { ...firstItemRequest.requestParams, time: 400 },
     });
@@ -20,14 +20,14 @@ it('guarantees that mutation waits for loading queries', async () => {
         requestParams: { ...firstItemRequest.requestParams, time: 100, updateItem: FIRST_ITEM_UPDATE_DTO },
     });
 
-    const finalQueryResult = client.query({
+    const finalQueryResult = client.fetchQuery({
         ...firstItemRequest,
         requestParams: { ...firstItemRequest.requestParams, time: 100 },
     });
 
-    await expect(queryResult.request).resolves.toEqual(FIRST_ITEM);
+    await expect(queryResult).resolves.toEqual(FIRST_ITEM);
     await expect(mutationResult).resolves.toEqual(FIRST_ITEM_UPDATED);
-    await expect(finalQueryResult.request).resolves.toEqual(FIRST_ITEM_UPDATED);
+    await expect(finalQueryResult).resolves.toEqual(FIRST_ITEM_UPDATED);
 
     const cacheState = client.readQuery(firstItemRequest);
 
