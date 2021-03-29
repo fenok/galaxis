@@ -14,11 +14,11 @@ export interface MutationManagerState<D extends NonUndefined, E extends Error> {
     executed: boolean;
 }
 
-export interface MutationManagerApi<D extends NonUndefined> {
-    execute(): Promise<D>;
-    abort(): void;
-    reset(): void;
-}
+export type MutationManagerApi<D extends NonUndefined> = {
+    execute: () => Promise<D>;
+    abort: () => void;
+    reset: () => void;
+};
 
 export type MutationManagerResult<D extends NonUndefined, E extends Error> = MutationManagerState<D, E> &
     MutationManagerApi<D>;
@@ -35,32 +35,26 @@ export class MutationManager<C extends NonUndefined, D extends NonUndefined, E e
     };
     private abortController?: AbortController;
     private networkRequestId = 1;
-    private boundAbort: () => void;
-    private boundExecute: () => Promise<D>;
-    private boundReset: () => void;
 
     constructor({ onChange, mutation, mutationProcessor }: MutationManagerOptions<C, D, E, R>) {
         this.mutation = mutation;
         this.onChange = onChange;
         this.mutationProcessor = mutationProcessor;
-        this.boundAbort = this.abort.bind(this);
-        this.boundExecute = this.execute.bind(this);
-        this.boundReset = this.reset.bind(this);
     }
 
-    public getState() {
+    public getState(): MutationManagerState<D, E> {
         return this.state;
     }
 
-    public getApi() {
+    public getApi(): MutationManagerApi<D> {
         return {
-            execute: this.boundExecute,
-            abort: this.boundAbort,
-            reset: this.boundReset,
+            execute: this.execute,
+            abort: this.abort,
+            reset: this.reset,
         };
     }
 
-    public getResult() {
+    public getResult(): MutationManagerResult<D, E> {
         return { ...this.getState(), ...this.getApi() };
     }
 
@@ -69,18 +63,18 @@ export class MutationManager<C extends NonUndefined, D extends NonUndefined, E e
         this.onChange = undefined;
     }
 
-    private abort() {
+    private abort = () => {
         this.abortController?.abort();
-    }
+    };
 
-    private reset() {
+    private reset = () => {
         this.networkRequestId += 1;
         this.abortController = undefined;
 
         this.setState({ executed: false, data: undefined, error: undefined, loading: false });
-    }
+    };
 
-    private execute() {
+    private execute = () => {
         if (!this.mutation) {
             return Promise.reject(new Error('No mutation to execute.'));
         }
@@ -106,7 +100,7 @@ export class MutationManager<C extends NonUndefined, D extends NonUndefined, E e
 
                 throw Error;
             });
-    }
+    };
 
     private ensureAbortController() {
         if (typeof AbortController !== 'undefined') {

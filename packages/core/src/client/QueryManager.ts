@@ -22,14 +22,15 @@ export interface QueryManagerState<D extends NonUndefined, E extends Error> {
     executed: boolean;
 }
 
-export interface QueryManagerApi<D extends NonUndefined> {
-    refetch(): Promise<D>;
-    abort(): void;
-    execute(): void;
-    reset(): void;
-}
+export type QueryManagerApi<D extends NonUndefined, E extends Error> = {
+    refetch: () => Promise<D>;
+    abort: () => void;
+    execute: () => QueryResult<D, E>;
+    reset: () => void;
+};
 
-export type QueryManagerResult<D extends NonUndefined, E extends Error> = QueryManagerState<D, E> & QueryManagerApi<D>;
+export type QueryManagerResult<D extends NonUndefined, E extends Error> = QueryManagerState<D, E> &
+    QueryManagerApi<D, E>;
 
 export class QueryManager<C extends NonUndefined, D extends NonUndefined, E extends Error, R> {
     private onChange?: (result: QueryManagerResult<D, E>) => void;
@@ -47,10 +48,6 @@ export class QueryManager<C extends NonUndefined, D extends NonUndefined, E exte
     private softAbortController?: AbortController;
     private networkRequestId = 1;
     private unsubscribe?: () => void;
-    private boundRefetch: () => Promise<D>;
-    private boundAbort: () => void;
-    private boundReset: () => void;
-    private boundExecute: () => QueryResult<D, E>;
     private cacheable = false;
     private instantiated = false;
 
@@ -59,10 +56,6 @@ export class QueryManager<C extends NonUndefined, D extends NonUndefined, E exte
         this.query = query;
         this.queryProcessor = queryProcessor;
         this.ssrPromisesManager = ssrPromisesManager;
-        this.boundRefetch = this.refetch.bind(this);
-        this.boundAbort = this.abort.bind(this);
-        this.boundReset = this.reset.bind(this);
-        this.boundExecute = this.execute.bind(this);
 
         if (!query?.lazy) {
             this.execute();
@@ -71,20 +64,20 @@ export class QueryManager<C extends NonUndefined, D extends NonUndefined, E exte
         this.instantiated = true;
     }
 
-    public getState() {
+    public getState(): QueryManagerState<D, E> {
         return this.state;
     }
 
-    public getApi() {
+    public getApi(): QueryManagerApi<D, E> {
         return {
-            refetch: this.boundRefetch,
-            abort: this.boundAbort,
-            execute: this.boundExecute,
-            reset: this.boundReset,
+            refetch: this.refetch,
+            abort: this.abort,
+            execute: this.execute,
+            reset: this.reset,
         };
     }
 
-    public getResult() {
+    public getResult(): QueryManagerResult<D, E> {
         return { ...this.getState(), ...this.getApi() };
     }
 
@@ -95,38 +88,38 @@ export class QueryManager<C extends NonUndefined, D extends NonUndefined, E exte
         this.onChange = undefined;
     }
 
-    private reset() {
+    private reset = () => {
         this.networkRequestId += 1;
         this.unsubscribe?.();
         this.softAbort();
         this.externalState = undefined;
         this.cacheable = false;
         this.setState({ loading: false, error: undefined, data: undefined, executed: false });
-    }
+    };
 
-    private abort() {
+    private abort = () => {
         this.abortController?.abort();
-    }
+    };
 
     private softAbort() {
         this.softAbortController?.abort();
     }
 
-    private execute() {
+    private execute = () => {
         if (this.query) {
             return this.executeInner(this.query);
         }
 
         throw new Error('No query to execute');
-    }
+    };
 
-    private refetch() {
+    private refetch = () => {
         if (this.state.executed && this.query) {
             return this.fetchInner(this.query);
         }
 
         return Promise.reject(new Error('No query or the query is not executed yet.'));
-    }
+    };
 
     private executeInner(nonPatchedQuery: Query<C, D, E, R>): QueryResult<D, E> {
         const networkRequestId = ++this.networkRequestId;
