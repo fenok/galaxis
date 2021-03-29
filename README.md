@@ -17,9 +17,9 @@ Notable features:
 -   [Hydrate Stage Optimization](packages/core#hydrate-stage-optimization) prevents double load on the server in case of SSR.
 -   Framework agnosticism means that you _should_ be able to integrate the library with your framework. Right now you can use the library with [React](packages/react) and, of course, vanilla JS.
 
-## Show me the code
+## Examples
 
-Proceed to [React Example](packages/react-example).
+-   [React Example](packages/react-example).
 
 ## Documentation
 
