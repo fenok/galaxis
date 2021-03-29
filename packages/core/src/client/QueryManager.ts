@@ -51,6 +51,7 @@ export class QueryManager<C extends NonUndefined, D extends NonUndefined, E exte
     private boundAbort: () => void;
     private boundReset: () => void;
     private boundExecute: () => QueryResult<D, E>;
+    private cacheable = false;
     private instantiated = false;
 
     constructor({ onChange, queryProcessor, query, ssrPromisesManager }: QueryManagerOptions<C, D, E, R>) {
@@ -99,6 +100,7 @@ export class QueryManager<C extends NonUndefined, D extends NonUndefined, E exte
         this.unsubscribe?.();
         this.softAbort();
         this.externalState = undefined;
+        this.cacheable = false;
         this.setState({ loading: false, error: undefined, data: undefined, executed: false });
     }
 
@@ -135,6 +137,10 @@ export class QueryManager<C extends NonUndefined, D extends NonUndefined, E exte
         const query = this.getPatchedQuery(nonPatchedQuery);
 
         const queryResult = this.queryProcessor.query(query, this.onExternalChange.bind(this));
+
+        this.cacheable = queryResult.cacheable;
+
+        this.externalState = { data: queryResult.data, error: queryResult.error };
 
         this.setState({
             executed: true,
@@ -189,7 +195,7 @@ export class QueryManager<C extends NonUndefined, D extends NonUndefined, E exte
             .then((data) => {
                 if (this.networkRequestId === networkRequestId) {
                     this.setState({
-                        data: this.externalState ? this.externalState.data : data,
+                        data: this.cacheable ? this.externalState?.data : data,
                         error: undefined,
                         loading: false,
                     });
@@ -199,7 +205,7 @@ export class QueryManager<C extends NonUndefined, D extends NonUndefined, E exte
             })
             .catch((error: Error) => {
                 if (this.networkRequestId === networkRequestId) {
-                    this.setState({ error: this.externalState ? this.externalState.error : error, loading: false });
+                    this.setState({ error: this.cacheable ? this.externalState?.error : error, loading: false });
                 }
 
                 throw error;
@@ -233,11 +239,10 @@ export class QueryManager<C extends NonUndefined, D extends NonUndefined, E exte
 
     private onExternalChange(queryState: QueryState<D, E>) {
         const externalState = { data: queryState.data, error: queryState.error };
+        this.externalState = externalState;
 
         if (!this.state.loading) {
             this.setState(externalState);
-        } else {
-            this.externalState = externalState;
         }
     }
 
