@@ -18,8 +18,8 @@
         "prettier:all": "prettier --write \"**/*.{js,ts,tsx,json,md,*rc}\""
     },
     "dependencies": {
-        "path-to-regexp": "6.2.0",
-        "query-string": "6.13.6"
+        "path-to-regexp": "^6.0.0",
+        "query-string": "^7.0.0"
     },
     "devDependencies": {
         "@fetcher/core": "^0.0.19",

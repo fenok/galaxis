@@ -2,6 +2,20 @@
 
 React bindings for Fetcher Core.
 
+## Installation
+
+```
+yarn add @fetcher/react
+```
+
+This will also install and expose API of Fetcher [Core](../../packages/core).
+
+The library is compiled to modern JS, but it should work in all reasonable browsers with the help of properly configured Babel.
+
+Your client environment has to have `AbortController`. You might need to polyfill it.
+
+You also need a version of React that supports React Hooks.
+
 ## Public API
 
 > ⚠ Anything that is not documented here is not considered a part of public API and may change at any time.

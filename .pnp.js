@@ -2168,7 +2168,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["eslint-plugin-react-hooks", "virtual:dcc807d7fda7baaf5c13ae4a2a02caa85c45455ff0f4fe9ef69d88ac6c26270fa9aec1032795a3f0aa6c80ca64d160a7af9814cfa1178b865c837ed406c79d12#npm:4.1.2"],
             ["path-to-regexp", "npm:6.2.0"],
             ["prettier", "npm:2.1.2"],
-            ["query-string", "npm:6.13.6"],
+            ["query-string", "npm:7.0.0"],
             ["rimraf", "npm:3.0.2"],
             ["typescript", "patch:typescript@npm%3A4.0.3#builtin<compat/typescript>::version=4.0.3&hash=5bf698"]
           ],
@@ -2190,7 +2190,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["eslint-plugin-react-hooks", "virtual:dcc807d7fda7baaf5c13ae4a2a02caa85c45455ff0f4fe9ef69d88ac6c26270fa9aec1032795a3f0aa6c80ca64d160a7af9814cfa1178b865c837ed406c79d12#npm:4.1.2"],
             ["path-to-regexp", "npm:6.2.0"],
             ["prettier", "npm:2.1.2"],
-            ["query-string", "npm:6.13.6"],
+            ["query-string", "npm:7.0.0"],
             ["rimraf", "npm:3.0.2"],
             ["typescript", "patch:typescript@npm%3A4.0.3#builtin<compat/typescript>::version=4.0.3&hash=5bf698"]
           ],
@@ -2212,7 +2212,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["eslint-plugin-react-hooks", "virtual:dcc807d7fda7baaf5c13ae4a2a02caa85c45455ff0f4fe9ef69d88ac6c26270fa9aec1032795a3f0aa6c80ca64d160a7af9814cfa1178b865c837ed406c79d12#npm:4.1.2"],
             ["prettier", "npm:2.1.2"],
             ["rimraf", "npm:3.0.2"],
-            ["serialize-error", "npm:7.0.1"],
+            ["serialize-error", "npm:8.0.1"],
             ["typescript", "patch:typescript@npm%3A4.0.3#builtin<compat/typescript>::version=4.0.3&hash=5bf698"]
           ],
           "packagePeers": [
@@ -2233,7 +2233,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["eslint-plugin-react-hooks", "virtual:dcc807d7fda7baaf5c13ae4a2a02caa85c45455ff0f4fe9ef69d88ac6c26270fa9aec1032795a3f0aa6c80ca64d160a7af9814cfa1178b865c837ed406c79d12#npm:4.1.2"],
             ["prettier", "npm:2.1.2"],
             ["rimraf", "npm:3.0.2"],
-            ["serialize-error", "npm:7.0.1"],
+            ["serialize-error", "npm:8.0.1"],
             ["typescript", "patch:typescript@npm%3A4.0.3#builtin<compat/typescript>::version=4.0.3&hash=5bf698"]
           ],
           "linkType": "SOFT",
@@ -2353,7 +2353,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["eslint", "npm:7.11.0"],
             ["eslint-config-prettier", "virtual:c1fde0c38ec1424cff1aa573370869dd10639d73765698008e2f898ea742a371da1723302503adc59a9e0ccdfbd193dd16f26475486c07386c0dd5483ed2cf6e#npm:6.13.0"],
             ["eslint-plugin-react-hooks", "virtual:dcc807d7fda7baaf5c13ae4a2a02caa85c45455ff0f4fe9ef69d88ac6c26270fa9aec1032795a3f0aa6c80ca64d160a7af9814cfa1178b865c837ed406c79d12#npm:4.1.2"],
-            ["immer", "npm:8.0.1"],
+            ["immer", "npm:9.0.1"],
             ["lodash.merge", "npm:4.6.2"],
             ["object-hash", "npm:2.1.1"],
             ["prettier", "npm:2.1.2"],
@@ -2378,7 +2378,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["eslint", "npm:7.11.0"],
             ["eslint-config-prettier", "virtual:c1fde0c38ec1424cff1aa573370869dd10639d73765698008e2f898ea742a371da1723302503adc59a9e0ccdfbd193dd16f26475486c07386c0dd5483ed2cf6e#npm:6.13.0"],
             ["eslint-plugin-react-hooks", "virtual:dcc807d7fda7baaf5c13ae4a2a02caa85c45455ff0f4fe9ef69d88ac6c26270fa9aec1032795a3f0aa6c80ca64d160a7af9814cfa1178b865c837ed406c79d12#npm:4.1.2"],
-            ["immer", "npm:8.0.1"],
+            ["immer", "npm:9.0.1"],
             ["lodash.merge", "npm:4.6.2"],
             ["object-hash", "npm:2.1.1"],
             ["prettier", "npm:2.1.2"],
@@ -5850,6 +5850,15 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "linkType": "HARD",
         }]
       ]],
+      ["filter-obj", [
+        ["npm:1.1.0", {
+          "packageLocation": "./.yarn/cache/filter-obj-npm-1.1.0-84128fc26d-1049ac0c30.zip/node_modules/filter-obj/",
+          "packageDependencies": [
+            ["filter-obj", "npm:1.1.0"]
+          ],
+          "linkType": "HARD",
+        }]
+      ]],
       ["finalhandler", [
         ["npm:1.1.2", {
           "packageLocation": "./.yarn/cache/finalhandler-npm-1.1.2-55a75d6b53-f2e5b6bfe2.zip/node_modules/finalhandler/",
@@ -6450,6 +6459,13 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageLocation": "./.yarn/cache/immer-npm-8.0.1-e4136eda12-a8c8d531af.zip/node_modules/immer/",
           "packageDependencies": [
             ["immer", "npm:8.0.1"]
+          ],
+          "linkType": "HARD",
+        }],
+        ["npm:9.0.1", {
+          "packageLocation": "./.yarn/cache/immer-npm-9.0.1-3cc253d376-7f4b19cd81.zip/node_modules/immer/",
+          "packageDependencies": [
+            ["immer", "npm:9.0.1"]
           ],
           "linkType": "HARD",
         }]
@@ -8943,11 +8959,12 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         }]
       ]],
       ["query-string", [
-        ["npm:6.13.6", {
-          "packageLocation": "./.yarn/cache/query-string-npm-6.13.6-1f06a3ca1c-0f773349bf.zip/node_modules/query-string/",
+        ["npm:7.0.0", {
+          "packageLocation": "./.yarn/cache/query-string-npm-7.0.0-66b737faa8-bfdb88aee4.zip/node_modules/query-string/",
           "packageDependencies": [
-            ["query-string", "npm:6.13.6"],
+            ["query-string", "npm:7.0.0"],
             ["decode-uri-component", "npm:0.2.0"],
+            ["filter-obj", "npm:1.1.0"],
             ["split-on-first", "npm:1.1.0"],
             ["strict-uri-encode", "npm:2.0.0"]
           ],
@@ -9576,11 +9593,11 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         }]
       ]],
       ["serialize-error", [
-        ["npm:7.0.1", {
-          "packageLocation": "./.yarn/cache/serialize-error-npm-7.0.1-c0b3f881a0-2ed4699735.zip/node_modules/serialize-error/",
+        ["npm:8.0.1", {
+          "packageLocation": "./.yarn/cache/serialize-error-npm-8.0.1-dd95765c83-7410009c1e.zip/node_modules/serialize-error/",
           "packageDependencies": [
-            ["serialize-error", "npm:7.0.1"],
-            ["type-fest", "npm:0.13.1"]
+            ["serialize-error", "npm:8.0.1"],
+            ["type-fest", "npm:0.20.2"]
           ],
           "linkType": "HARD",
         }]
@@ -10531,10 +10548,10 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           ],
           "linkType": "HARD",
         }],
-        ["npm:0.13.1", {
-          "packageLocation": "./.yarn/cache/type-fest-npm-0.13.1-7f4486b973-11acce4f34.zip/node_modules/type-fest/",
+        ["npm:0.20.2", {
+          "packageLocation": "./.yarn/cache/type-fest-npm-0.20.2-b36432617f-1f887bc615.zip/node_modules/type-fest/",
           "packageDependencies": [
-            ["type-fest", "npm:0.13.1"]
+            ["type-fest", "npm:0.20.2"]
           ],
           "linkType": "HARD",
         }],

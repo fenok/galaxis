@@ -1564,9 +1564,9 @@ __metadata:
     eslint: 7.11.0
     eslint-config-prettier: 6.13.0
     eslint-plugin-react-hooks: 4.1.2
-    path-to-regexp: 6.2.0
+    path-to-regexp: ^6.0.0
     prettier: 2.1.2
-    query-string: 6.13.6
+    query-string: ^7.0.0
     rimraf: 3.0.2
     typescript: 4.0.3
   peerDependencies:
@@ -1587,7 +1587,7 @@ __metadata:
     eslint-plugin-react-hooks: 4.1.2
     prettier: 2.1.2
     rimraf: 3.0.2
-    serialize-error: 7.0.1
+    serialize-error: ^8.0.0
     typescript: 4.0.3
   peerDependencies:
     "@fetcher/core": ^0.0.19
@@ -1658,8 +1658,8 @@ __metadata:
   peerDependencies:
     "@types/react": "*"
     "@types/react-dom": "*"
-    react: ^16.8.0
-    react-dom: ^16.8.0
+    react: ^16.8.0 || ^17.0.0
+    react-dom: ^16.8.0 || ^17.0.0
   languageName: unknown
   linkType: soft
 
@@ -1676,9 +1676,9 @@ __metadata:
     eslint: 7.11.0
     eslint-config-prettier: 6.13.0
     eslint-plugin-react-hooks: 4.1.2
-    immer: 8.0.1
-    lodash.merge: 4.6.2
-    object-hash: 2.1.1
+    immer: ^9.0.0
+    lodash.merge: ^4.0.0
+    object-hash: ^2.0.0
     prettier: 2.1.2
     rimraf: 3.0.2
     typescript: 4.0.3
@@ -4712,6 +4712,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"filter-obj@npm:^1.1.0":
+  version: 1.1.0
+  resolution: "filter-obj@npm:1.1.0"
+  checksum: 1049ac0c306198edf2c090375f7a80545a01e798b4996dbde13398a263cd923b5eb8a240dfadb03260621249a404a686e1a55980c6e59af70ee3880323998703
+  languageName: node
+  linkType: hard
+
 "finalhandler@npm:~1.1.2":
   version: 1.1.2
   resolution: "finalhandler@npm:1.1.2"
@@ -5276,6 +5283,13 @@ fsevents@~2.1.2:
   version: 8.0.1
   resolution: "immer@npm:8.0.1"
   checksum: a8c8d531af8f968f4d5a2ec3c5eeb6dd6933c69d216b3f8c55275e34c87926d556db4e3d81f5f038e66f9886e874da4ab4f7ffe228e33d718593820e2f57b68f
+  languageName: node
+  linkType: hard
+
+"immer@npm:^9.0.0":
+  version: 9.0.1
+  resolution: "immer@npm:9.0.1"
+  checksum: 7f4b19cd814298750493edeb80bbe701b1a026caa1968ffacea87c8a8c20412cce0d07651e7dd5bb894419ca67036f39c94e9e9e1b3a23fd82e3d3870d2d1b9e
   languageName: node
   linkType: hard
 
@@ -6505,7 +6519,7 @@ fsevents@~2.1.2:
   languageName: node
   linkType: hard
 
-"lodash.merge@npm:4.6.2":
+"lodash.merge@npm:^4.0.0":
   version: 4.6.2
   resolution: "lodash.merge@npm:4.6.2"
   checksum: 4e2bb42a87a148991458d7c384bc197e96f7115e9536fc8e2c86ae9e99ce1c1f693ff15eb85761952535f48d72253aed8e673d9f32dde3e671cd91e3fde220a7
@@ -7085,7 +7099,7 @@ fsevents@~2.1.2:
   languageName: node
   linkType: hard
 
-"object-hash@npm:2.1.1":
+"object-hash@npm:^2.0.0":
   version: 2.1.1
   resolution: "object-hash@npm:2.1.1"
   checksum: fe49a0864cba7ac4055c604295692ae75f5f4d22ba929aaaa987469809d17ab030d1111e8f0d425a070fa4a78b8021b55260e26e98b66b59e0f7be2bd9069fb8
@@ -7346,7 +7360,7 @@ fsevents@~2.1.2:
   languageName: node
   linkType: hard
 
-"path-to-regexp@npm:6.2.0":
+"path-to-regexp@npm:^6.0.0":
   version: 6.2.0
   resolution: "path-to-regexp@npm:6.2.0"
   checksum: 4116de71f5453163910347f199ab28fdd07f4053ed88093acb42dc044a2e5e7d9e18379e81e8d5d982d1b88291be3666e56be34a0741298673248fd21e3c1c16
@@ -7545,14 +7559,15 @@ fsevents@~2.1.2:
   languageName: node
   linkType: hard
 
-"query-string@npm:6.13.6":
-  version: 6.13.6
-  resolution: "query-string@npm:6.13.6"
+"query-string@npm:^7.0.0":
+  version: 7.0.0
+  resolution: "query-string@npm:7.0.0"
   dependencies:
     decode-uri-component: ^0.2.0
+    filter-obj: ^1.1.0
     split-on-first: ^1.0.0
     strict-uri-encode: ^2.0.0
-  checksum: 0f773349bf9c35719cac801b28a0d98f27ba9d815e92db34c69eb9eaa13ef57d8b6b8bd3f6b81070d8c9b790fa2a1d1311a772d0397838e7ca373bcd4d46ab7f
+  checksum: bfdb88aee494c246b1ed2614cd55e5ada111860755e4fa79271cbc6dcc8198db8d9b21873489f83a06027f78d293f37989b4602d36a642ea632cf22713ecc63d
   languageName: node
   linkType: hard
 
@@ -8135,12 +8150,12 @@ resolve@^1.3.2:
   languageName: node
   linkType: hard
 
-"serialize-error@npm:7.0.1":
-  version: 7.0.1
-  resolution: "serialize-error@npm:7.0.1"
+"serialize-error@npm:^8.0.0":
+  version: 8.0.1
+  resolution: "serialize-error@npm:8.0.1"
   dependencies:
-    type-fest: ^0.13.1
-  checksum: 2ed46997358204fa3bfef142104b0c9bfe3530acccd709caad4e89dac1dd6390bf54b2edec0dcab0242fc7814e73a9456813998e7ecc5b734cf2b9b92287c742
+    type-fest: ^0.20.2
+  checksum: 7410009c1e35c08ca13b38d6871e4584bbf75788f133db25d1c3d66402fceb6a3642ebd4e795c7dad1f412167bfcd10289b7379de0655ea933404f4d2c53cd75
   languageName: node
   linkType: hard
 
@@ -8967,10 +8982,10 @@ resolve@^1.3.2:
   languageName: node
   linkType: hard
 
-"type-fest@npm:^0.13.1":
-  version: 0.13.1
-  resolution: "type-fest@npm:0.13.1"
-  checksum: 11acce4f34c75a838914bdc4a0133d2dd0864e313897471974880df82624159521bae691a6100ff99f93be2d0f8871ecdab18573d2c67e61905cf2f5cbfa52a6
+"type-fest@npm:^0.20.2":
+  version: 0.20.2
+  resolution: "type-fest@npm:0.20.2"
+  checksum: 1f887bc6150e632fb772fd28e33c22a4ab036c6f484fa9ac2e2115f6cae9d62bba7ca0368e3332b539d85bd2c8391c7bff22ad410abcbc9ab3774d61e250b210
   languageName: node
   linkType: hard
 

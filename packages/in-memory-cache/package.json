@@ -33,6 +33,6 @@
         "@fetcher/core": "^0.0.19"
     },
     "dependencies": {
-        "serialize-error": "7.0.1"
+        "serialize-error": "^8.0.0"
     }
 }

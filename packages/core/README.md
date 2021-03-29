@@ -4,6 +4,18 @@
 
 Fetcher core is dependency-free, framework-agnostic and as unopinionated as possible.
 
+## Installation
+
+```
+yarn add @fetcher/core
+```
+
+Note that you should use a framework-specific wrapper (such as Fetcher [React](../../packages/react)) and not install Fecther Core directly.
+
+The library is compiled to modern JS, but it should work in all reasonable browsers with the help of properly configured Babel.
+
+Your client environment has to have `AbortController`. You might need to polyfill it.
+
 ## Features
 
 ### Queries

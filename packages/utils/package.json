@@ -18,9 +18,9 @@
         "prettier:all": "prettier --write \"**/*.{js,ts,tsx,json,md,*rc}\""
     },
     "dependencies": {
-        "immer": "8.0.1",
-        "lodash.merge": "4.6.2",
-        "object-hash": "2.1.1"
+        "immer": "^9.0.0",
+        "lodash.merge": "^4.0.0",
+        "object-hash": "^2.0.0"
     },
     "devDependencies": {
         "@fetcher/core": "^0.0.19",

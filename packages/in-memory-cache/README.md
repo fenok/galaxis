@@ -2,6 +2,16 @@
 
 In-memory cache implements <code>[Cache](../../packages/core#cache)</code> and allows to watch its state via [Redux DevTools](https://github.com/reduxjs/redux-devtools).
 
+## Installation
+
+```
+yarn add @fetcher/in-memory-cache
+```
+
+You need to install Fetcher [Core](../../packages/core) as well, directly or indirectly.
+
+The library is compiled to modern JS, but it should work in all reasonable browsers with the help of properly configured Babel.
+
 ## Public API
 
 > ⚠ Anything that is not documented here is not considered a part of public API and may change at any time.
