@@ -6,7 +6,7 @@ import { NonUndefined, Cache, Mutation } from '../types';
 export interface MutationRequest {
     promise: Promise<unknown>;
     aborted: boolean;
-    abort(): void;
+    abort: () => void;
 }
 
 export interface MutationProcessorOptions<C extends NonUndefined> {
@@ -106,7 +106,6 @@ export class MutationProcessor<C extends NonUndefined> {
             },
         };
 
-        // eslint-disable-next-line @typescript-eslint/unbound-method
         wireAbortSignals(mutationRequest.abort, mutation.abortSignal);
 
         this.ongoingRequests.add(mutationRequest);

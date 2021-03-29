@@ -142,7 +142,6 @@ export class QueryManager<C extends NonUndefined, D extends NonUndefined, E exte
             error: queryResult.error,
         });
 
-        // eslint-disable-next-line @typescript-eslint/unbound-method
         this.unsubscribe = queryResult.unsubscribe;
 
         if (this.ssrPromisesManager && queryResult.request && !this.instantiated) {

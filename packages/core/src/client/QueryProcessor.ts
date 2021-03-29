@@ -12,7 +12,7 @@ export interface QueryState<D extends NonUndefined, E extends Error> extends Que
     requestRequired: boolean;
     requestAllowed: boolean;
     cacheable: boolean;
-    unsubscribe?(): void;
+    unsubscribe?: () => void;
 }
 
 export interface QueryResult<D extends NonUndefined, E extends Error> extends QueryState<D, E> {
@@ -101,7 +101,6 @@ export class QueryProcessor<C extends NonUndefined> {
             unsubscribe:
                 cache && onChange
                     ? this.cache.subscribe(() => {
-                          // eslint-disable-next-line @typescript-eslint/unbound-method
                           const newState = { ...this.readQuery(query), unsubscribe: queryState.unsubscribe };
 
                           if (!this.areQueryStatesEqual(queryState, newState)) {
