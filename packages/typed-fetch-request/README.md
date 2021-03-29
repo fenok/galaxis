@@ -1,4 +1,4 @@
-# Fetcher: Typed Fetch Request
+# Fetcher Fetch
 
 A network interface that uses Fetch API with types.
 
