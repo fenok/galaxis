@@ -5,7 +5,7 @@ import {
     getAbortError,
     getSecondItemRequest,
     SECOND_ITEM,
-} from '../../test-utils/request-helpers';
+} from './utils/request-helpers';
 
 it('can query data', async () => {
     const queryProcessor = getQueryProcessor();

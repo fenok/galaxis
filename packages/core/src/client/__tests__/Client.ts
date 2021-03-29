@@ -4,7 +4,7 @@ import {
     getClient,
     FIRST_ITEM_UPDATE_DTO,
     FIRST_ITEM_UPDATED,
-} from '../../test-utils/request-helpers';
+} from './utils/request-helpers';
 
 it('guarantees that mutation waits for loading queries', async () => {
     const client = getClient();

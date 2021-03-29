@@ -1,4 +1,4 @@
-import { NonUndefined, Cache, UpdateOptions } from '../types';
+import { NonUndefined, Cache, UpdateOptions } from '../../../types';
 
 interface CacheState<C extends NonUndefined = null> {
     data: C;

@@ -1,4 +1,4 @@
 module.exports = {
     preset: 'ts-jest',
-    testPathIgnorePatterns: ['/dist/'],
+    testPathIgnorePatterns: ['/__tests__/utils/'],
 };

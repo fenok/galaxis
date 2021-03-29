@@ -8,7 +8,7 @@ import {
     FIRST_ITEM,
     getFailingFirstItemRequest,
     getNetworkError,
-} from '../../test-utils/request-helpers';
+} from './utils/request-helpers';
 
 it('does not return promise if there is error in cache', async () => {
     const queryProcessor = getQueryProcessor();
