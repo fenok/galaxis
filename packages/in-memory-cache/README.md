@@ -1,4 +1,4 @@
-# Fetcher In-memory Cache
+# Fetcher In-Memory Cache
 
 In-memory cache implements <code>[Cache](../../packages/core#cache)</code> and allows to watch its state via [Redux DevTools](https://github.com/reduxjs/redux-devtools).
 

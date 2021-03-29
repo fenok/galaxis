@@ -76,7 +76,7 @@ It can be fixed by setting `optimizeOnHydrate: true` for all queries by default.
 
 You can specify `optimisticData` for mutations. During mutation execution, the cache will immediately be updated with this data, and then with the real data when it arrives. Note that you also have to specify the `removeOptimisticData()` and `toCache()` functions, so the library knows how to remove the optimistic data from the cache, and how to put the real data in.
 
-### Great Customization Capabilities
+### High Customizability
 
 The library is completely unopinionated about the network level. You can use fetch, axios, XMLHttpRequest, or any other solution. You can add network requests logging, retries, or timeouts. See [BaseRequest](#baserequest) for details.
 

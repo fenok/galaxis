@@ -43,7 +43,7 @@ const MyComponent: FC = () => {
         client.fetchQuery(query).then((data) => console.log(data));
     };
 
-    return <button onClick={onClick}>Perform query manually</button>;
+    return <button onClick={onClick}>Fetch the query manually</button>;
 };
 ```
 
@@ -75,9 +75,9 @@ const MyComponent: FC = () => {
 
 ```typescript jsx
 const MyComponent: FC = () => {
-    const { mutate } = useMutation(mutation);
+    const { execute } = useMutation(mutation);
 
-    return <button onClick={mutate}>Perform mutation</button>;
+    return <button onClick={execute}>Execute the mutation</button>;
 };
 ```
 
