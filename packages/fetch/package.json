@@ -1,5 +1,5 @@
 {
-    "name": "@fetcher/typed-fetch-request",
+    "name": "@fetcher/fetch",
     "version": "0.0.19",
     "repository": "github:fenok/fetcher",
     "license": "MIT",

@@ -26,4 +26,4 @@ Proceed to [React Example](packages/react-example).
 -   Fetcher [React](packages/react) bindings.
 -   Common [Utils](packages/utils).
 -   Recommended cache: [InMemoryCache](packages/in-memory-cache).
--   Recommended network interface: [Typed Fetch Request](packages/typed-fetch-request).
+-   Recommended network interface: [Typed Fetch Request](packages/fetch).

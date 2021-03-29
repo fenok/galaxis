@@ -8,7 +8,7 @@
       <excludeFolder url="file://$MODULE_DIR$/packages/react-core/dist" />
       <excludeFolder url="file://$MODULE_DIR$/packages/react-example/dist" />
       <excludeFolder url="file://$MODULE_DIR$/packages/react/dist" />
-      <excludeFolder url="file://$MODULE_DIR$/packages/typed-fetch-request/dist" />
+      <excludeFolder url="file://$MODULE_DIR$/packages/fetch/dist" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

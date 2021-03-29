@@ -1,11 +1,6 @@
 import { NonUndefined, Query } from '@fetcher/react';
 import { getParametrizedRequest, getStaticRequest, mergeDeepNonUndefined } from '@fetcher/utils';
-import {
-    RequestParams,
-    ResponseError,
-    RequestParamsConstraint,
-    DynamicRequestParams,
-} from '@fetcher/typed-fetch-request';
+import { RequestParams, ResponseError, RequestParamsConstraint, DynamicRequestParams } from '@fetcher/fetch';
 import { CacheData } from './CacheData';
 import { ErrorResponse } from './ErrorResponse';
 

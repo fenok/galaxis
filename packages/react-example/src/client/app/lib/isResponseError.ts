@@ -1,5 +1,5 @@
 import { ErrorResponse } from './ErrorResponse';
-import { ResponseError } from '@fetcher/typed-fetch-request';
+import { ResponseError } from '@fetcher/fetch';
 
 export function isResponseError(
     error: Error | ResponseError<ErrorResponse> | undefined,

@@ -7,7 +7,7 @@ import {
     GlobalRequestParams,
     processResponseJson,
     ResponseError,
-} from '@fetcher/typed-fetch-request';
+} from '@fetcher/fetch';
 import { mergeDeepNonUndefined, objectHash } from '@fetcher/utils';
 import { ErrorResponse } from './ErrorResponse';
 

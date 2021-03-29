@@ -1553,6 +1553,27 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@fetcher/fetch@0.0.19, @fetcher/fetch@workspace:packages/fetch":
+  version: 0.0.0-use.local
+  resolution: "@fetcher/fetch@workspace:packages/fetch"
+  dependencies:
+    "@fetcher/core": ^0.0.19
+    "@types/node": 13.9.0
+    "@typescript-eslint/eslint-plugin": 2.22.0
+    "@typescript-eslint/parser": 2.22.0
+    eslint: 7.11.0
+    eslint-config-prettier: 6.13.0
+    eslint-plugin-react-hooks: 4.1.2
+    path-to-regexp: 6.2.0
+    prettier: 2.1.2
+    query-string: 6.13.6
+    rimraf: 3.0.2
+    typescript: 4.0.3
+  peerDependencies:
+    "@fetcher/core": ^0.0.19
+  languageName: unknown
+  linkType: soft
+
 "@fetcher/in-memory-cache@0.0.19, @fetcher/in-memory-cache@workspace:packages/in-memory-cache":
   version: 0.0.0-use.local
   resolution: "@fetcher/in-memory-cache@workspace:packages/in-memory-cache"
@@ -1583,9 +1604,9 @@ __metadata:
     "@babel/preset-env": 7.12.1
     "@babel/preset-react": 7.12.1
     "@babel/preset-typescript": 7.12.1
+    "@fetcher/fetch": 0.0.19
     "@fetcher/in-memory-cache": 0.0.19
     "@fetcher/react": 0.0.19
-    "@fetcher/typed-fetch-request": 0.0.19
     "@fetcher/utils": 0.0.19
     "@types/express": 4.17.8
     "@types/lodash-es": 4.17.4
@@ -1639,27 +1660,6 @@ __metadata:
     "@types/react-dom": "*"
     react: ^16.8.0
     react-dom: ^16.8.0
-  languageName: unknown
-  linkType: soft
-
-"@fetcher/typed-fetch-request@0.0.19, @fetcher/typed-fetch-request@workspace:packages/typed-fetch-request":
-  version: 0.0.0-use.local
-  resolution: "@fetcher/typed-fetch-request@workspace:packages/typed-fetch-request"
-  dependencies:
-    "@fetcher/core": ^0.0.19
-    "@types/node": 13.9.0
-    "@typescript-eslint/eslint-plugin": 2.22.0
-    "@typescript-eslint/parser": 2.22.0
-    eslint: 7.11.0
-    eslint-config-prettier: 6.13.0
-    eslint-plugin-react-hooks: 4.1.2
-    path-to-regexp: 6.2.0
-    prettier: 2.1.2
-    query-string: 6.13.6
-    rimraf: 3.0.2
-    typescript: 4.0.3
-  peerDependencies:
-    "@fetcher/core": ^0.0.19
   languageName: unknown
   linkType: soft
 
