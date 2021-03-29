@@ -26,17 +26,14 @@ const App: FC<AppProps> = ({ client }) => (
 
 ##### `ClientProviderProps`
 
-| Name                         | Type                                                            | Description                                                                                                                                                                                             | Required |
-| ---------------------------- | --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
-| client                       | <code>[Client](/packages/core#client)</code>                    | A `Client` instance that will be used by the application.                                                                                                                                               | Yes      |
-| dynamicDefaultRequest        | <code>Partial<[BaseRequest](/packages/core#baserequest)></code> | Dynamic default request for the given client.                                                                                                                                                           | No       |
-| dynamicDefaultQuery          | <code>Partial<[Query](/packages/core#query)></code>             | Dynamic default query for the given client.                                                                                                                                                             | No       |
-| dynamicDefaultMutation       | <code>Partial<[Mutation](/packages/core#mutation)></code>       | Dynamic default mutation for the given client.                                                                                                                                                          | No       |
-| preventOnHydrateCompleteCall | `boolean`                                                       | By default, `client.onHydrateComplete()` will be called in `useEffect`. It should be fine in most cases, but you can use this option as an escape hatch and call `client.onHydrateComplete()` manually. | No       |
+| Name                         | Type                                         | Description                                                                                                                                                                                             | Required |
+| ---------------------------- | -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
+| client                       | <code>[Client](/packages/core#client)</code> | A `Client` instance that will be used by the application.                                                                                                                                               | Yes      |
+| preventOnHydrateCompleteCall | `boolean`                                    | By default, `client.onHydrateComplete()` will be called in `useEffect`. It should be fine in most cases, but you can use this option as an escape hatch and call `client.onHydrateComplete()` manually. | No       |
 
 ### `useClient()`
 
-`useClient` is used to retrieve the [Client](/packages/core#client) instance that was passed to the <code>[Provider](#clientprovider)</code>. You can then use it to perform queries and mutations manually, change configuration, access cache, etc.
+`useClient` is used to retrieve the [Client](/packages/core#client) instance that was passed to the <code>[Provider](#clientprovider)</code>. You can then use it to execute queries and mutations manually, access cache, etc.
 
 ```typescript jsx
 const MyComponent: FC = () => {
@@ -52,7 +49,7 @@ const MyComponent: FC = () => {
 
 ### `useQuery()`
 
-`useQuery` is a wrapper around <code>[QueryManager](/packages/core#querymanager)</code>.
+`useQuery` is a wrapper around [managed query](/packages/core#clientmanagequery).
 
 ```typescript jsx
 const MyComponent: FC = () => {
@@ -74,7 +71,7 @@ const MyComponent: FC = () => {
 
 ### `useMutation()`
 
-`useMutation` is a wrapper around <code>[MutationExecutor](/packages/core#mutationmanager)</code>.
+`useMutation` is a wrapper around [managed mutation](/packages/core#clientmanagemutation).
 
 ```typescript jsx
 const MyComponent: FC = () => {
