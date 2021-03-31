@@ -39,8 +39,8 @@ class Client<
     private defaultRequest?: Partial<BaseRequest<C, BD, BE, BR>>;
     private defaultQuery?: Partial<Query<C, BD, BE, BR>>;
     private defaultMutation?: Partial<Mutation<C, BD, BE, BR>>;
-    private managedQueries = new Set<QueryManager<any, any, any, any>>();
-    private managedMutations = new Set<MutationManager<any, any, any, any>>();
+    private managedQueries = new Set<Pick<QueryManager<C, BD, BE, BR>, 'getState' | 'getApi'>>();
+    private managedMutations = new Set<Pick<MutationManager<C, BD, BE, BR>, 'getState' | 'getApi'>>();
 
     public readonly hash: (value: unknown) => string;
 

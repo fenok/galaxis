@@ -6,7 +6,7 @@ import { NonUndefined } from '@fetcher/core';
 
 export interface GetRequestFactoryOptions<D extends NonUndefined> {
     fetch?: typeof fetch;
-    processResponse(response: Response): D;
+    processResponse(response: Response): Promise<D>;
 }
 
 export function getRequestFactory<D extends NonUndefined>({

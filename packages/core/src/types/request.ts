@@ -17,9 +17,10 @@ export interface RequestOptions<R> {
 export interface BaseRequest<C extends NonUndefined, D extends NonUndefined, E extends Error, R> {
     requestParams: R;
     abortSignal?: AbortSignal;
-    getRequestFactory?(opts: RequestOptions<R>): (abortSignal?: AbortSignal) => Promise<D | E>;
+    getRequestFactory?(opts: RequestOptions<R>): (abortSignal?: AbortSignal) => Promise<D>;
     getRequestId?(opts: RequestOptions<R>): string;
     toCache?(opts: CacheAndDataOptions<C, D, R>): C;
+    __errorType?: E;
 }
 
 export interface Query<C extends NonUndefined, D extends NonUndefined, E extends Error, R>

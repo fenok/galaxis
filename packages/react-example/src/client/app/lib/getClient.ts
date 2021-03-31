@@ -1,13 +1,7 @@
 import { Client, NonUndefined } from '@fetcher/react';
 import { InMemoryCache } from '@fetcher/in-memory-cache';
 import { CacheData } from './CacheData';
-import {
-    getRequestFactory,
-    getRequestId,
-    GlobalRequestParams,
-    processResponseJson,
-    ResponseError,
-} from '@fetcher/fetch';
+import { getRequestFactory, getRequestId, processResponseJson, RequestParams, ResponseError } from '@fetcher/fetch';
 import { mergeDeepNonUndefined, objectHash } from '@fetcher/utils';
 import { ErrorResponse } from './ErrorResponse';
 
@@ -25,17 +19,11 @@ export type AppClient = Client<
     InMemoryCache<CacheData>,
     NonUndefined,
     ResponseError<ErrorResponse>,
-    GlobalRequestParams
+    RequestParams
 >;
 
 export function getClient({ fetch }: GetClientOptions): AppClient {
-    return new Client<
-        CacheData,
-        InMemoryCache<CacheData>,
-        NonUndefined,
-        ResponseError<ErrorResponse>,
-        GlobalRequestParams
-    >({
+    return new Client({
         cache: new InMemoryCache({
             initialState: typeof window !== 'undefined' ? window.FETCHER_STATE : undefined,
             emptyData: EMPTY_DATA,
@@ -44,6 +32,7 @@ export function getClient({ fetch }: GetClientOptions): AppClient {
         defaultRequest: {
             requestParams: {
                 root: 'https://jsonplaceholder.typicode.com',
+                path: '',
             },
             getRequestFactory: getRequestFactory({ fetch, processResponse: processResponseJson }),
             getRequestId: getRequestId({ hash: objectHash }),

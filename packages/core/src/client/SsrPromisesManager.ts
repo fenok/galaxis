@@ -7,7 +7,7 @@ class SsrPromisesManager {
         this.promises.push(promise);
     }
 
-    public awaitPromises(): Promise<unknown> {
+    public awaitPromises(): Promise<void> {
         return allSettled(this.promises).then(() => {
             this.promises = [];
         });

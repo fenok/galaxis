@@ -1,6 +1,7 @@
+import { NonUndefined } from '@fetcher/core';
 import { ResponseError } from '../errors';
 
-export async function processResponseJson(response: Response) {
+export async function processResponseJson<D extends NonUndefined>(response: Response): Promise<D> {
     if (!response.ok) {
         throw new ResponseError(
             await response.json(),
@@ -9,5 +10,5 @@ export async function processResponseJson(response: Response) {
         );
     }
 
-    return response.json();
+    return (await response.json()) as D;
 }
