@@ -11,11 +11,11 @@ interface Props {
 const UserDisplay: React.FC<Props> = ({ variant }) => {
     const [userId, setUserId] = useState(1);
 
-    const { data, error, loading, refetch, abort, execute, executed } = useQuery(
+    const { data, error, loading, refetch, abort, execute, executed, reset } = useQuery(
         userQuery({
             requestParams: { pathParams: { id: userId } },
             fetchPolicy: variant === 1 ? 'cache-and-network' : variant === 2 ? 'cache-only' : 'no-cache',
-            lazy: true,
+            lazy: variant == 2,
         }),
     );
 
@@ -35,6 +35,9 @@ const UserDisplay: React.FC<Props> = ({ variant }) => {
             </button>
             <button disabled={!loading} onClick={abort}>
                 Abort
+            </button>
+            <button disabled={!executed} onClick={reset}>
+                Reset
             </button>
             <button onClick={() => setUserId((prevId) => prevId + 1)}>Iterate user</button>
             <div>{JSON.stringify(executed)}</div>
