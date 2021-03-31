@@ -70,7 +70,7 @@ Query merging and request queueing, alongside other techniques, make sure that t
 
 Otherwise, beware that you have a razor-thin chance of overwriting an up-to-date data with an outdated one, if you execute such queries simultaneously. In the future, the library may provide means for relative queueing of such queries.
 
-### Server-Side Rendering
+### Full Server-Side Rendering Support
 
 The library is built with SSR in mind. _Managed queries_ can be executed on the server side, and, assuming they are wrapped in a framework-specific wrapper, there is no SSR-specific code in the application components, so they are SSR-ready by default. Note that you can disable fetching on the server by the `disableSsr` option of <code>[Query](#query)</code>.
 

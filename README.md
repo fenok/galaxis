@@ -9,7 +9,7 @@ Fetcher is a library for performing network requests. If you were looking for an
 Notable features:
 
 -   [High Customizability](packages/core#high-customizability), among other things, lets you use the library for _any_ backend.
--   [Full SSR support](packages/core#server-side-rendering) lets you render your data on the server with no additional code.
+-   [Full Server-Side Rendering Support](packages/core#full-server-side-rendering-support) lets you render your data on the server with no additional code.
 -   The library [API](packages/core#public-api) is inspired by [Apollo](https://www.apollographql.com/).
 -   Requests are separated into [Queries](packages/core#queries) and [Mutations](packages/core#mutations). They can be executed at arbitrary parts of code and points in time, allowing components to express their data requirements in isolation from each other.
 -   [Query Merging](packages/core#query-merging) and [Request Queueing](packages/core#request-queueing) ensure network requests deduplication and reasonable [Race Conditions Handling](packages/core#race-conditions-handling).
