@@ -36,6 +36,18 @@ You can work with mutations manually via <code>[client.mutate()](#clientmutate)<
 
 A mutation _execution_ always leads to a network request.
 
+### Shared Cache
+
+Queries and mutations work with the same shared <code>[Cache](#cache)</code>. That means that a query can use the data (and/or error!) that was fetched by another query, and query data can be indirectly updated by a mutation. The library provides <code>[InMemoryCache](../in-memory-cache#inmemorycache)</code> as a recommended cache.
+
+For queries, cache usage is specified by `fetchPolicy` option. Note that if `fetchPolicy` is not `'no-cache'`, you also need to specify `toCache()` and `fromCache()` options, or the caching will appear broken. Query errors are automatically cached by the network request id depending on `fetchPolicy`. You can opt-out of caching by using `fetchPolicy: 'no-cache'`.
+
+For mutations, cache usage is specified by existense of `toCache()` option. Mutation errors are never cached. You can opt-out of caching by omitting this option (or setting it to `undefined`).
+
+### Optimistic Responses
+
+You can specify `optimisticData` for mutations. During mutation execution, the cache will immediately be updated with this data, and then with the real data when it arrives. Note that you also have to specify the `removeOptimisticData()` and `toCache()` functions, so the library knows how to remove the optimistic data from the cache, and how to put the real data in.
+
 ### Query Merging
 
 The library encourages executing queries at arbitrary parts of code and points in time. This way, any component of the application can express its data requirements in isolation from other components.
@@ -84,15 +96,15 @@ If you're doing SSR, you're going to have a hydrate stage on the client, which i
 
 It can be fixed by setting `optimizeOnHydrate: true` for all queries by default. In general, you should always do that, unless your cache is not coming from just-performed requests (e.g. you are not doing SSR, but persist the cache to local storage).
 
-### Optimistic Responses
-
-You can specify `optimisticData` for mutations. During mutation execution, the cache will immediately be updated with this data, and then with the real data when it arrives. Note that you also have to specify the `removeOptimisticData()` and `toCache()` functions, so the library knows how to remove the optimistic data from the cache, and how to put the real data in.
+Note that you have to indicate that the hydrate stage is complete by calling <code>[client.onHydrateComplete()](#clientonhydratecomplete)</code>.
 
 ### High Customizability
 
-The library is completely unopinionated about the network level. You can use fetch, axios, XMLHttpRequest, or any other solution. You can add network requests logging, retries, or timeouts. See [BaseRequest](#baserequest) for details.
+The library is completely unopinionated about the network level. You can use fetch, axios, XMLHttpRequest, or any other solution. You can add network requests logging, retries, or timeouts. The library doesn't care in which format your data arrives. Just provide a `getRequestFactory` option of <code>[BaseRequest](#baserequest)</code> that will abstract it all away. The library provides <code>[Fetch](../../packages/fetch)</code> as a recommended network interface.
 
-The library is also unopinionated about [Cache](#cache) internals. You can add cache persistence, partial or complete. You even should be able to integrate the cache with your own state management solution, should you need so.
+The library is also unopinionated about <code>[Cache](#cache)</code> internals. You can add cache persistence, partial or complete. You even should be able to integrate the cache with your own state management solution, should you need so. The library provides <code>[InMemoryCache](../in-memory-cache#inmemorycache)</code> as a recommended cache.
+
+Note that almost everything is configurable on a per-request level. For instance, you can use different network interfaces for different queries!
 
 ## Public API
 
@@ -426,21 +438,21 @@ This type describes base network request.
 | abortSignal       | `AbortSignal`                                                                                                               | Signal for aborting the request.                                                                                                                                                                                 | No                                                      |
 | getRequestFactory | <code>(opts: [RequestOptions](#requestoptions)) => (abortSignal?: AbortSignal) => Promise<[D](#user-defined-types)>;</code> | A function that returns the factory for creating network requests.<br/>Note that `abortSignal` for the factory is created by the library. It is **not** the same signal as `abortSignal` field of `BaseRequest`. | No, a rejected promise will be used by default          |
 | getRequestId      | <code>(opts: [RequestOptions](#requestoptions)) => string;</code>                                                           | A function for calculating a network request id. It should take some hash from `requestParams`, excluding parts that are different between client and server.                                                    | No, a hash from `requestParams` will be used by default |
-| toCache           | <code>(opts: [CacheAndDataOptions](#cacheanddataoptions)) => [C](#user-defined-types);</code>                               | A function that modifies cache data based on request data (from network or optimistic response).                                                                                                                 | No                                                      |
+| toCache           | <code>(opts: [CacheAndDataOptions](#cacheanddataoptions)) => [C](#user-defined-types);</code>                               | A function that modifies cache data based on request data (from network or optimistic response).                                                                                                                 | No, the cache data will not be modified by default.     |
 
 #### `Query`
 
 Extends [BaseRequest](#baserequest).
 
-| Name                | Type                                                                                             | Description                                                                                                                                                          | Required                               |
-| ------------------- | ------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------- |
-| fetchPolicy         | <code>[FetchPolicy](#fetchpolicy)</code>                                                         | [FetchPolicy](#fetchpolicy).                                                                                                                                         | No, `'cache-only'` is used by default. |
-| lazy                | `boolean`                                                                                        | If `true`, the query will not be executed automatically.                                                                                                             | No                                     |
-| disableSsr          | `boolean`                                                                                        | If `true`, the query will not be fetched on the server.                                                                                                              | No                                     |
-| optimizeOnHydrate   | `boolean`                                                                                        | If `true`, the query won't be fetched on the client during the hydrate stage, if there is data **or error** in the cache. `fetchPolicy` option is ignored.           | No                                     |
-| forceRequestOnMerge | `boolean`                                                                                        | If `true`, the query will start a new network request, if it's merged with the existing query.                                                                       | No                                     |
-| softAbortSignal     | `AbortSignal`                                                                                    | Soft aborting should be used to indicate loss of interest in the ongoing network request. The actual request won't be aborted if there are other interested parties. | No                                     |
-| fromCache           | <code>(opts: [CacheOptions](#cacheoptions)) => [D](#user-defined-types) &#124; undefined </code> | A function for retrieving query data from cache data.                                                                                                                | No                                     |
+| Name                | Type                                                                                             | Description                                                                                                                                                          | Required                                                     |
+| ------------------- | ------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
+| fetchPolicy         | <code>[FetchPolicy](#fetchpolicy)</code>                                                         | [FetchPolicy](#fetchpolicy).                                                                                                                                         | No, `'cache-only'` is used by default.                       |
+| lazy                | `boolean`                                                                                        | If `true`, the query will not be executed automatically.                                                                                                             | No                                                           |
+| disableSsr          | `boolean`                                                                                        | If `true`, the query will not be fetched on the server.                                                                                                              | No                                                           |
+| optimizeOnHydrate   | `boolean`                                                                                        | If `true`, the query won't be fetched on the client during the hydrate stage, if there is data **or error** in the cache. `fetchPolicy` option is ignored.           | No                                                           |
+| forceRequestOnMerge | `boolean`                                                                                        | If `true`, the query will start a new network request, if it's merged with the existing query.                                                                       | No                                                           |
+| softAbortSignal     | `AbortSignal`                                                                                    | Soft aborting should be used to indicate loss of interest in the ongoing network request. The actual request won't be aborted if there are other interested parties. | No                                                           |
+| fromCache           | <code>(opts: [CacheOptions](#cacheoptions)) => [D](#user-defined-types) &#124; undefined </code> | A function for retrieving query data from cache data.                                                                                                                | No, a function returning `undefined` will be used by default |
 
 #### `Mutation`
 
@@ -459,11 +471,11 @@ Extends [BaseRequest](#baserequest).
 
 ##### `CacheOptions`
 
-| Name          | Type                                  | Description                              |
-| ------------- | ------------------------------------- | ---------------------------------------- |
-| cacheData     | <code>[C](#user-defined-types)</code> | Cache data.                              |
-| requestParams | <code>[R](#user-defined-types)</code> | Arbitrary storage of request parameters. |
-| requestId     | `string`                              | Request id.                              |
+| Name          | Type                                  | Description                                                                                                 |
+| ------------- | ------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| cacheData     | <code>[C](#user-defined-types)</code> | Cache data.                                                                                                 |
+| requestParams | <code>[R](#user-defined-types)</code> | Arbitrary storage of request parameters.                                                                    |
+| requestId     | `string`                              | Network request id, generated by the `getRequestId()` function of <code>[BaseRequest](#baserequest)</code>. |
 
 ##### `CacheAndDataOptions`
 

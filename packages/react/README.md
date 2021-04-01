@@ -30,9 +30,9 @@ interface AppProps {
 }
 
 const App: FC<AppProps> = ({ client }) => (
-    <Provider client={client}>
+    <ClientProvider client={client}>
         <RestOfTheApp />
-    </Provider>
+    </ClientProvider>
 );
 ```
 
@@ -40,10 +40,10 @@ const App: FC<AppProps> = ({ client }) => (
 
 ##### `ClientProviderProps`
 
-| Name                         | Type                                         | Description                                                                                                                                                                                             | Required |
-| ---------------------------- | -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
-| client                       | <code>[Client](/packages/core#client)</code> | A `Client` instance that will be used by the application.                                                                                                                                               | Yes      |
-| preventOnHydrateCompleteCall | `boolean`                                    | By default, `client.onHydrateComplete()` will be called in `useEffect`. It should be fine in most cases, but you can use this option as an escape hatch and call `client.onHydrateComplete()` manually. | No       |
+| Name                         | Type                                         | Description                                                                                                                                                                                                                                                                                                       | Required |
+| ---------------------------- | -------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
+| client                       | <code>[Client](/packages/core#client)</code> | A `Client` instance that will be used by the application.                                                                                                                                                                                                                                                         | Yes      |
+| preventOnHydrateCompleteCall | `boolean`                                    | By default, <code>[client.onHydrateComplete()](/packages/core#clientonhydratecomplete)</code> will be called in `useEffect`. It should be fine in most cases, but you can use this option as an escape hatch and call <code>[client.onHydrateComplete()](/packages/core#clientonhydratecomplete)</code> manually. | No       |
 
 ### `useClient()`
 
