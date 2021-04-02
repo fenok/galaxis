@@ -18,7 +18,7 @@
         "prettier:all": "prettier --write \"**/*.{js,ts,tsx,json,md,*rc}\""
     },
     "dependencies": {
-        "@fetcher/core": "0.0.19"
+        "@fetcher/core": "^0.0.19"
     },
     "devDependencies": {
         "@types/node": "^14.14.37",
