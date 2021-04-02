@@ -2588,7 +2588,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@fetcher/fetch", "virtual:39adb0faa57969db6c58a50f46bb945c04a047b71dac39a622bd25be10980d4a8674c24033f2c15cfe66b4a5d4f0afd0f53a8a37311cf79d0b3977ef90bb2b3b#workspace:packages/fetch"],
             ["@fetcher/core", "workspace:packages/core"],
             ["@types/fetcher__core", null],
-            ["@types/node", "npm:14.14.37"],
             ["@typescript-eslint/eslint-plugin", "virtual:c1fde0c38ec1424cff1aa573370869dd10639d73765698008e2f898ea742a371da1723302503adc59a9e0ccdfbd193dd16f26475486c07386c0dd5483ed2cf6e#npm:4.20.0"],
             ["@typescript-eslint/parser", "virtual:c1fde0c38ec1424cff1aa573370869dd10639d73765698008e2f898ea742a371da1723302503adc59a9e0ccdfbd193dd16f26475486c07386c0dd5483ed2cf6e#npm:4.20.0"],
             ["eslint", "npm:7.23.0"],
@@ -2609,7 +2608,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageDependencies": [
             ["@fetcher/fetch", "workspace:packages/fetch"],
             ["@fetcher/core", "workspace:packages/core"],
-            ["@types/node", "npm:14.14.37"],
             ["@typescript-eslint/eslint-plugin", "virtual:c1fde0c38ec1424cff1aa573370869dd10639d73765698008e2f898ea742a371da1723302503adc59a9e0ccdfbd193dd16f26475486c07386c0dd5483ed2cf6e#npm:4.20.0"],
             ["@typescript-eslint/parser", "virtual:c1fde0c38ec1424cff1aa573370869dd10639d73765698008e2f898ea742a371da1723302503adc59a9e0ccdfbd193dd16f26475486c07386c0dd5483ed2cf6e#npm:4.20.0"],
             ["eslint", "npm:7.23.0"],
@@ -2630,7 +2628,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@fetcher/in-memory-cache", "virtual:39adb0faa57969db6c58a50f46bb945c04a047b71dac39a622bd25be10980d4a8674c24033f2c15cfe66b4a5d4f0afd0f53a8a37311cf79d0b3977ef90bb2b3b#workspace:packages/in-memory-cache"],
             ["@fetcher/core", "workspace:packages/core"],
             ["@types/fetcher__core", null],
-            ["@types/node", "npm:14.14.37"],
             ["@typescript-eslint/eslint-plugin", "virtual:c1fde0c38ec1424cff1aa573370869dd10639d73765698008e2f898ea742a371da1723302503adc59a9e0ccdfbd193dd16f26475486c07386c0dd5483ed2cf6e#npm:4.20.0"],
             ["@typescript-eslint/parser", "virtual:c1fde0c38ec1424cff1aa573370869dd10639d73765698008e2f898ea742a371da1723302503adc59a9e0ccdfbd193dd16f26475486c07386c0dd5483ed2cf6e#npm:4.20.0"],
             ["eslint", "npm:7.23.0"],
@@ -2650,7 +2647,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageDependencies": [
             ["@fetcher/in-memory-cache", "workspace:packages/in-memory-cache"],
             ["@fetcher/core", "workspace:packages/core"],
-            ["@types/node", "npm:14.14.37"],
             ["@typescript-eslint/eslint-plugin", "virtual:c1fde0c38ec1424cff1aa573370869dd10639d73765698008e2f898ea742a371da1723302503adc59a9e0ccdfbd193dd16f26475486c07386c0dd5483ed2cf6e#npm:4.20.0"],
             ["@typescript-eslint/parser", "virtual:c1fde0c38ec1424cff1aa573370869dd10639d73765698008e2f898ea742a371da1723302503adc59a9e0ccdfbd193dd16f26475486c07386c0dd5483ed2cf6e#npm:4.20.0"],
             ["eslint", "npm:7.23.0"],
@@ -2669,7 +2665,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageDependencies": [
             ["@fetcher/react", "virtual:39adb0faa57969db6c58a50f46bb945c04a047b71dac39a622bd25be10980d4a8674c24033f2c15cfe66b4a5d4f0afd0f53a8a37311cf79d0b3977ef90bb2b3b#workspace:packages/react"],
             ["@fetcher/core", "workspace:packages/core"],
-            ["@types/node", "npm:14.14.37"],
             ["@types/react", "npm:17.0.3"],
             ["@types/react-dom", "npm:17.0.3"],
             ["@typescript-eslint/eslint-plugin", "virtual:c1fde0c38ec1424cff1aa573370869dd10639d73765698008e2f898ea742a371da1723302503adc59a9e0ccdfbd193dd16f26475486c07386c0dd5483ed2cf6e#npm:4.20.0"],
@@ -2696,7 +2691,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageDependencies": [
             ["@fetcher/react", "workspace:packages/react"],
             ["@fetcher/core", "workspace:packages/core"],
-            ["@types/node", "npm:14.14.37"],
             ["@types/react", "npm:17.0.3"],
             ["@types/react-dom", "npm:17.0.3"],
             ["@typescript-eslint/eslint-plugin", "virtual:c1fde0c38ec1424cff1aa573370869dd10639d73765698008e2f898ea742a371da1723302503adc59a9e0ccdfbd193dd16f26475486c07386c0dd5483ed2cf6e#npm:4.20.0"],

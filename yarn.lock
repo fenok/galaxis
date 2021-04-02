@@ -1407,7 +1407,6 @@ __metadata:
   resolution: "@fetcher/fetch@workspace:packages/fetch"
   dependencies:
     "@fetcher/core": ^0.0.19
-    "@types/node": ^14.14.37
     "@typescript-eslint/eslint-plugin": ^4.20.0
     "@typescript-eslint/parser": ^4.20.0
     eslint: ^7.23.0
@@ -1427,7 +1426,6 @@ __metadata:
   resolution: "@fetcher/in-memory-cache@workspace:packages/in-memory-cache"
   dependencies:
     "@fetcher/core": ^0.0.19
-    "@types/node": ^14.14.37
     "@typescript-eslint/eslint-plugin": ^4.20.0
     "@typescript-eslint/parser": ^4.20.0
     eslint: ^7.23.0
@@ -1489,7 +1487,6 @@ __metadata:
   resolution: "@fetcher/react@workspace:packages/react"
   dependencies:
     "@fetcher/core": ^0.0.19
-    "@types/node": ^14.14.37
     "@types/react": ^17.0.3
     "@types/react-dom": ^17.0.3
     "@typescript-eslint/eslint-plugin": ^4.20.0
