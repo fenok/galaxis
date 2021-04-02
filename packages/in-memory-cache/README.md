@@ -1,6 +1,6 @@
 # Fetcher In-Memory Cache
 
-In-memory cache implements <code>[Cache](../../packages/core#cache)</code> and allows to watch its state via [Redux DevTools](https://github.com/reduxjs/redux-devtools).
+A [Fetcher](/README.md#fetcher-) cache that stores state in memory and is observable via [Redux DevTools](https://github.com/reduxjs/redux-devtools).
 
 ## Installation
 
@@ -17,6 +17,8 @@ The library is compiled to modern JS, but it should work in all reasonable brows
 > ⚠ Anything that is not documented here is not considered a part of public API and may change at any time.
 
 ### `InMemoryCache`
+
+Implements <code>[Cache](../../packages/core#cache)</code>.
 
 ```typescript
 const inMemoryCache = new InMemoryCache({ emptyData, initialState, enableDevTools });

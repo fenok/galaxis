@@ -1,6 +1,6 @@
 # Fetcher Fetch
 
-A network interface that uses Fetch API with types.
+A [Fetcher](/README.md#fetcher-) network interface that uses Fetch API, extended with types and custom body data.
 
 ## Installation
 

@@ -1,6 +1,6 @@
 # Fetcher Utils
 
-This package contains common utils.
+Common [Fetcher](/README.md#fetcher-) utils.
 
 ## Installation
 

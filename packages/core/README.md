@@ -2,7 +2,9 @@
 
 [![npm](https://img.shields.io/npm/v/react-fetching-hooks)](https://www.npmjs.com/package/react-fetching-hooks)
 
-Fetcher core is dependency-free, framework-agnostic and as unopinionated as possible.
+[Apollo](https://www.apollographql.com)-inspired backend-agnostic fetching library with full SSR support.
+
+This package contains core [Fetcher](/README.md#fetcher-) functionality, which is dependency-free, framework-agnostic and as unopinionated as possible.
 
 ## Installation
 

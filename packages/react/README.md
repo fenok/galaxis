@@ -1,6 +1,6 @@
 # Fetcher React
 
-React bindings for Fetcher Core.
+React bindings for [Fetcher](/README.md#fetcher-).
 
 ## Installation
 
