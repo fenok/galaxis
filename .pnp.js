@@ -2672,8 +2672,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@types/node", "npm:14.14.37"],
             ["@types/react", "npm:17.0.3"],
             ["@types/react-dom", "npm:17.0.3"],
-            ["@types/types__react", null],
-            ["@types/types__react-dom", null],
             ["@typescript-eslint/eslint-plugin", "virtual:c1fde0c38ec1424cff1aa573370869dd10639d73765698008e2f898ea742a371da1723302503adc59a9e0ccdfbd193dd16f26475486c07386c0dd5483ed2cf6e#npm:4.20.0"],
             ["@typescript-eslint/parser", "virtual:c1fde0c38ec1424cff1aa573370869dd10639d73765698008e2f898ea742a371da1723302503adc59a9e0ccdfbd193dd16f26475486c07386c0dd5483ed2cf6e#npm:4.20.0"],
             ["eslint", "npm:7.23.0"],
@@ -2688,8 +2686,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packagePeers": [
             "@types/react-dom",
             "@types/react",
-            "@types/types__react-dom",
-            "@types/types__react",
             "react-dom",
             "react"
           ],
