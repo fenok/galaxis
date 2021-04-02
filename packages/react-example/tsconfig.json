@@ -4,7 +4,7 @@
         "noEmit": true,
         "isolatedModules": true,
         "outDir": "./dist",
-        "jsx": "react"
+        "jsx": "react-jsx"
     },
     "include": ["src/client", "@types"]
 }

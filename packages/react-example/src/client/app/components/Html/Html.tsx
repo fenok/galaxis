@@ -1,13 +1,13 @@
-import * as React from 'react';
 import { CacheData } from '../../lib/CacheData';
 import { CacheState, ErrorObject } from '@fetcher/in-memory-cache';
+import { FC } from 'react';
 
 interface Props {
     content: string;
     fetcherState: CacheState<CacheData, ErrorObject>;
 }
 
-const Html: React.FC<Props> = ({ content, fetcherState }) => {
+const Html: FC<Props> = ({ content, fetcherState }) => {
     return (
         <html>
             <head>

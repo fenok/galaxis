@@ -1,18 +1,19 @@
-import * as React from 'react';
 import { ClientProvider } from '@fetcher/react';
 import { UserDisplay } from '../UserDisplay';
 import { AppClient } from '../../lib/getClient';
+import { FC } from 'react';
 
 interface Props {
     client: AppClient;
 }
 
-const App: React.FC<Props> = ({ client }) => {
+const App: FC<Props> = ({ client }) => {
     return (
         <ClientProvider client={client}>
-            <UserDisplay variant={1} />
-            <UserDisplay variant={2} />
-            <UserDisplay variant={3} />
+            <UserDisplay fetchPolicy={'cache-only'} />
+            <UserDisplay fetchPolicy={'cache-first'} />
+            <UserDisplay fetchPolicy={'cache-and-network'} />
+            <UserDisplay fetchPolicy={'no-cache'} />
         </ClientProvider>
     );
 };

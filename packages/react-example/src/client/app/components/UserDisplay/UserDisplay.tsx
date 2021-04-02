@@ -1,25 +1,21 @@
-import * as React from 'react';
-import { useState } from 'react';
+import { FC, useState } from 'react';
 import { userQuery } from '../../requests/user';
-import { useQuery } from '@fetcher/react';
+import { FetchPolicy, useQuery } from '@fetcher/react';
 import { isResponseError } from '../../lib/isResponseError';
 
 interface Props {
-    variant: number;
+    fetchPolicy: FetchPolicy;
 }
 
-const UserDisplay: React.FC<Props> = ({ variant }) => {
+const UserDisplay: FC<Props> = ({ fetchPolicy }) => {
     const [userId, setUserId] = useState(1);
 
     const { data, error, loading, refetch, abort, execute, executed, reset } = useQuery(
         userQuery({
             requestParams: { pathParams: { id: userId } },
-            fetchPolicy: variant === 1 ? 'cache-and-network' : variant === 2 ? 'cache-only' : 'no-cache',
-            lazy: variant == 2,
+            fetchPolicy,
         }),
     );
-
-    console.log('Render', variant, data?.name, error?.message, loading);
 
     return (
         <div>
@@ -39,19 +35,26 @@ const UserDisplay: React.FC<Props> = ({ variant }) => {
             <button disabled={!executed} onClick={reset}>
                 Reset
             </button>
-            <button onClick={() => setUserId((prevId) => prevId + 1)}>Iterate user</button>
-            <div>{JSON.stringify(executed)}</div>
-            <div>{JSON.stringify(data?.name)}</div>
-            <div>{JSON.stringify(loading)}</div>
-            {isResponseError(error) ? (
-                <div>
-                    {JSON.stringify(error.message)}, {JSON.stringify(error.response)}, {JSON.stringify(error.code)}
-                </div>
-            ) : (
-                error?.message || 'No error'
-            )}
+            <button onClick={() => setUserId((prevId) => prevId + 1)}>Increment user id</button>
+            <button onClick={() => setUserId((prevId) => prevId - 1)}>Decrement user id</button>
+            <div>User id: {userId}</div>
+            <div>Fetch policy: {fetchPolicy}</div>
+            <div>Executed: {JSON.stringify(executed)}</div>
+            <div>Data: {JSON.stringify(data)}</div>
+            <div>Loading: {JSON.stringify(loading)}</div>
+            <div>Error: {formatError(error)}</div>
         </div>
     );
 };
+
+function formatError(error: Error | undefined) {
+    return error
+        ? JSON.stringify({
+              name: error.name,
+              message: error.message,
+              response: isResponseError(error) ? error.response : undefined,
+          })
+        : undefined;
+}
 
 export { UserDisplay };
