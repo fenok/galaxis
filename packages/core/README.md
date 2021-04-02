@@ -12,7 +12,7 @@ This package contains core [Fetcher](/README.md#fetcher-) functionality, which i
 yarn add @fetcher/core
 ```
 
-Note that you should use a framework-specific wrapper (such as Fetcher [React](../../packages/react)) and not install Fecther Core directly.
+Note that you should use a framework-specific wrapper (such as Fetcher [React](/packages/react#fetcher-react)) and not install Fecther Core directly.
 
 The library is compiled to modern JS, but it should work in all reasonable browsers with the help of properly configured Babel.
 
@@ -102,7 +102,7 @@ Note that you have to indicate that the hydrate stage is complete by calling <co
 
 ### High Customizability
 
-The library is completely unopinionated about the network level. You can use fetch, axios, XMLHttpRequest, or any other solution. You can add network requests logging, retries, or timeouts. The library doesn't care in which format your data arrives. Just provide a `getRequestFactory` option of <code>[BaseRequest](#baserequest)</code> that will abstract it all away. The library provides <code>[Fetch](../../packages/fetch)</code> as a recommended network interface.
+The library is completely unopinionated about the network level. You can use fetch, axios, XMLHttpRequest, or any other solution. You can add network requests logging, retries, or timeouts. The library doesn't care in which format your data arrives. Just provide a `getRequestFactory` option of <code>[BaseRequest](#baserequest)</code> that will abstract it all away. The library provides <code>[Fetch](/packages/fetch#fetcher-fetch)</code> as a recommended network interface.
 
 The library is also unopinionated about <code>[Cache](#cache)</code> internals. You can add cache persistence, partial or complete. You even should be able to integrate the cache with your own state management solution, should you need so. The library provides <code>[InMemoryCache](../in-memory-cache#inmemorycache)</code> as a recommended cache.
 

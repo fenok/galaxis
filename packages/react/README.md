@@ -8,7 +8,7 @@ React bindings for [Fetcher](/README.md#fetcher-).
 yarn add @fetcher/react
 ```
 
-This will also install and expose API of Fetcher [Core](../../packages/core).
+This will also install and expose API of Fetcher [Core](/packages/core#fetcher-core).
 
 The library is compiled to modern JS, but it should work in all reasonable browsers with the help of properly configured Babel.
 

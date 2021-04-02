@@ -20,12 +20,12 @@ Notable features:
 
 ## Examples
 
--   [React Example](packages/react-example).
+-   [React Example](packages/react-example#fetcher-react-example).
 
 ## Documentation
 
--   Framework-agnostic Fetcher [Core](packages/core).
--   Fetcher [React](packages/react) bindings.
--   Common [Utils](packages/utils).
--   Recommended cache: [In-Memory Cache](packages/in-memory-cache).
--   Recommended network interface: [Fetch](packages/fetch).
+-   Framework-agnostic Fetcher [Core](packages/core#fetcher-core).
+-   Fetcher [React](packages/react#fetcher-react) bindings.
+-   Common [Utils](packages/utils#fetcher-utils).
+-   Recommended cache: [In-Memory Cache](packages/in-memory-cache#fetcher-in-memory-cache).
+-   Recommended network interface: [Fetch](packages/fetch#fetcher-fetch).

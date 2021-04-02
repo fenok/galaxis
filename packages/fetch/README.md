@@ -8,7 +8,7 @@ A [Fetcher](/README.md#fetcher-) network interface that uses Fetch API, extended
 yarn add @fetcher/fetch
 ```
 
-You need to install Fetcher [Core](../../packages/core) as well, directly or indirectly.
+You need to install Fetcher [Core](/packages/core#fetcher-core) as well, directly or indirectly.
 
 The library is compiled to modern JS, but it should work in all reasonable browsers with the help of properly configured Babel.
 
@@ -31,14 +31,14 @@ const query: AppQuery = {
 
 ##### `GetRequestFactoryOptions`
 
-| Name            | Type                                                                             | Description                                                                   | Required |
-| --------------- | -------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- | -------- |
-| processResponse | <code>(response: Response) => [D](../../packages/core#user-defined-types)</code> | A function that takes `Response` and returns request data or throws an error. | Yes      |
-| fetch           | `typeof fetch`                                                                   | `fetch` function to use instead of built-in `fetch`.                          | No       |
+| Name            | Type                                                                        | Description                                                                   | Required |
+| --------------- | --------------------------------------------------------------------------- | ----------------------------------------------------------------------------- | -------- |
+| processResponse | <code>(response: Response) => [D](/packages/core#user-defined-types)</code> | A function that takes `Response` and returns request data or throws an error. | Yes      |
+| fetch           | `typeof fetch`                                                              | `fetch` function to use instead of built-in `fetch`.                          | No       |
 
 #### Return value
 
-<code>(opts: [RequestOptions](../../packages/core#requestoptions)) => (abortSignal?: AbortSignal) => Promise<[D](../../packages/core#user-defined-types)>;</code>
+<code>(opts: [RequestOptions](/packages/core#requestoptions)) => (abortSignal?: AbortSignal) => Promise<[D](/packages/core#user-defined-types)>;</code>
 
 ### `getRequestId()`
 
@@ -61,7 +61,7 @@ const query: AppQuery = {
 
 #### Return value
 
-<code>(opts: [RequestOptions](../../packages/core#requestoptions)) => string;</code>
+<code>(opts: [RequestOptions](/packages/core#requestoptions)) => string;</code>
 
 ### `processResponseJson()`
 

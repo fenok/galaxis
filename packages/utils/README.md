@@ -8,7 +8,7 @@ Common [Fetcher](/README.md#fetcher-) utils.
 yarn add @fetcher/utils
 ```
 
-You need to install Fetcher [Core](../../packages/core) as well, directly or indirectly.
+You need to install Fetcher [Core](/packages/core#fetcher-core) as well, directly or indirectly.
 
 The library is compiled to modern JS, but it should work in all reasonable browsers with the help of properly configured Babel.
 
@@ -73,13 +73,13 @@ const query: AppQuery = {
 
 #### Arguments
 
-| Name    | Type                                                                                         | Description                                                                              | Required |
-| ------- | -------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- | -------- |
-| toCache | <code>(opts: [CacheAndDataOptions](../../packages/core#cacheanddataoptions)) => void;</code> | A function like normal `toCache`, but the `cacheData` parameter can be updated directly. | Yes      |
+| Name    | Type                                                                                    | Description                                                                              | Required |
+| ------- | --------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- | -------- |
+| toCache | <code>(opts: [CacheAndDataOptions](/packages/core#cacheanddataoptions)) => void;</code> | A function like normal `toCache`, but the `cacheData` parameter can be updated directly. | Yes      |
 
 #### Return value
 
-<code>(opts: [CacheAndDataOptions](../../packages/core#cacheanddataoptions)) => [C](../../packages/core#user-defined-types);</code>
+<code>(opts: [CacheAndDataOptions](/packages/core#cacheanddataoptions)) => [C](/packages/core#user-defined-types);</code>
 
 ### `memoize()`
 
@@ -102,14 +102,14 @@ const query: AppQuery = {
 
 #### Arguments
 
-| Name      | Type                                                                                                                                   | Description                                                                                                                                                                                                                                           | Required |
-| --------- | -------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
-| fromCache | <code>(opts: [CacheOptions](../../packages/core#cacheoptions)) => [D](../../packages/core#user-defined-types) &#124; undefined </code> | A normal `fromCache` function.                                                                                                                                                                                                                        | Yes      |
-| getDeps   | <code>(opts: [CacheOptions](../../packages/core#cacheoptions)) => unknown[] </code>                                                    | A function that returns the parts of `cacheData` that this `fromCache` depends on. These dependencies are compared by reference. The new value will be calculated only if some dependency changes. Note that the length of dependencies can't change. | Yes      |
+| Name      | Type                                                                                                                         | Description                                                                                                                                                                                                                                           | Required |
+| --------- | ---------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
+| fromCache | <code>(opts: [CacheOptions](/packages/core#cacheoptions)) => [D](/packages/core#user-defined-types) &#124; undefined </code> | A normal `fromCache` function.                                                                                                                                                                                                                        | Yes      |
+| getDeps   | <code>(opts: [CacheOptions](/packages/core#cacheoptions)) => unknown[] </code>                                               | A function that returns the parts of `cacheData` that this `fromCache` depends on. These dependencies are compared by reference. The new value will be calculated only if some dependency changes. Note that the length of dependencies can't change. | Yes      |
 
 #### Return value
 
-<code>(opts: [CacheOptions](../../packages/core#cacheoptions)) => [D](../../packages/core#user-defined-types) &#124; undefined </code>
+<code>(opts: [CacheOptions](/packages/core#cacheoptions)) => [D](/packages/core#user-defined-types) &#124; undefined </code>
 
 ### `mergeDeepNonUndefined()`
 

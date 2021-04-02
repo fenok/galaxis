@@ -8,7 +8,7 @@ A [Fetcher](/README.md#fetcher-) cache that stores state in memory and is observ
 yarn add @fetcher/in-memory-cache
 ```
 
-You need to install Fetcher [Core](../../packages/core) as well, directly or indirectly.
+You need to install Fetcher [Core](/packages/core) as well, directly or indirectly.
 
 The library is compiled to modern JS, but it should work in all reasonable browsers with the help of properly configured Babel.
 
@@ -18,7 +18,7 @@ The library is compiled to modern JS, but it should work in all reasonable brows
 
 ### `InMemoryCache`
 
-Implements <code>[Cache](../../packages/core#cache)</code>.
+Implements <code>[Cache](/packages/core#cache)</code>.
 
 ```typescript
 const inMemoryCache = new InMemoryCache({ emptyData, initialState, enableDevTools });
@@ -26,11 +26,11 @@ const inMemoryCache = new InMemoryCache({ emptyData, initialState, enableDevTool
 
 ##### Arguments
 
-| Name           | Type                                                                                                                                               | Description                                                                         | Required |
-| -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- | -------- |
-| emptyData      | <code>[C](../../packages/core#user-defined-types)</code>                                                                                           | A value that conforms to `C`, that is considered to be empty. E.g. `{entities: {}}` | Yes      |
-| initialState   | <code>[CacheState](#cachestate)<[C](../../packages/core#user-defined-types), [ErrorObject](https://www.npmjs.com/package/serialize-error) ></code> | A value from <code>[cache.extract()](#cacheextract)</code>, most likely from SSR.   | No       |
-| enableDevTools | `boolean`                                                                                                                                          | Enable Redux DevTools integration.                                                  | No       |
+| Name           | Type                                                                                                                                          | Description                                                                         | Required |
+| -------------- | --------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- | -------- |
+| emptyData      | <code>[C](/packages/core#user-defined-types)</code>                                                                                           | A value that conforms to `C`, that is considered to be empty. E.g. `{entities: {}}` | Yes      |
+| initialState   | <code>[CacheState](#cachestate)<[C](/packages/core#user-defined-types), [ErrorObject](https://www.npmjs.com/package/serialize-error) ></code> | A value from <code>[cache.extract()](#cacheextract)</code>, most likely from SSR.   | No       |
+| enableDevTools | `boolean`                                                                                                                                     | Enable Redux DevTools integration.                                                  | No       |
 
 #### `cache.extract()`
 
@@ -42,7 +42,7 @@ const state = cache.extract();
 
 ##### Return value
 
-<code>[CacheState](#cachestate)<[C](../../packages/core#user-defined-types), [ErrorObject](https://www.npmjs.com/package/serialize-error) ></code>
+<code>[CacheState](#cachestate)<[C](/packages/core#user-defined-types), [ErrorObject](https://www.npmjs.com/package/serialize-error) ></code>
 
 ### Important types
 
@@ -50,7 +50,7 @@ const state = cache.extract();
 
 Internal state of the cache.
 
-| Name   | Type                                                     | Description                               |
-| ------ | -------------------------------------------------------- | ----------------------------------------- |
-| data   | <code>[C](../../packages/core#user-defined-types)</code> | Cache data.                               |
-| errors | <code>Record<string, E &#124; undefined></code>          | Cached errors. `E` is `Error` by default. |
+| Name   | Type                                                | Description                               |
+| ------ | --------------------------------------------------- | ----------------------------------------- |
+| data   | <code>[C](/packages/core#user-defined-types)</code> | Cache data.                               |
+| errors | <code>Record<string, E &#124; undefined></code>     | Cached errors. `E` is `Error` by default. |
