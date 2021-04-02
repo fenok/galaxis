@@ -1,5 +1,7 @@
 # Fetcher Fetch
 
+[![npm](https://img.shields.io/npm/v/@fetcher/fetch)](https://www.npmjs.com/package/@fetcher/fetch)
+
 A [Fetcher](/README.md#fetcher-) network interface that uses Fetch API, extended with types and custom body data.
 
 ## Installation

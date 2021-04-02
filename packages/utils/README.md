@@ -1,5 +1,7 @@
 # Fetcher Utils
 
+[![npm](https://img.shields.io/npm/v/@fetcher/utils)](https://www.npmjs.com/package/@fetcher/utils)
+
 Common [Fetcher](/README.md#fetcher-) utils.
 
 ## Installation

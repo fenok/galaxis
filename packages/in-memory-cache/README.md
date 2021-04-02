@@ -1,5 +1,7 @@
 # Fetcher In-Memory Cache
 
+[![npm](https://img.shields.io/npm/v/@fetcher/in-memory-cache)](https://www.npmjs.com/package/@fetcher/in-memory-cache)
+
 A [Fetcher](/README.md#fetcher-) cache that stores state in memory and is observable via [Redux DevTools](https://github.com/reduxjs/redux-devtools).
 
 ## Installation

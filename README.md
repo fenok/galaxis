@@ -1,6 +1,6 @@
 # Fetcher 🌌
 
-[![npm](https://img.shields.io/npm/v/react-fetching-hooks)](https://www.npmjs.com/package/react-fetching-hooks)
+[![npm](https://img.shields.io/npm/v/@fetcher/core)](https://www.npmjs.com/package/@fetcher/core)
 
 [Apollo](https://www.apollographql.com)-inspired backend-agnostic fetching library with full SSR support.
 

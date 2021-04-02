@@ -1,5 +1,7 @@
 # Fetcher React
 
+[![npm](https://img.shields.io/npm/v/@fetcher/react)](https://www.npmjs.com/package/@fetcher/react)
+
 React bindings for [Fetcher](/README.md#fetcher-).
 
 ## Installation
