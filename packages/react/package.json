@@ -15,7 +15,7 @@
         "prepublishOnly": "yarn lint",
         "build": "rimraf ./dist && tsc",
         "lint": "eslint .",
-        "prettier:all": "prettier --write \"**/*.{js,ts,tsx,json,md,*rc}\""
+        "format": "prettier --write \"**/*.{js,ts,tsx,json,md,*rc}\""
     },
     "dependencies": {
         "@fetcher/core": "^0.0.19"

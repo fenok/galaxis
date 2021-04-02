@@ -12,7 +12,7 @@
         "build": "yarn workspaces foreach -p --topological-dev run build",
         "lint": "yarn workspaces foreach -p run lint",
         "test": "yarn workspaces foreach -p run test",
-        "prettier:all": "yarn workspaces foreach -p run prettier:all"
+        "format": "yarn workspaces foreach -p run format"
     },
     "devDependencies": {
         "@typescript-eslint/eslint-plugin": "^4.20.0",

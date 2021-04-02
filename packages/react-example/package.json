@@ -9,7 +9,7 @@
         "build": "webpack",
         "start": "node src/server",
         "lint": "tsc && eslint .",
-        "prettier:all": "prettier --write \"**/*.{js,ts,tsx,json,md,*rc}\""
+        "format": "prettier --write \"**/*.{js,ts,tsx,json,md,*rc}\""
     },
     "dependencies": {
         "express": "4.17.1"
