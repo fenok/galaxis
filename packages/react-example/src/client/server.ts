@@ -4,7 +4,7 @@ import { Html } from './app/components/Html';
 import { renderToStaticMarkup, renderToString } from 'react-dom/server';
 import { App } from './app/components/App';
 import { getClient } from './app/lib/getClient';
-import { getDataFromTree } from '@fetcher/react';
+import { getDataFromTree } from '@galaxis/react';
 import fetchFn from 'node-fetch';
 
 export default async function ssrMiddleware(_: Request, res: Response<unknown>) {
@@ -16,10 +16,10 @@ export default async function ssrMiddleware(_: Request, res: Response<unknown>) 
     console.log('Waiting for data...');
     await getDataFromTree(app);
 
-    const fetcherState = client.getCache().extract();
+    const galaxisState = client.getCache().extract();
 
     console.log('Creating html...');
-    const html = createElement(Html, { content: renderToString(app), fetcherState });
+    const html = createElement(Html, { content: renderToString(app), galaxisState });
 
     res.send(renderToStaticMarkup(html));
 }

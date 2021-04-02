@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/fetcher.iml" filepath="$PROJECT_DIR$/.idea/fetcher.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/galaxis.iml" filepath="$PROJECT_DIR$/.idea/galaxis.iml" />
     </modules>
   </component>
 </project>

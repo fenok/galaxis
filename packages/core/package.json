@@ -1,8 +1,8 @@
 {
-    "name": "@fetcher/core",
+    "name": "@galaxis/core",
     "description": "Apollo-inspired backend-agnostic fetching library with full SSR support.",
     "keywords": [
-        "fetcher",
+        "galaxis",
         "apollo",
         "client",
         "api",
@@ -10,7 +10,7 @@
         "ssr"
     ],
     "version": "0.0.19",
-    "repository": "github:fenok/fetcher",
+    "repository": "github:fenok/galaxis",
     "license": "MIT",
     "author": "Leonid Fenko <fenok2112@gmail.com>",
     "sideEffects": false,

@@ -1,6 +1,6 @@
 import { FC, useState } from 'react';
 import { userQuery } from '../../requests/user';
-import { FetchPolicy, useQuery } from '@fetcher/react';
+import { FetchPolicy, useQuery } from '@galaxis/react';
 import { isResponseError } from '../../lib/isResponseError';
 
 interface Props {

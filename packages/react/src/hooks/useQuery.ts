@@ -1,4 +1,4 @@
-import { NonUndefined, Query } from '@fetcher/core';
+import { NonUndefined, Query } from '@galaxis/core';
 import { useContext, useEffect, useReducer, useRef } from 'react';
 import { useClient } from '../providers';
 import { SsrPromisesManagerContext } from '../ssr';

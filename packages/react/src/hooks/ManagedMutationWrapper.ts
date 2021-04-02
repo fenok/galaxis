@@ -1,4 +1,4 @@
-import { Client, Mutation, MutationManagerResult, NonUndefined } from '@fetcher/core';
+import { Client, Mutation, MutationManagerResult, NonUndefined } from '@galaxis/core';
 
 export class ManagedMutationWrapper<C extends NonUndefined, D extends NonUndefined, E extends Error, R> {
     private queryHash?: string;

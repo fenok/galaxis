@@ -1,4 +1,4 @@
-import { NonUndefined, CacheOptions } from '@fetcher/core';
+import { NonUndefined, CacheOptions } from '@galaxis/core';
 
 const cache: Record<string, { deps: unknown[]; value: unknown } | undefined> = {};
 

@@ -1,4 +1,4 @@
-import { CacheAndDataOptions, NonUndefined } from '@fetcher/core';
+import { CacheAndDataOptions, NonUndefined } from '@galaxis/core';
 import produce from 'immer';
 
 export function immerify<C extends NonUndefined, D extends NonUndefined, R>(

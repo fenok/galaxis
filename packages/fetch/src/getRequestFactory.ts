@@ -1,8 +1,8 @@
 import { RequestParams } from './types';
 import { getUrl } from './getUrl';
-import { RequestOptions } from '@fetcher/core';
+import { RequestOptions } from '@galaxis/core';
 import { getRequestInit } from './getRequestInit';
-import { NonUndefined } from '@fetcher/core';
+import { NonUndefined } from '@galaxis/core';
 
 export interface GetRequestFactoryOptions<D extends NonUndefined> {
     fetch?: typeof fetch;

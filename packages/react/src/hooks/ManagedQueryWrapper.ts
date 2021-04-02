@@ -1,4 +1,4 @@
-import { NonUndefined, Query, Client, SsrPromisesManager, QueryManagerResult } from '@fetcher/core';
+import { NonUndefined, Query, Client, SsrPromisesManager, QueryManagerResult } from '@galaxis/core';
 
 export class ManagedQueryWrapper<C extends NonUndefined, D extends NonUndefined, E extends Error, R> {
     private queryHash?: string;

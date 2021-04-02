@@ -1,4 +1,4 @@
-import { NonUndefined } from '@fetcher/core';
+import { NonUndefined } from '@galaxis/core';
 import { ResponseError } from '../errors';
 
 export async function processResponseJson<D extends NonUndefined>(response: Response): Promise<D> {

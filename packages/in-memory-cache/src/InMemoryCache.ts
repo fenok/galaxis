@@ -1,5 +1,5 @@
 import { devTools, ReduxDevTools } from './devTools';
-import { Cache, NonUndefined, UpdateOptions } from '@fetcher/core';
+import { Cache, NonUndefined, UpdateOptions } from '@galaxis/core';
 import { serializeError, deserializeError, ErrorObject } from 'serialize-error';
 
 interface CacheState<C extends NonUndefined, E = Error> {

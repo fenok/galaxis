@@ -1,6 +1,6 @@
-# Fetcher 🌌
+# Galaxis 🌌
 
-[![npm](https://img.shields.io/npm/v/@fetcher/core)](https://www.npmjs.com/package/@fetcher/core)
+[![npm](https://img.shields.io/npm/v/@galaxis/core)](https://www.npmjs.com/package/@galaxis/core)
 
 [Apollo](https://www.apollographql.com)-inspired backend-agnostic fetching library with full SSR support.
 
@@ -20,12 +20,12 @@ Notable features:
 
 ## Examples
 
--   [React Example](packages/react-example#fetcher-react-example).
+-   [React Example](packages/react-example#galaxis-react-example).
 
 ## Documentation
 
--   Framework-agnostic Fetcher [Core](packages/core#fetcher-core).
--   Fetcher [React](packages/react#fetcher-react) bindings.
--   Common [Utils](packages/utils#fetcher-utils).
--   Recommended cache: [In-Memory Cache](packages/in-memory-cache#fetcher-in-memory-cache).
--   Recommended network interface: [Fetch](packages/fetch#fetcher-fetch).
+-   Framework-agnostic Galaxis [Core](packages/core#galaxis-core).
+-   Galaxis [React](packages/react#galaxis-react) bindings.
+-   Common [Utils](packages/utils#galaxis-utils).
+-   Recommended cache: [In-Memory Cache](packages/in-memory-cache#galaxis-in-memory-cache).
+-   Recommended network interface: [Fetch](packages/fetch#galaxis-fetch).

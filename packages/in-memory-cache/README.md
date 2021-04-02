@@ -1,16 +1,16 @@
-# Fetcher In-Memory Cache
+# Galaxis In-Memory Cache
 
-[![npm](https://img.shields.io/npm/v/@fetcher/in-memory-cache)](https://www.npmjs.com/package/@fetcher/in-memory-cache)
+[![npm](https://img.shields.io/npm/v/@galaxis/in-memory-cache)](https://www.npmjs.com/package/@galaxis/in-memory-cache)
 
-A [Fetcher](/README.md#fetcher-) cache that stores state in memory and is observable via [Redux DevTools](https://github.com/reduxjs/redux-devtools).
+A [Galaxis](/README.md#galaxis-) cache that stores state in memory and is observable via [Redux DevTools](https://github.com/reduxjs/redux-devtools).
 
 ## Installation
 
 ```
-yarn add @fetcher/in-memory-cache
+yarn add @galaxis/in-memory-cache
 ```
 
-You need to install Fetcher [Core](/packages/core) as well, directly or indirectly.
+You need to install Galaxis [Core](/packages/core) as well, directly or indirectly.
 
 The library is compiled to modern JS, but it should work in all reasonable browsers with the help of properly configured Babel.
 

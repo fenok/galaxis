@@ -1,16 +1,16 @@
-# Fetcher React
+# Galaxis React
 
-[![npm](https://img.shields.io/npm/v/@fetcher/react)](https://www.npmjs.com/package/@fetcher/react)
+[![npm](https://img.shields.io/npm/v/@galaxis/react)](https://www.npmjs.com/package/@galaxis/react)
 
-React bindings for [Fetcher](/README.md#fetcher-).
+React bindings for [Galaxis](/README.md#galaxis-).
 
 ## Installation
 
 ```
-yarn add @fetcher/react
+yarn add @galaxis/react
 ```
 
-This will also install and expose API of Fetcher [Core](/packages/core#fetcher-core).
+This will also install and expose API of Galaxis [Core](/packages/core#galaxis-core).
 
 The library is compiled to modern JS, but it should work in all reasonable browsers with the help of properly configured Babel.
 
@@ -119,9 +119,9 @@ export default async function ssrMiddleware(_: Request, res: Response<unknown>) 
 
     await getDataFromTree(app);
 
-    const fetcherState = client.getCache().extract();
+    const galaxisState = client.getCache().extract();
 
-    const html = createElement(Html, { content: renderToString(app), fetcherState });
+    const html = createElement(Html, { content: renderToString(app), galaxisState });
 
     res.send(renderToStaticMarkup(html));
 }

@@ -1,4 +1,4 @@
-import { Cache, Client, NonUndefined } from '@fetcher/core';
+import { Cache, Client, NonUndefined } from '@galaxis/core';
 import { createContext, createElement, PropsWithChildren, useContext, useEffect } from 'react';
 
 const ClientContext = createContext<Client | undefined>(undefined);

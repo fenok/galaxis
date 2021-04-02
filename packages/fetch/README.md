@@ -1,16 +1,16 @@
-# Fetcher Fetch
+# Galaxis Fetch
 
-[![npm](https://img.shields.io/npm/v/@fetcher/fetch)](https://www.npmjs.com/package/@fetcher/fetch)
+[![npm](https://img.shields.io/npm/v/@galaxis/fetch)](https://www.npmjs.com/package/@galaxis/fetch)
 
-A [Fetcher](/README.md#fetcher-) network interface that uses Fetch API, extended with types and custom body data.
+A [Galaxis](/README.md#galaxis-) network interface that uses Fetch API, extended with types and custom body data.
 
 ## Installation
 
 ```
-yarn add @fetcher/fetch
+yarn add @galaxis/fetch
 ```
 
-You need to install Fetcher [Core](/packages/core#fetcher-core) as well, directly or indirectly.
+You need to install Galaxis [Core](/packages/core#galaxis-core) as well, directly or indirectly.
 
 The library is compiled to modern JS, but it should work in all reasonable browsers with the help of properly configured Babel.
 

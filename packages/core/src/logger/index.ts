@@ -1,4 +1,4 @@
-const LIBRARY_PREFIX = '[Fetcher]';
+const LIBRARY_PREFIX = '[Galaxis]';
 
 export const logger = {
     log(message?: unknown, ...optionalParams: unknown[]) {

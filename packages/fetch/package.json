@@ -1,13 +1,13 @@
 {
-    "name": "@fetcher/fetch",
-    "description": "A Fetcher network interface that uses Fetch API, extended with types and custom body data.",
+    "name": "@galaxis/fetch",
+    "description": "A Galaxis network interface that uses Fetch API, extended with types and custom body data.",
     "keywords": [
-        "fetcher",
+        "galaxis",
         "fetch",
         "types"
     ],
     "version": "0.0.19",
-    "repository": "github:fenok/fetcher",
+    "repository": "github:fenok/galaxis",
     "license": "MIT",
     "author": "Leonid Fenko <fenok2112@gmail.com>",
     "sideEffects": false,
@@ -28,7 +28,7 @@
         "query-string": "^7.0.0"
     },
     "devDependencies": {
-        "@fetcher/core": "^0.0.19",
+        "@galaxis/core": "^0.0.19",
         "@typescript-eslint/eslint-plugin": "^4.20.0",
         "@typescript-eslint/parser": "^4.20.0",
         "eslint": "^7.23.0",
@@ -38,6 +38,6 @@
         "typescript": "^4.2.3"
     },
     "peerDependencies": {
-        "@fetcher/core": "^0.0.19"
+        "@galaxis/core": "^0.0.19"
     }
 }

@@ -1,6 +1,6 @@
 import { RequestParams } from './types';
 import { getUrl } from './getUrl';
-import { RequestOptions } from '@fetcher/core';
+import { RequestOptions } from '@galaxis/core';
 
 export interface GetRequestIdOptions {
     hash(value: unknown): string;

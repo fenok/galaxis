@@ -1,7 +1,7 @@
 {
-    "name": "fetcher",
+    "name": "galaxis",
     "version": "0.0.19",
-    "repository": "github:fenok/fetcher",
+    "repository": "github:fenok/galaxis",
     "license": "MIT",
     "author": "Leonid Fenko <fenok2112@gmail.com>",
     "private": true,

@@ -1,6 +1,6 @@
-import { NonUndefined, Query } from '@fetcher/react';
-import { getParametrizedRequest, getStaticRequest, mergeDeepNonUndefined } from '@fetcher/utils';
-import { RequestParams, ResponseError, RequestParamsConstraint, DynamicRequestParams } from '@fetcher/fetch';
+import { NonUndefined, Query } from '@galaxis/react';
+import { getParametrizedRequest, getStaticRequest, mergeDeepNonUndefined } from '@galaxis/utils';
+import { RequestParams, ResponseError, RequestParamsConstraint, DynamicRequestParams } from '@galaxis/fetch';
 import { CacheData } from './CacheData';
 import { ErrorResponse } from './ErrorResponse';
 

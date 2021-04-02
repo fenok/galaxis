@@ -1,8 +1,8 @@
-import { Client, NonUndefined } from '@fetcher/react';
-import { InMemoryCache } from '@fetcher/in-memory-cache';
+import { Client, NonUndefined } from '@galaxis/react';
+import { InMemoryCache } from '@galaxis/in-memory-cache';
 import { CacheData } from './CacheData';
-import { getRequestFactory, getRequestId, processResponseJson, RequestParams, ResponseError } from '@fetcher/fetch';
-import { mergeDeepNonUndefined, objectHash } from '@fetcher/utils';
+import { getRequestFactory, getRequestId, processResponseJson, RequestParams, ResponseError } from '@galaxis/fetch';
+import { mergeDeepNonUndefined, objectHash } from '@galaxis/utils';
 import { ErrorResponse } from './ErrorResponse';
 
 export const EMPTY_DATA: CacheData = {
@@ -25,7 +25,7 @@ export type AppClient = Client<
 export function getClient({ fetch }: GetClientOptions): AppClient {
     return new Client({
         cache: new InMemoryCache({
-            initialState: typeof window !== 'undefined' ? window.FETCHER_STATE : undefined,
+            initialState: typeof window !== 'undefined' ? window.GALAXIS_STATE : undefined,
             emptyData: EMPTY_DATA,
             enableDevTools: true,
         }),

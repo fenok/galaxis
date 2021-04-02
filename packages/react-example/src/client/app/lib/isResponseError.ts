@@ -1,5 +1,5 @@
 import { ErrorResponse } from './ErrorResponse';
-import { ResponseError } from '@fetcher/fetch';
+import { ResponseError } from '@galaxis/fetch';
 
 export function isResponseError(
     error: Error | ResponseError<ErrorResponse> | undefined,

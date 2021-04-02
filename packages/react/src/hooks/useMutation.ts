@@ -1,5 +1,5 @@
 import { useClient } from '../providers';
-import { Mutation, NonUndefined } from '@fetcher/core';
+import { Mutation, NonUndefined } from '@galaxis/core';
 import { useEffect, useReducer, useRef } from 'react';
 import { ManagedMutationWrapper } from './ManagedMutationWrapper';
 

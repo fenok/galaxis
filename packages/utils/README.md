@@ -1,16 +1,16 @@
-# Fetcher Utils
+# Galaxis Utils
 
-[![npm](https://img.shields.io/npm/v/@fetcher/utils)](https://www.npmjs.com/package/@fetcher/utils)
+[![npm](https://img.shields.io/npm/v/@galaxis/utils)](https://www.npmjs.com/package/@galaxis/utils)
 
-Common [Fetcher](/README.md#fetcher-) utils.
+Common [Galaxis](/README.md#galaxis-) utils.
 
 ## Installation
 
 ```
-yarn add @fetcher/utils
+yarn add @galaxis/utils
 ```
 
-You need to install Fetcher [Core](/packages/core#fetcher-core) as well, directly or indirectly.
+You need to install Galaxis [Core](/packages/core#galaxis-core) as well, directly or indirectly.
 
 The library is compiled to modern JS, but it should work in all reasonable browsers with the help of properly configured Babel.
 
@@ -145,7 +145,7 @@ export type Params<T extends DynamicParams = DynamicParams> = StaticParams & T;
 We can define the creators of parametrized queries once in the application:
 
 ```typescript
-import { getParametrizedRequest, getStaticRequest, mergeDeepNonUndefined } from '@fetcher/utils';
+import { getParametrizedRequest, getStaticRequest, mergeDeepNonUndefined } from '@galaxis/utils';
 import { DynamicParams, Params } from 'some-network-interface';
 import { CacheData } from './path/to/cache';
 

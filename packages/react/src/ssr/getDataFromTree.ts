@@ -1,5 +1,5 @@
 import { renderToStaticMarkup } from 'react-dom/server';
-import { SsrPromisesManager } from '@fetcher/core';
+import { SsrPromisesManager } from '@galaxis/core';
 import { SsrPromisesManagerContext } from './SsrPromisesManagerContext';
 import { ReactNode, createElement } from 'react';
 

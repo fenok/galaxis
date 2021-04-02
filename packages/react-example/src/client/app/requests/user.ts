@@ -1,5 +1,5 @@
 import { getQuery } from '../lib/getQuery';
-import { immerify, memoize } from '@fetcher/utils';
+import { immerify, memoize } from '@galaxis/utils';
 
 export interface User {
     id: number;

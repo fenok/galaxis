@@ -1,4 +1,4 @@
-import { ClientProvider } from '@fetcher/react';
+import { ClientProvider } from '@galaxis/react';
 import { UserDisplay } from '../UserDisplay';
 import { AppClient } from '../../lib/getClient';
 import { FC } from 'react';
