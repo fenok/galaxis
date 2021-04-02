@@ -9,7 +9,7 @@
         "rest",
         "ssr"
     ],
-    "version": "0.0.19",
+    "version": "0.1.0",
     "repository": "github:fenok/galaxis",
     "license": "MIT",
     "author": "Leonid Fenko <fenok2112@gmail.com>",
