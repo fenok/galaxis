@@ -1,5 +1,12 @@
 {
     "name": "@fetcher/react",
+    "description": "React bindings for Fetcher.",
+    "keywords": [
+        "fetcher",
+        "react",
+        "react-hooks",
+        "ssr"
+    ],
     "version": "0.0.19",
     "repository": "github:fenok/fetcher",
     "license": "MIT",

@@ -1,5 +1,10 @@
 {
     "name": "@fetcher/utils",
+    "description": "Common Fetcher utils.",
+    "keywords": [
+        "fetcher",
+        "utils"
+    ],
     "version": "0.0.19",
     "repository": "github:fenok/fetcher",
     "license": "MIT",

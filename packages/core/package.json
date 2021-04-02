@@ -1,5 +1,14 @@
 {
     "name": "@fetcher/core",
+    "description": "Apollo-inspired backend-agnostic fetching library with full SSR support.",
+    "keywords": [
+        "fetcher",
+        "apollo",
+        "client",
+        "api",
+        "rest",
+        "ssr"
+    ],
     "version": "0.0.19",
     "repository": "github:fenok/fetcher",
     "license": "MIT",

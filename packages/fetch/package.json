@@ -1,5 +1,11 @@
 {
     "name": "@fetcher/fetch",
+    "description": "A Fetcher network interface that uses Fetch API, extended with types and custom body data.",
+    "keywords": [
+        "fetcher",
+        "fetch",
+        "types"
+    ],
     "version": "0.0.19",
     "repository": "github:fenok/fetcher",
     "license": "MIT",

@@ -1,5 +1,11 @@
 {
     "name": "@fetcher/in-memory-cache",
+    "description": "A Fetcher cache that stores state in memory and is observable via Redux DevTools.",
+    "keywords": [
+        "fetcher",
+        "cache",
+        "redux-devtools"
+    ],
     "version": "0.0.19",
     "repository": "github:fenok/fetcher",
     "license": "MIT",
