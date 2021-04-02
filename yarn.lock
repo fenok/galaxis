@@ -1674,14 +1674,12 @@ __metadata:
   resolution: "@fetcher/utils@workspace:packages/utils"
   dependencies:
     "@fetcher/core": ^0.0.19
-    "@types/lodash.merge": 4.6.6
-    "@types/node": ^14.14.37
-    "@types/object-hash": 1.3.4
+    "@types/lodash.merge": ^4.0.0
+    "@types/object-hash": ^2.0.0
     "@typescript-eslint/eslint-plugin": ^4.20.0
     "@typescript-eslint/parser": ^4.20.0
     eslint: ^7.23.0
     eslint-config-prettier: ^8.1.0
-    eslint-plugin-react-hooks: ^4.2.0
     immer: ^9.0.0
     lodash.merge: ^4.0.0
     object-hash: ^2.0.0
@@ -2167,7 +2165,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/lodash.merge@npm:4.6.6":
+"@types/lodash.merge@npm:^4.0.0":
   version: 4.6.6
   resolution: "@types/lodash.merge@npm:4.6.6"
   dependencies:
@@ -2228,10 +2226,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/object-hash@npm:1.3.4":
-  version: 1.3.4
-  resolution: "@types/object-hash@npm:1.3.4"
-  checksum: 2ae12c7b341bcefb8f5e163527ab6afb911b3fdcdb2aeacac3231b13d5d5ddd4f75bde48268dd01727bac3488222b629808b20b6650364d011bb3c6692dd38e2
+"@types/object-hash@npm:^2.0.0":
+  version: 2.1.0
+  resolution: "@types/object-hash@npm:2.1.0"
+  checksum: 276948b96fff4f3ddbb37a566401fbdcd68ffac16267e464bf73b3448d3a7f8b2876be39c8a731478710d5b5a01dc4a61d927b12babfbf02e4acba6a3d8a0a42
   languageName: node
   linkType: hard
 

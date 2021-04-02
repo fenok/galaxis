@@ -2363,13 +2363,11 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@fetcher/core", "workspace:packages/core"],
             ["@types/fetcher__core", null],
             ["@types/lodash.merge", "npm:4.6.6"],
-            ["@types/node", "npm:14.14.37"],
-            ["@types/object-hash", "npm:1.3.4"],
+            ["@types/object-hash", "npm:2.1.0"],
             ["@typescript-eslint/eslint-plugin", "virtual:c1fde0c38ec1424cff1aa573370869dd10639d73765698008e2f898ea742a371da1723302503adc59a9e0ccdfbd193dd16f26475486c07386c0dd5483ed2cf6e#npm:4.20.0"],
             ["@typescript-eslint/parser", "virtual:c1fde0c38ec1424cff1aa573370869dd10639d73765698008e2f898ea742a371da1723302503adc59a9e0ccdfbd193dd16f26475486c07386c0dd5483ed2cf6e#npm:4.20.0"],
             ["eslint", "npm:7.23.0"],
             ["eslint-config-prettier", "virtual:c1fde0c38ec1424cff1aa573370869dd10639d73765698008e2f898ea742a371da1723302503adc59a9e0ccdfbd193dd16f26475486c07386c0dd5483ed2cf6e#npm:8.1.0"],
-            ["eslint-plugin-react-hooks", "virtual:7d0e81df316b60d3846168366d17c43abedaa9b6b7dc2b475b1bfdd24865614794d5b5ab7204005630e415857904f82adbe65c0874776a7af5ab0de94c10aca7#npm:4.2.0"],
             ["immer", "npm:9.0.1"],
             ["lodash.merge", "npm:4.6.2"],
             ["object-hash", "npm:2.1.1"],
@@ -2388,13 +2386,11 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@fetcher/utils", "workspace:packages/utils"],
             ["@fetcher/core", "workspace:packages/core"],
             ["@types/lodash.merge", "npm:4.6.6"],
-            ["@types/node", "npm:14.14.37"],
-            ["@types/object-hash", "npm:1.3.4"],
+            ["@types/object-hash", "npm:2.1.0"],
             ["@typescript-eslint/eslint-plugin", "virtual:c1fde0c38ec1424cff1aa573370869dd10639d73765698008e2f898ea742a371da1723302503adc59a9e0ccdfbd193dd16f26475486c07386c0dd5483ed2cf6e#npm:4.20.0"],
             ["@typescript-eslint/parser", "virtual:c1fde0c38ec1424cff1aa573370869dd10639d73765698008e2f898ea742a371da1723302503adc59a9e0ccdfbd193dd16f26475486c07386c0dd5483ed2cf6e#npm:4.20.0"],
             ["eslint", "npm:7.23.0"],
             ["eslint-config-prettier", "virtual:c1fde0c38ec1424cff1aa573370869dd10639d73765698008e2f898ea742a371da1723302503adc59a9e0ccdfbd193dd16f26475486c07386c0dd5483ed2cf6e#npm:8.1.0"],
-            ["eslint-plugin-react-hooks", "virtual:7d0e81df316b60d3846168366d17c43abedaa9b6b7dc2b475b1bfdd24865614794d5b5ab7204005630e415857904f82adbe65c0874776a7af5ab0de94c10aca7#npm:4.2.0"],
             ["immer", "npm:9.0.1"],
             ["lodash.merge", "npm:4.6.2"],
             ["object-hash", "npm:2.1.1"],
@@ -2992,10 +2988,10 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         }]
       ]],
       ["@types/object-hash", [
-        ["npm:1.3.4", {
-          "packageLocation": "./.yarn/cache/@types-object-hash-npm-1.3.4-3b3e2e44e8-2ae12c7b34.zip/node_modules/@types/object-hash/",
+        ["npm:2.1.0", {
+          "packageLocation": "./.yarn/cache/@types-object-hash-npm-2.1.0-61907f0341-276948b96f.zip/node_modules/@types/object-hash/",
           "packageDependencies": [
-            ["@types/object-hash", "npm:1.3.4"]
+            ["@types/object-hash", "npm:2.1.0"]
           ],
           "linkType": "HARD",
         }]
