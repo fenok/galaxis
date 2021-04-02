@@ -14,7 +14,7 @@ export function onResolve<U>(promise: Promise<unknown>, cb: () => U | Promise<U>
 }
 
 export function allSettled(promises: Promise<unknown>[]) {
-    return new Promise((resolve) => {
+    return new Promise<void>((resolve) => {
         let unsettledCount = promises.length;
 
         if (!unsettledCount) {
