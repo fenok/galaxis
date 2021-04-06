@@ -1,0 +1,9 @@
+{
+    "extends": "../../tsconfig.json",
+    "compilerOptions": {
+        "noEmit": true,
+        "jsx": "preserve",
+        "outDir": "./dist"
+    },
+    "include": ["src/client", "@types"]
+}
