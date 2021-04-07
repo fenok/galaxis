@@ -1554,6 +1554,7 @@ __metadata:
     "@typescript-eslint/eslint-plugin": ^4.20.0
     "@typescript-eslint/parser": ^4.20.0
     "@vue/compiler-sfc": ^3.0.11
+    "@vue/server-renderer": ^3.0.11
     babel-loader: 8.1.0
     babel-preset-typescript-vue: ^1.1.1
     eslint: ^7.23.0
@@ -2336,6 +2337,18 @@ __metadata:
     "@vue/shared": 3.0.11
     csstype: ^2.6.8
   checksum: ccfe511faeebdb2b54be9b3f1e328c45a5816f7033f5afee36e52e2f205ca26344f484b54c48f0a0a842c0cc18a563958c9595e0a391bcdcc6a0fd57af80da78
+  languageName: node
+  linkType: hard
+
+"@vue/server-renderer@npm:^3.0.11":
+  version: 3.0.11
+  resolution: "@vue/server-renderer@npm:3.0.11"
+  dependencies:
+    "@vue/compiler-ssr": 3.0.11
+    "@vue/shared": 3.0.11
+  peerDependencies:
+    vue: 3.0.11
+  checksum: b5263da85644b9a79bb5e73939322e8cf732cd0136d4173afe49b0f41eb801965b5748420fcc14d17d7a485e1b877ef18056d0a6480884458474e346a90c8fa7
   languageName: node
   linkType: hard
 

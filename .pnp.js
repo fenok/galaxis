@@ -2841,6 +2841,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@typescript-eslint/eslint-plugin", "virtual:b9eb0b2f44c05ed1480f197d60db760ad7c95615d319d0d24ae4589e0d1fdc6d65fc8c9d4627d7f67f6dd64449a98acfd3421999fdad8765848ef2dbe1c9c15d#npm:4.20.0"],
             ["@typescript-eslint/parser", "virtual:b9eb0b2f44c05ed1480f197d60db760ad7c95615d319d0d24ae4589e0d1fdc6d65fc8c9d4627d7f67f6dd64449a98acfd3421999fdad8765848ef2dbe1c9c15d#npm:4.20.0"],
             ["@vue/compiler-sfc", "virtual:30aa7d055de116843c08e7dd5e41c24c7ae5c62c9e33f8069cdd1bc6ec68df5b7288c0f94727c88a234b2252e947439de93762e93faa2489a75e122d85b5d010#npm:3.0.11"],
+            ["@vue/server-renderer", "virtual:30aa7d055de116843c08e7dd5e41c24c7ae5c62c9e33f8069cdd1bc6ec68df5b7288c0f94727c88a234b2252e947439de93762e93faa2489a75e122d85b5d010#npm:3.0.11"],
             ["babel-loader", "virtual:30aa7d055de116843c08e7dd5e41c24c7ae5c62c9e33f8069cdd1bc6ec68df5b7288c0f94727c88a234b2252e947439de93762e93faa2489a75e122d85b5d010#npm:8.1.0"],
             ["babel-preset-typescript-vue", "virtual:30aa7d055de116843c08e7dd5e41c24c7ae5c62c9e33f8069cdd1bc6ec68df5b7288c0f94727c88a234b2252e947439de93762e93faa2489a75e122d85b5d010#npm:1.1.1"],
             ["eslint", "npm:7.23.0"],
@@ -3777,6 +3778,30 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@vue/runtime-core", "npm:3.0.11"],
             ["@vue/shared", "npm:3.0.11"],
             ["csstype", "npm:2.6.16"]
+          ],
+          "linkType": "HARD",
+        }]
+      ]],
+      ["@vue/server-renderer", [
+        ["npm:3.0.11", {
+          "packageLocation": "./.yarn/cache/@vue-server-renderer-npm-3.0.11-4986ba71a6-b5263da856.zip/node_modules/@vue/server-renderer/",
+          "packageDependencies": [
+            ["@vue/server-renderer", "npm:3.0.11"]
+          ],
+          "linkType": "SOFT",
+        }],
+        ["virtual:30aa7d055de116843c08e7dd5e41c24c7ae5c62c9e33f8069cdd1bc6ec68df5b7288c0f94727c88a234b2252e947439de93762e93faa2489a75e122d85b5d010#npm:3.0.11", {
+          "packageLocation": "./.yarn/$$virtual/@vue-server-renderer-virtual-dc59748d3c/0/cache/@vue-server-renderer-npm-3.0.11-4986ba71a6-b5263da856.zip/node_modules/@vue/server-renderer/",
+          "packageDependencies": [
+            ["@vue/server-renderer", "virtual:30aa7d055de116843c08e7dd5e41c24c7ae5c62c9e33f8069cdd1bc6ec68df5b7288c0f94727c88a234b2252e947439de93762e93faa2489a75e122d85b5d010#npm:3.0.11"],
+            ["@types/vue", null],
+            ["@vue/compiler-ssr", "npm:3.0.11"],
+            ["@vue/shared", "npm:3.0.11"],
+            ["vue", "npm:3.0.11"]
+          ],
+          "packagePeers": [
+            "@types/vue",
+            "vue"
           ],
           "linkType": "HARD",
         }]

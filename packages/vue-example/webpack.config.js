@@ -36,7 +36,8 @@ const serverConfig = {
     entry: './src/client/server.ts',
     target: 'node',
     resolve: {
-        extensions: ['.js', '.ts', '.tsx'],
+        extensions: ['.js', '.ts', '.tsx', '.vue'],
+        mainFields: ['main', 'module'],
     },
     module: {
         rules: [
@@ -57,8 +58,14 @@ const serverConfig = {
                     ],
                 },
             },
+            {
+                test: /\.vue$/,
+                exclude: /node_modules/,
+                loader: 'vue-loader',
+            },
         ],
     },
+    plugins: [new VueLoaderPlugin()],
     output: {
         filename: 'server.bundle.js',
         path: path.resolve(__dirname, 'dist'),

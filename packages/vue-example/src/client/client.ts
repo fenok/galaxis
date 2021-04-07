@@ -1,4 +1,5 @@
 import { createApp } from 'vue';
-import App from './app/components/App/App.vue';
+import App from './app/components/App.vue';
+import { getClient } from './app/lib/getClient';
 
-createApp(App).mount('#root');
+createApp(App, { client: getClient({}) }).mount('#root');
