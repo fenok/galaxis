@@ -1,42 +1,47 @@
-import { NonUndefined, Query, Client, SsrPromisesManager, QueryManagerResult } from '@galaxis/core';
+import { Client, NonUndefined, Query, QueryManager, SsrPromisesManager } from '@galaxis/core';
 
 export class ManagedQueryWrapper<C extends NonUndefined, D extends NonUndefined, E extends Error, R> {
     private queryHash?: string;
     private client!: Client;
     private ssrPromisesManager?: SsrPromisesManager;
-    private result!: QueryManagerResult<D, E>;
+    private queryManager?: QueryManager<C, D, E, R>;
     private dispose?: () => void;
     private onChange: () => void;
+    private areUpdatesPaused = false;
 
     constructor(onChange: () => void) {
         this.onChange = onChange;
     }
 
     public process(query: Query<C, D, E, R> | undefined, client: Client, ssrPromisesManager?: SsrPromisesManager) {
+        this.areUpdatesPaused = true;
+
         const queryHash = query ? client.hash(query) : undefined;
         if (this.client !== client || this.queryHash !== queryHash || this.ssrPromisesManager !== ssrPromisesManager) {
             this.client = client;
             this.queryHash = queryHash;
             this.ssrPromisesManager = ssrPromisesManager;
+            this.queryManager = this.queryManager || this.client.getQueryManager(this.onChangeInner.bind(this));
 
-            this.dispose?.();
+            const setQueryResult = this.queryManager.setQuery(query);
 
-            [this.result, this.dispose] = this.client.manageQuery(
-                query,
-                this.onChangeInner.bind(this),
-                ssrPromisesManager,
-            );
+            if (this.ssrPromisesManager && setQueryResult && setQueryResult.request) {
+                this.ssrPromisesManager.addPromise(setQueryResult.request);
+            }
         }
 
-        return this.result;
+        this.areUpdatesPaused = false;
+
+        return { ...this.queryManager!.getState(), ...this.queryManager!.getApi() };
     }
 
     public cleanup() {
         this.dispose?.();
     }
 
-    private onChangeInner(result: QueryManagerResult<D, E>) {
-        this.result = result;
-        this.onChange();
+    private onChangeInner() {
+        if (!this.areUpdatesPaused) {
+            this.onChange();
+        }
     }
 }

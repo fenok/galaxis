@@ -19,7 +19,7 @@ export class ManagedMutationWrapper<C extends NonUndefined, D extends NonUndefin
 
             this.dispose?.();
 
-            [this.result, this.dispose] = this.client.manageMutation(query, this.onChangeInner.bind(this));
+            [this.result, this.dispose] = this.client.getMutationManager(query, this.onChangeInner.bind(this));
         }
 
         return this.result;

@@ -1,4 +1,4 @@
-import { Client } from '@galaxis/core';
+import { Client, NonUndefined, Cache } from '@galaxis/core';
 import { onMounted, provide, inject } from 'vue';
 
 export const client = Symbol('client');
@@ -11,8 +11,14 @@ export function useClientProvider(clientInstance: Client) {
     });
 }
 
-export function useClient() {
-    const instance = inject<Client>(client);
+export function useClient<
+    C extends NonUndefined = NonUndefined,
+    CACHE extends Cache<C> = Cache<C>,
+    BD extends NonUndefined = NonUndefined,
+    BE extends Error = Error,
+    BR = unknown
+>() {
+    const instance = inject<Client<C, CACHE, BD, BE, BR>>(client);
 
     ensureClient(instance);
 

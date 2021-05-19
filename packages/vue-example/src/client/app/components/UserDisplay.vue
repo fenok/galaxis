@@ -1,17 +1,29 @@
 <template>
-    <div>User display: {{ loading }}</div>
+    <div>User display: {{ data }}</div>
+    <div>Loading: {{ loading }}</div>
+    <button @click="iterateUser">Iterate user</button>
+    <button @click="refetch">Refetch</button>
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue';
+import { defineComponent, ref } from 'vue';
 import { useQuery } from '../vue/useQuery';
 import { userQuery } from '../requests/user';
 
 export default defineComponent({
     setup() {
-        const { loading } = useQuery(userQuery({ requestParams: { pathParams: { id: 1 } } }));
+        const currentId = ref(1);
 
-        return { loading };
+        const { loading, data, refetch } = useQuery(() =>
+            userQuery({ requestParams: { pathParams: { id: currentId.value } } }),
+        );
+
+        return { loading, data, currentId, refetch };
+    },
+    methods: {
+        iterateUser() {
+            this.currentId = this.currentId + 1;
+        },
     },
 });
 </script>

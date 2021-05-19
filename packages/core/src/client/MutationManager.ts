@@ -63,6 +63,10 @@ export class MutationManager<C extends NonUndefined, D extends NonUndefined, E e
         this.onChange = undefined;
     }
 
+    public purge() {
+        this.reset();
+    }
+
     private abort = () => {
         this.abortController?.abort();
     };

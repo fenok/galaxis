@@ -1,17 +1,54 @@
-import { NonUndefined, Query, QueryManagerResult } from '@galaxis/core';
+import { NonUndefined, Query, QueryManagerState } from '@galaxis/core';
 import { useClient } from './useClientProvider';
-import { onServerPrefetch } from 'vue';
+import { computed, onServerPrefetch, onUnmounted, reactive, toRefs, watch } from 'vue';
 
 export function useQuery<C extends NonUndefined, D extends NonUndefined, E extends Error, R>(
-    query: Query<C, D, E, R>,
-): QueryManagerResult<D, E> {
-    const client = useClient();
+    query: () => Query<C, D, E, R>,
+) {
+    const client = useClient<C>();
+    const queryRef = computed(query);
 
-    const [result, dispose] = client.manageQuery(query, () => {});
+    let request: Promise<D> | undefined;
+    let areUpdatesPaused = false;
 
-    // onServerPrefetch(() => {
-    //     return client.fetchQuery(query);
-    // });
+    const queryManager = client.getQueryManager<D, E, R>((nextState: QueryManagerState<D, E>) => {
+        if (!areUpdatesPaused) {
+            updateState(nextState);
+        }
+    });
+    let state = reactive(queryManager.getState());
 
-    return result;
+    processQuery(queryRef.value);
+
+    watch(queryRef, (nextQuery) => {
+        processQuery(nextQuery);
+    });
+
+    onServerPrefetch(() => {
+        return request;
+    });
+
+    onUnmounted(() => {
+        queryManager.dispose();
+    });
+
+    function processQuery(query: Query<C, D, E, R>) {
+        areUpdatesPaused = true;
+
+        const setQueryResult = queryManager.setQuery(query);
+
+        if (setQueryResult && setQueryResult.request) {
+            request = setQueryResult.request;
+        }
+
+        areUpdatesPaused = false;
+
+        updateState(queryManager.getState());
+    }
+
+    function updateState(nextState: QueryManagerState<D, E>) {
+        state = Object.assign(state, nextState);
+    }
+
+    return { ...toRefs(state), ...queryManager.getApi() };
 }

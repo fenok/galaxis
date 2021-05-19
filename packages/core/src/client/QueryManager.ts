@@ -1,13 +1,13 @@
 import { NonUndefined, Query } from '../types';
-import { SsrPromisesManager } from './SsrPromisesManager';
 import { QueryProcessor, QueryResult, QueryState } from './QueryProcessor';
 import { logger } from '../logger';
+import { DefaultsMerger } from './DefaultsMerger';
 
-export interface QueryManagerOptions<C extends NonUndefined, D extends NonUndefined, E extends Error, R> {
-    query: Query<C, D, E, R> | undefined;
+export interface QueryManagerOptions<C extends NonUndefined, D extends NonUndefined, E extends Error> {
     queryProcessor: QueryProcessor<C>;
-    ssrPromisesManager?: SsrPromisesManager;
-    onChange(result: QueryManagerResult<D, E>): void;
+    defaultsMerger: DefaultsMerger;
+    onChange(result: QueryManagerState<D, E>): void;
+    onDispose(): void;
 }
 
 export interface QueryManagerExternalState<D extends NonUndefined, E extends Error> {
@@ -29,14 +29,12 @@ export type QueryManagerApi<D extends NonUndefined, E extends Error> = {
     reset: () => void;
 };
 
-export type QueryManagerResult<D extends NonUndefined, E extends Error> = QueryManagerState<D, E> &
-    QueryManagerApi<D, E>;
-
 export class QueryManager<C extends NonUndefined, D extends NonUndefined, E extends Error, R> {
-    private onChange?: (result: QueryManagerResult<D, E>) => void;
+    private onChange?: (state: QueryManagerState<D, E>) => void;
+    private onDispose?: () => void;
+    private defaultsMerger: DefaultsMerger;
     private query?: Query<C, D, E, R>;
     private queryProcessor: QueryProcessor<C>;
-    private ssrPromisesManager?: SsrPromisesManager;
     private state: QueryManagerState<D, E> = {
         loading: false,
         data: undefined,
@@ -49,19 +47,12 @@ export class QueryManager<C extends NonUndefined, D extends NonUndefined, E exte
     private networkRequestId = 1;
     private unsubscribe?: () => void;
     private cacheable = false;
-    private instantiated = false;
 
-    constructor({ onChange, queryProcessor, query, ssrPromisesManager }: QueryManagerOptions<C, D, E, R>) {
+    constructor({ onChange, onDispose, queryProcessor, defaultsMerger }: QueryManagerOptions<C, D, E>) {
         this.onChange = onChange;
-        this.query = query;
+        this.onDispose = onDispose;
+        this.defaultsMerger = defaultsMerger;
         this.queryProcessor = queryProcessor;
-        this.ssrPromisesManager = ssrPromisesManager;
-
-        if (!query?.lazy) {
-            this.execute();
-        }
-
-        this.instantiated = true;
     }
 
     public getState(): QueryManagerState<D, E> {
@@ -77,15 +68,29 @@ export class QueryManager<C extends NonUndefined, D extends NonUndefined, E exte
         };
     }
 
-    public getResult(): QueryManagerResult<D, E> {
-        return { ...this.getState(), ...this.getApi() };
+    public setQuery(query: Query<C, D, E, R> | undefined) {
+        this.query = this.defaultsMerger.getMergedQuery(query);
+
+        if (query && !query.lazy) {
+            return this.execute();
+        } else {
+            return this.reset();
+        }
     }
 
-    public cleanup() {
+    public dispose() {
         this.networkRequestId += 1;
         this.unsubscribe?.();
         this.softAbort();
         this.onChange = undefined;
+        this.onDispose?.();
+        this.onDispose = undefined;
+    }
+
+    public purge() {
+        if (this.state.executed) {
+            this.execute();
+        }
     }
 
     private reset = () => {
@@ -143,10 +148,6 @@ export class QueryManager<C extends NonUndefined, D extends NonUndefined, E exte
         });
 
         this.unsubscribe = queryResult.unsubscribe;
-
-        if (this.ssrPromisesManager && queryResult.request && !this.instantiated) {
-            this.ssrPromisesManager.addPromise(queryResult.request);
-        }
 
         const result = {
             ...queryResult,
@@ -244,8 +245,8 @@ export class QueryManager<C extends NonUndefined, D extends NonUndefined, E exte
 
         this.state = nextState;
 
-        if (shouldUpdate && this.instantiated) {
-            this.onChange?.(this.getResult());
+        if (shouldUpdate) {
+            this.onChange?.(this.getState());
         }
     }
 
