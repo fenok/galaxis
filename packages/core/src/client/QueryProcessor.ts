@@ -12,11 +12,6 @@ export interface QueryState<D extends NonUndefined, E extends Error> extends Que
     requestRequired: boolean;
     requestAllowed: boolean;
     cacheable: boolean;
-    unsubscribe?: () => void;
-}
-
-export interface QueryResult<D extends NonUndefined, E extends Error> extends QueryState<D, E> {
-    request?: Promise<D>;
 }
 
 export interface QueryRequest {
@@ -50,25 +45,27 @@ export class QueryProcessor<C extends NonUndefined> {
         this.isHydrate = false;
     }
 
-    public purge() {
-        Object.values(this.ongoingRequests).forEach((request) => request?.abortController?.abort());
-        this.ongoingRequests = {};
+    public onReset() {
+        Object.values(this.ongoingRequests).forEach((request) => {
+            if (request) {
+                request.shouldRerun = true;
+                request.abortController?.abort();
+            }
+        });
     }
 
     public query<D extends NonUndefined, E extends Error, R>(
         query: Query<C, D, E, R>,
-        onChange?: (state: QueryState<D, E>) => void,
-    ): QueryResult<D, E> {
+    ): [QueryState<D, E>, Promise<D> | undefined] {
         const requestId = query.getRequestId ? query.getRequestId(query) : this.hash(query.requestParams);
-        const queryState = this.readQuery(query, onChange);
+        const queryState = this.readQuery(query);
 
-        return {
-            ...queryState,
-            request:
-                queryState.requestRequired && queryState.requestAllowed
-                    ? this.getRequestPromise(query, requestId)
-                    : undefined,
-        };
+        return [
+            queryState,
+            queryState.requestRequired && queryState.requestAllowed
+                ? this.getRequestPromise(query, requestId)
+                : undefined,
+        ];
     }
 
     public fetchQuery<D extends NonUndefined, E extends Error, R>(query: Query<C, D, E, R>): Promise<D> {
@@ -76,10 +73,7 @@ export class QueryProcessor<C extends NonUndefined> {
         return this.getRequestPromise(query, requestId);
     }
 
-    public readQuery<D extends NonUndefined, E extends Error, R>(
-        query: Query<C, D, E, R>,
-        onChange?: (state: QueryState<D, E>) => void,
-    ): QueryState<D, E> {
+    public readQuery<D extends NonUndefined, E extends Error, R>(query: Query<C, D, E, R>): QueryState<D, E> {
         const requestId = query.getRequestId ? query.getRequestId(query) : this.hash(query.requestParams);
 
         const cache = !this.isFetchPolicy(query.fetchPolicy, 'no-cache')
@@ -93,25 +87,33 @@ export class QueryProcessor<C extends NonUndefined> {
               }
             : undefined;
 
-        let queryState: QueryState<D, E> = {
+        return {
             ...cache,
             requestRequired: this.isRequestRequired(query, cache),
             requestAllowed: this.isRequestAllowed(query, cache),
             cacheable: Boolean(cache),
-            unsubscribe:
-                cache && onChange
-                    ? this.cache.subscribe(() => {
-                          const newState = { ...this.readQuery(query), unsubscribe: queryState.unsubscribe };
-
-                          if (!this.areQueryStatesEqual(queryState, newState)) {
-                              queryState = newState;
-                              onChange(queryState);
-                          }
-                      })
-                    : undefined,
         };
+    }
 
-        return queryState;
+    public watchQuery<D extends NonUndefined, E extends Error, R>(
+        query: Query<C, D, E, R>,
+        onChange: (state: QueryState<D, E>) => void,
+    ): [QueryState<D, E>, (() => void) | undefined] {
+        let queryState = this.readQuery(query);
+
+        return [
+            queryState,
+            !this.isFetchPolicy(query.fetchPolicy, 'no-cache')
+                ? this.cache.subscribe(() => {
+                      const newState = this.readQuery(query);
+
+                      if (!this.areQueryStatesEqual(queryState, newState)) {
+                          queryState = newState;
+                          onChange(queryState);
+                      }
+                  })
+                : undefined,
+        ];
     }
 
     private getRequestPromise<D extends NonUndefined, E extends Error, R>(

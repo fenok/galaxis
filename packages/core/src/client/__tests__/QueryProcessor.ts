@@ -14,7 +14,7 @@ it('can query data', async () => {
 
     const queryResult = queryProcessor.query(firstItemRequest);
 
-    const networkResponse = await queryResult.request;
+    const networkResponse = await queryResult[1];
 
     const dataFromCache = queryProcessor.readQuery(firstItemRequest);
 
@@ -31,45 +31,45 @@ it('respects fetch policies', async () => {
         ...firstItemRequest,
         fetchPolicy: 'cache-only',
     });
-    expect(cacheOnlyQueryResult).toMatchObject({ data: undefined, error: undefined });
+    expect(cacheOnlyQueryResult[0]).toMatchObject({ data: undefined, error: undefined });
 
     let cacheFirstQueryResult = queryProcessor.query({
         ...firstItemRequest,
         fetchPolicy: 'cache-first',
     });
-    expect(cacheFirstQueryResult).toMatchObject({ data: undefined, error: undefined });
+    expect(cacheFirstQueryResult[0]).toMatchObject({ data: undefined, error: undefined });
 
     let cacheAndNetworkQueryResult = queryProcessor.query({
         ...firstItemRequest,
         fetchPolicy: 'cache-and-network',
     });
-    expect(cacheAndNetworkQueryResult).toMatchObject({ data: undefined, error: undefined });
+    expect(cacheAndNetworkQueryResult[0]).toMatchObject({ data: undefined, error: undefined });
 
-    expect(cacheOnlyQueryResult.request).toEqual(undefined);
-    await expect(cacheFirstQueryResult.request).resolves.toEqual(FIRST_ITEM);
-    await expect(cacheAndNetworkQueryResult.request).resolves.toEqual(FIRST_ITEM);
+    expect(cacheOnlyQueryResult[1]).toEqual(undefined);
+    await expect(cacheFirstQueryResult[1]).resolves.toEqual(FIRST_ITEM);
+    await expect(cacheAndNetworkQueryResult[1]).resolves.toEqual(FIRST_ITEM);
 
     cacheOnlyQueryResult = queryProcessor.query({
         ...firstItemRequest,
         fetchPolicy: 'cache-only',
     });
-    expect(cacheOnlyQueryResult).toMatchObject({ data: FIRST_ITEM, error: undefined });
+    expect(cacheOnlyQueryResult[0]).toMatchObject({ data: FIRST_ITEM, error: undefined });
 
     cacheFirstQueryResult = queryProcessor.query({
         ...firstItemRequest,
         fetchPolicy: 'cache-first',
     });
-    expect(cacheFirstQueryResult).toMatchObject({ data: FIRST_ITEM, error: undefined });
+    expect(cacheFirstQueryResult[0]).toMatchObject({ data: FIRST_ITEM, error: undefined });
 
     cacheAndNetworkQueryResult = queryProcessor.query({
         ...firstItemRequest,
         fetchPolicy: 'cache-and-network',
     });
-    expect(cacheAndNetworkQueryResult).toMatchObject({ data: FIRST_ITEM, error: undefined });
+    expect(cacheAndNetworkQueryResult[0]).toMatchObject({ data: FIRST_ITEM, error: undefined });
 
-    expect(cacheOnlyQueryResult.request).toEqual(undefined);
-    expect(cacheFirstQueryResult.request).toEqual(undefined);
-    await expect(cacheAndNetworkQueryResult.request).resolves.toEqual(FIRST_ITEM);
+    expect(cacheOnlyQueryResult[1]).toEqual(undefined);
+    expect(cacheFirstQueryResult[1]).toEqual(undefined);
+    await expect(cacheAndNetworkQueryResult[1]).resolves.toEqual(FIRST_ITEM);
 
     const dataFromCache = queryProcessor.readQuery({ ...firstItemRequest });
 
@@ -95,10 +95,10 @@ it('can reuse network requests', async () => {
         error: undefined,
     });
 
-    expect(firstQueryResult.request).toBeDefined();
-    expect(secondQueryResult.request).toBeDefined();
+    expect(firstQueryResult[1]).toBeDefined();
+    expect(secondQueryResult[1]).toBeDefined();
 
-    const networkResponse = await Promise.all([firstQueryResult.request, secondQueryResult.request]);
+    const networkResponse = await Promise.all([firstQueryResult[1], secondQueryResult[1]]);
 
     const firstDataFromCache = queryProcessor.readQuery({ ...firstItemRequest });
     const secondDataFromCache = queryProcessor.readQuery({ ...firstItemRequest });
@@ -120,7 +120,7 @@ it('can abort network request', async () => {
 
     abortController.abort();
 
-    await expect(queryResult.request).rejects.toEqual(getAbortError());
+    await expect(queryResult[1]).rejects.toEqual(getAbortError());
 
     const dataFromCache = queryProcessor.readQuery(firstItemRequest);
 
@@ -148,8 +148,8 @@ it('can abort network request for multiple requesters', async () => {
     firstAbortController.abort();
     secondAbortController.abort();
 
-    await expect(firstQueryResult.request).rejects.toEqual(getAbortError());
-    await expect(secondQueryResult.request).rejects.toEqual(getAbortError());
+    await expect(firstQueryResult[1]).rejects.toEqual(getAbortError());
+    await expect(secondQueryResult[1]).rejects.toEqual(getAbortError());
 
     const dataFromCache = queryProcessor.readQuery({
         ...firstItemRequest,
@@ -175,8 +175,8 @@ it('does not abort network request if not all requesters asked so', async () => 
 
     abortController.abort();
 
-    await expect(firstQueryResult.request).resolves.toEqual(FIRST_ITEM);
-    await expect(secondQueryResult.request).resolves.toEqual(FIRST_ITEM);
+    await expect(firstQueryResult[1]).resolves.toEqual(FIRST_ITEM);
+    await expect(secondQueryResult[1]).resolves.toEqual(FIRST_ITEM);
 
     const dataFromCache = queryProcessor.readQuery(firstItemRequest);
 
@@ -201,8 +201,8 @@ it('correctly aborts previous request when the next one is executed immediately 
 
     const secondQueryResult = queryProcessor.query({ ...secondItemRequest, getRequestId: () => 'one-and-only' });
 
-    await expect(firstQueryResult.request).rejects.toEqual(getAbortError());
-    await expect(secondQueryResult.request).resolves.toEqual(SECOND_ITEM);
+    await expect(firstQueryResult[1]).rejects.toEqual(getAbortError());
+    await expect(secondQueryResult[1]).resolves.toEqual(SECOND_ITEM);
 
     const dataFromCache = queryProcessor.readQuery({
         ...secondItemRequest,
@@ -219,9 +219,9 @@ it('on purge all requests are aborted and do not affect cache anymore', async ()
 
     const queryResult = queryProcessor.query(firstItemRequest);
 
-    queryProcessor.purge();
+    queryProcessor.onReset();
 
-    await expect(queryResult.request).rejects.toEqual(getAbortError());
+    await expect(queryResult[1]).rejects.toEqual(getAbortError());
 
     const dataFromCacheAfterPurge = queryProcessor.readQuery(firstItemRequest);
 
@@ -235,9 +235,9 @@ it('resets persisted loading state if there is no network request', async () => 
 
     const queryResult = queryProcessor.query(firstItemRequest);
 
-    queryProcessor.purge();
+    queryProcessor.onReset();
 
-    await expect(queryResult.request).rejects.toEqual(getAbortError());
+    await expect(queryResult[1]).rejects.toEqual(getAbortError());
 
     const loadingDataFromCache = queryProcessor.readQuery(firstItemRequest);
     expect(loadingDataFromCache).toMatchObject({ data: undefined, error: undefined });
@@ -247,7 +247,7 @@ it('resets persisted loading state if there is no network request', async () => 
         fetchPolicy: 'cache-only',
     });
 
-    expect(cacheOnlyQueryResult.request).toEqual(undefined);
+    expect(cacheOnlyQueryResult[1]).toEqual(undefined);
     expect(cacheOnlyQueryResult).toMatchObject({ data: undefined, error: undefined });
 
     const dataFromCache = queryProcessor.readQuery({

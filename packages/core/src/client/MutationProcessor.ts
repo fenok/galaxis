@@ -27,7 +27,7 @@ export class MutationProcessor<C extends NonUndefined> {
         this.hash = hash;
     }
 
-    public purge() {
+    public onReset() {
         this.ongoingRequests.forEach((mutation) => mutation.abort());
         this.ongoingRequests.clear();
     }

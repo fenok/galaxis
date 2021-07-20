@@ -15,19 +15,19 @@ it('does not return promise if there is error in cache', async () => {
 
     const firstItemRequest = getFailingFirstItemRequest();
 
-    const queryResult = queryProcessor.query(firstItemRequest);
+    const [, request] = queryProcessor.query(firstItemRequest);
 
-    await expect(queryResult.request).rejects.toEqual(getNetworkError());
+    await expect(request).rejects.toEqual(getNetworkError());
 
     const dataFromCache = queryProcessor.readQuery(firstItemRequest);
     expect(dataFromCache).toMatchObject({ data: undefined, error: getNetworkError() });
 
-    const nextQueryResult = queryProcessor.query(firstItemRequest);
+    const [, nextRequest] = queryProcessor.query(firstItemRequest);
 
     const postQueryDataFromCache = queryProcessor.readQuery(firstItemRequest);
     expect(postQueryDataFromCache).toMatchObject({ data: undefined, error: getNetworkError() });
 
-    expect(nextQueryResult.request).toEqual(undefined);
+    expect(nextRequest).toEqual(undefined);
 
     const nextDataFromCache = queryProcessor.readQuery(firstItemRequest);
 
@@ -39,17 +39,17 @@ it('does not return promise if there is data in cache', async () => {
 
     const firstItemRequest = getFirstItemRequest();
 
-    const queryResult = queryProcessor.query(firstItemRequest);
+    const [, request] = queryProcessor.query(firstItemRequest);
 
-    await expect(queryResult.request).resolves.toEqual(FIRST_ITEM);
+    await expect(request).resolves.toEqual(FIRST_ITEM);
 
     const dataFromCache = queryProcessor.readQuery(firstItemRequest);
 
     expect(dataFromCache).toMatchObject({ data: FIRST_ITEM, error: undefined });
 
-    const nextQueryResult = queryProcessor.query(firstItemRequest);
+    const [, nextRequest] = queryProcessor.query(firstItemRequest);
 
-    expect(nextQueryResult.request).toEqual(undefined);
+    expect(nextRequest).toEqual(undefined);
 
     const nextDataFromCache = queryProcessor.readQuery(firstItemRequest);
 
@@ -61,8 +61,8 @@ it('can opt-out from returning the promise', () => {
 
     const firstItemRequest = getFirstItemRequest();
 
-    const queryResult = queryProcessor.query({ ...firstItemRequest, disableSsr: true });
-    expect(queryResult.request).toEqual(undefined);
+    const [, request] = queryProcessor.query({ ...firstItemRequest, disableSsr: true });
+    expect(request).toEqual(undefined);
 
     const dataFromCache = queryProcessor.readQuery(firstItemRequest);
     expect(dataFromCache).toMatchObject({ data: undefined, error: undefined });

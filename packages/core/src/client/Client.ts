@@ -1,11 +1,8 @@
-import { QueryProcessor, QueryResult, QueryState } from './QueryProcessor';
+import { QueryProcessor, QueryState } from './QueryProcessor';
 import { MutationProcessor } from './MutationProcessor';
 import { RequestQueue } from './RequestQueue';
 import { Cache, Mutation, NonUndefined, Query } from '../types';
 import { DefaultsMerger, DefaultsMergerOptions } from './DefaultsMerger';
-import { RequestManager } from './RequestManager';
-import { QueryManagerState } from './QueryManager';
-import { MutationManagerResult } from './MutationManager';
 
 interface ClientOptions<
     C extends NonUndefined = NonUndefined,
@@ -28,8 +25,9 @@ class Client<
     private readonly cache: CACHE;
     private queryProcessor: QueryProcessor<C>;
     private mutationProcessor: MutationProcessor<C>;
-    private requestManager: RequestManager<C, BD, BE, BR>;
     private defaultsMerger: DefaultsMerger<C, BD, BE, BR>;
+
+    private onResetListeners: Set<() => void> = new Set();
 
     public readonly hash: (value: unknown) => string;
 
@@ -47,53 +45,45 @@ class Client<
         this.queryProcessor = new QueryProcessor({ cache, requestQueue, hash });
         this.mutationProcessor = new MutationProcessor({ cache, requestQueue, hash });
         this.defaultsMerger = new DefaultsMerger({ merge, defaultRequest, defaultQuery, defaultMutation });
-        this.requestManager = new RequestManager({
-            queryProcessor: this.queryProcessor,
-            mutationProcessor: this.mutationProcessor,
-            defaultsMerger: this.defaultsMerger,
-        });
-    }
-
-    public getQueryManager<D extends BD, E extends BE, R extends BR>(
-        onChange: (result: QueryManagerState<D, E>) => void,
-    ) {
-        return this.requestManager.getQueryManager<D, E, R>(onChange);
-    }
-
-    public getMutationManager<D extends BD, E extends BE, R extends BR>(
-        mutation: Mutation<C, D, E, R> | undefined,
-        onChange: (result: MutationManagerResult<D, E>) => void,
-    ) {
-        return this.requestManager.manageMutation(mutation, onChange);
     }
 
     public query<D extends BD, E extends BE, R extends BR>(
         query: Query<C, D, E, R>,
-        onChange?: (state: QueryState<D, E>) => void,
-    ): QueryResult<D, E> {
-        return this.queryProcessor.query(this.defaultsMerger.getMergedQuery(query), onChange);
+    ): [QueryState<D, E>, Promise<D> | undefined] {
+        return this.queryProcessor.query(this.defaultsMerger.getMergedQuery(query));
     }
 
     public fetchQuery<D extends BD, E extends BE, R extends BR>(query: Query<C, D, E, R>): Promise<D> {
         return this.queryProcessor.fetchQuery(this.defaultsMerger.getMergedQuery(query));
     }
 
-    public readQuery<D extends BD, E extends BE, R extends BR>(
+    public readQuery<D extends BD, E extends BE, R extends BR>(query: Query<C, D, E, R>): QueryState<D, E> {
+        return this.queryProcessor.readQuery(this.defaultsMerger.getMergedQuery(query));
+    }
+
+    public watchQuery<D extends BD, E extends BE, R extends BR>(
         query: Query<C, D, E, R>,
-        onChange?: (state: QueryState<D, E>) => void,
-    ): QueryState<D, E> {
-        return this.queryProcessor.readQuery(this.defaultsMerger.getMergedQuery(query), onChange);
+        onChange: (queryState: QueryState<D, E>) => void,
+    ): [QueryState<D, E>, (() => void) | undefined] {
+        return this.queryProcessor.watchQuery(this.defaultsMerger.getMergedQuery(query), onChange);
     }
 
     public mutate<D extends BD, E extends BE, R extends BR>(mutation: Mutation<C, D, E, R>): Promise<D> {
         return this.mutationProcessor.mutate(this.defaultsMerger.getMergedMutation(mutation));
     }
 
-    public purge() {
-        this.queryProcessor.purge();
-        this.mutationProcessor.purge();
+    public reset() {
+        this.queryProcessor.onReset();
+        this.mutationProcessor.onReset();
         this.cache.purge();
-        this.requestManager.purge();
+
+        this.onResetListeners.forEach((cb) => cb());
+    }
+
+    public onReset(cb: () => void) {
+        this.onResetListeners.add(cb);
+
+        return () => this.onResetListeners.delete(cb);
     }
 
     public getCache() {
