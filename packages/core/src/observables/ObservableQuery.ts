@@ -87,16 +87,6 @@ export class ObservableQuery<C extends NonUndefined, D extends NonUndefined, E e
         this.executed = false;
     }
 
-    public prefetch(): Promise<D> | undefined {
-        if (this.query && this.client) {
-            const [, promise] = this.client.query(this.query);
-
-            return promise;
-        }
-
-        return undefined;
-    }
-
     public refetch = () => {
         if (!this.executed || !this.query || !this.client) {
             return Promise.reject(new Error("Can't refetch the query that wasn't executed yet."));
@@ -146,7 +136,7 @@ export class ObservableQuery<C extends NonUndefined, D extends NonUndefined, E e
             if (!this.areStatesEqual(this.state, this.nextState)) {
                 this.state = this.nextState;
 
-                if (!this.executed) {
+                if (this.executed) {
                     this.onChange();
                 }
             }

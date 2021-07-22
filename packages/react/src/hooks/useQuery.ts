@@ -20,7 +20,7 @@ export function useQuery<C extends NonUndefined, D extends NonUndefined, E exten
     observableQuery.current.setOptions(client, memoizedQuery);
 
     if (ssrPromisesManager) {
-        const promise = observableQuery.current.prefetch();
+        const promise = observableQuery.current.start();
         if (promise) {
             ssrPromisesManager.addPromise(promise);
         }
