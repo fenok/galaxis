@@ -2,53 +2,65 @@ import { NonUndefined, Query, Cache } from '../types';
 import { Client } from '../client';
 import { logger } from '../logger';
 
-export interface QueryObserverState<D extends NonUndefined, E extends Error> {
+export interface ObservableQueryState<D extends NonUndefined, E extends Error> {
     loading: boolean;
     data: D | undefined;
     error: E | Error | undefined;
 }
 
-export class QueryObserver<C extends NonUndefined, D extends NonUndefined, E extends Error, R> {
+export class ObservableQuery<C extends NonUndefined, D extends NonUndefined, E extends Error, R> {
     private query?: Query<C, D, E, R>;
+
     private client: Client<C, Cache<C>, D, E, R>;
     private onChange: () => void;
+
     private currentRequest?: Promise<D>;
     private unsubscribe?: () => void;
 
-    constructor(client: Client<C, Cache<C>, D, E, R>, onChange: () => void) {
+    private executed = false;
+
+    private state: ObservableQueryState<D, E> = {
+        loading: false,
+        data: undefined,
+        error: undefined,
+    };
+
+    private nextState: ObservableQueryState<D, E> = {
+        loading: false,
+        data: undefined,
+        error: undefined,
+    };
+
+    public constructor(client: Client<C, Cache<C>, D, E, R>, onChange: () => void) {
         this.client = client;
         this.onChange = onChange;
     }
 
-    private state: QueryObserverState<D, E> = {
-        loading: false,
-        data: undefined,
-        error: undefined,
-    };
+    public getState() {
+        return this.state;
+    }
 
-    private nextState: QueryObserverState<D, E> = {
-        loading: false,
-        data: undefined,
-        error: undefined,
-    };
-
-    public setOptions(query: Query<C, D, E, R>) {
-        this.dispose();
+    public setOptions(query?: Query<C, D, E, R>) {
+        this.stop();
 
         this.query = query;
 
-        const queryState = this.client.readQuery(this.query);
+        if (this.query) {
+            const queryState = this.client.readQuery(this.query);
 
-        this.setState({
-            loading: queryState.requestRequired,
-            data: queryState.data,
-            error: queryState.error,
-        });
+            this.setState({
+                loading: queryState.requestRequired,
+                data: queryState.data,
+                error: queryState.error,
+            });
+        }
     }
 
-    public activate() {
-        if (this.query) {
-            const [, unsubscribe] = this.client.watchQuery(this.query, this.onExternalChange.bind(this));
+    public start() {
+        if (!this.executed && this.query) {
+            this.executed = true;
+
+            const [, unsubscribe] = this.client.watchQuery(this.query, this.setState.bind(this));
 
             this.unsubscribe = unsubscribe;
 
@@ -60,15 +72,17 @@ export class QueryObserver<C extends NonUndefined, D extends NonUndefined, E ext
                 error: queryState.error,
             });
 
-            return promise ? this.updateCurrentPromise(promise) : promise;
+            return promise ? this.decorateWithStateUpdates(promise) : promise;
         }
 
         return undefined;
     }
 
-    public dispose() {
+    public stop() {
         this.unsubscribe?.();
+        this.unsubscribe = undefined;
         this.currentRequest = undefined;
+        this.executed = false;
     }
 
     public prefetch(): Promise<D> | undefined {
@@ -81,28 +95,26 @@ export class QueryObserver<C extends NonUndefined, D extends NonUndefined, E ext
         return undefined;
     }
 
-    public refetch() {
-        if (this.query) {
-            const promise = this.client.fetchQuery(this.query);
-
-            this.setState({
-                loading: true,
-            });
-
-            return this.updateCurrentPromise(promise);
+    public refetch = () => {
+        if (!this.executed || !this.query) {
+            return Promise.reject(new Error("Can't refetch the query that wasn't executed yet."));
         }
 
-        return Promise.reject(new Error('No query to refetch'));
-    }
+        return this.decorateWithStateUpdates(this.client.fetchQuery(this.query));
+    };
 
-    private updateCurrentPromise(promise: Promise<D>) {
+    private decorateWithStateUpdates(promise: Promise<D>) {
         this.currentRequest = promise;
+
+        this.setState({
+            loading: true,
+        });
 
         return promise
             .then((data) => {
                 if (this.currentRequest === promise) {
                     if (!this.unsubscribe) {
-                        this.onExternalChange({ data, error: undefined });
+                        this.setState({ data, error: undefined });
                     }
                     this.setState({ loading: false });
                 }
@@ -110,7 +122,7 @@ export class QueryObserver<C extends NonUndefined, D extends NonUndefined, E ext
             .catch((error: Error) => {
                 if (this.currentRequest === promise) {
                     if (!this.unsubscribe) {
-                        this.onExternalChange({ error });
+                        this.setState({ error });
                     }
 
                     if (error !== this.nextState.error) {
@@ -125,14 +137,10 @@ export class QueryObserver<C extends NonUndefined, D extends NonUndefined, E ext
             });
     }
 
-    private onExternalChange(externalState: Partial<QueryObserverState<D, E>>) {
-        this.setState(externalState);
-    }
-
-    private setState(newState: Partial<QueryObserverState<D, E>>) {
+    private setState(newState: Partial<ObservableQueryState<D, E>>) {
         this.nextState = { ...this.nextState, ...newState };
 
-        if (!this.state.loading) {
+        if (!this.state.loading || !this.nextState.loading) {
             this.state = this.nextState;
             this.onChange();
         }
