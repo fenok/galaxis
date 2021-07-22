@@ -1,4 +1,4 @@
-import { NonUndefined, Query, Cache } from '../types';
+import { NonUndefined, Query } from '../types';
 import { Client } from '../client';
 import { logger } from '../logger';
 
@@ -11,7 +11,7 @@ export interface ObservableQueryState<D extends NonUndefined, E extends Error> {
 export class ObservableQuery<C extends NonUndefined, D extends NonUndefined, E extends Error, R> {
     private query?: Query<C, D, E, R>;
 
-    private client: Client<C, Cache<C>, D, E, R>;
+    private client?: Client;
     private onChange: () => void;
 
     private currentRequest?: Promise<D>;
@@ -31,8 +31,7 @@ export class ObservableQuery<C extends NonUndefined, D extends NonUndefined, E e
         error: undefined,
     };
 
-    public constructor(client: Client<C, Cache<C>, D, E, R>, onChange: () => void) {
-        this.client = client;
+    public constructor(onChange: () => void) {
         this.onChange = onChange;
     }
 
@@ -40,24 +39,27 @@ export class ObservableQuery<C extends NonUndefined, D extends NonUndefined, E e
         return this.state;
     }
 
-    public setOptions(query?: Query<C, D, E, R>) {
-        this.stop();
+    public setOptions(client: Client, query?: Query<C, D, E, R>) {
+        if (this.client !== client || this.query !== query) {
+            this.stop();
 
-        this.query = query;
+            this.client = client;
+            this.query = query;
 
-        if (this.query) {
-            const queryState = this.client.readQuery(this.query);
+            if (this.query) {
+                const queryState = this.client.readQuery(this.query);
 
-            this.setState({
-                loading: queryState.requestRequired,
-                data: queryState.data,
-                error: queryState.error,
-            });
+                this.setState({
+                    loading: queryState.requestRequired,
+                    data: queryState.data,
+                    error: queryState.error,
+                });
+            }
         }
     }
 
     public start() {
-        if (!this.executed && this.query) {
+        if (!this.executed && this.query && this.client) {
             this.executed = true;
 
             const [, unsubscribe] = this.client.watchQuery(this.query, this.setState.bind(this));
@@ -86,7 +88,7 @@ export class ObservableQuery<C extends NonUndefined, D extends NonUndefined, E e
     }
 
     public prefetch(): Promise<D> | undefined {
-        if (this.query) {
+        if (this.query && this.client) {
             const [, promise] = this.client.query(this.query);
 
             return promise;
@@ -96,7 +98,7 @@ export class ObservableQuery<C extends NonUndefined, D extends NonUndefined, E e
     }
 
     public refetch = () => {
-        if (!this.executed || !this.query) {
+        if (!this.executed || !this.query || !this.client) {
             return Promise.reject(new Error("Can't refetch the query that wasn't executed yet."));
         }
 
@@ -141,8 +143,17 @@ export class ObservableQuery<C extends NonUndefined, D extends NonUndefined, E e
         this.nextState = { ...this.nextState, ...newState };
 
         if (!this.state.loading || !this.nextState.loading) {
-            this.state = this.nextState;
-            this.onChange();
+            if (!this.areStatesEqual(this.state, this.nextState)) {
+                this.state = this.nextState;
+
+                if (!this.executed) {
+                    this.onChange();
+                }
+            }
         }
+    }
+
+    private areStatesEqual(first: ObservableQueryState<D, E>, second: ObservableQueryState<D, E>): boolean {
+        return first.data === second.data && first.error === second.error && first.loading === second.loading;
     }
 }

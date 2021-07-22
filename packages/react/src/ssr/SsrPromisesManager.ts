@@ -1,5 +1,3 @@
-import { allSettled } from '../promise';
-
 class SsrPromisesManager {
     private promises: Promise<unknown>[] = [];
 
@@ -8,7 +6,7 @@ class SsrPromisesManager {
     }
 
     public awaitPromises(): Promise<void> {
-        return allSettled(this.promises).then(() => {
+        return Promise.allSettled(this.promises).then(() => {
             this.promises = [];
         });
     }
