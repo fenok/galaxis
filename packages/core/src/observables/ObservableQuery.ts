@@ -15,7 +15,8 @@ export class ObservableQuery<C extends NonUndefined, D extends NonUndefined, E e
     private onChange: () => void;
 
     private currentRequest?: Promise<D>;
-    private unsubscribe?: () => void;
+    private unsubscribeFromQueryState?: () => void;
+    private unsubscribeFromOnReset?: () => void;
 
     private executed = false;
 
@@ -31,6 +32,9 @@ export class ObservableQuery<C extends NonUndefined, D extends NonUndefined, E e
         error: undefined,
     };
 
+    private fallbackData?: D;
+    private fallbackError?: Error;
+
     public constructor(onChange: () => void) {
         this.onChange = onChange;
     }
@@ -43,6 +47,11 @@ export class ObservableQuery<C extends NonUndefined, D extends NonUndefined, E e
         if (this.client !== client || this.query !== query) {
             this.stop();
 
+            if (this.client !== client) {
+                this.unsubscribeFromOnReset?.();
+                this.unsubscribeFromOnReset = client.onReset(this.onReset.bind(this));
+            }
+
             this.client = client;
             this.query = query;
 
@@ -54,6 +63,8 @@ export class ObservableQuery<C extends NonUndefined, D extends NonUndefined, E e
                     data: queryState.data,
                     error: queryState.error,
                 });
+            } else {
+                this.setState({ loading: false });
             }
         }
     }
@@ -62,11 +73,8 @@ export class ObservableQuery<C extends NonUndefined, D extends NonUndefined, E e
         if (!this.executed && this.query && this.client) {
             this.executed = true;
 
-            const [, unsubscribe] = this.client.watchQuery(this.query, this.setState.bind(this));
-
-            this.unsubscribe = unsubscribe;
-
-            const [queryState, promise] = this.client.query(this.query);
+            const [queryState, promise, unsubscribe] = this.client.query(this.query, this.setState.bind(this));
+            this.unsubscribeFromQueryState = unsubscribe;
 
             this.setState({
                 loading: queryState.requestRequired,
@@ -80,41 +88,60 @@ export class ObservableQuery<C extends NonUndefined, D extends NonUndefined, E e
         return undefined;
     }
 
-    public stop() {
-        this.unsubscribe?.();
-        this.unsubscribe = undefined;
-        this.currentRequest = undefined;
-        this.executed = false;
-    }
-
     public refetch = () => {
         if (!this.executed || !this.query || !this.client) {
             return Promise.reject(new Error("Can't refetch the query that wasn't executed yet."));
         }
 
-        return this.decorateWithStateUpdates(this.client.fetchQuery(this.query));
-    };
-
-    private decorateWithStateUpdates(promise: Promise<D>) {
-        this.currentRequest = promise;
-
         this.setState({
             loading: true,
         });
 
+        return this.decorateWithStateUpdates(this.client.fetchQuery(this.query));
+    };
+
+    public dispose() {
+        this.stop();
+
+        this.unsubscribeFromOnReset?.();
+        this.unsubscribeFromOnReset = undefined;
+    }
+
+    private stop() {
+        this.unsubscribeFromQueryState?.();
+        this.unsubscribeFromQueryState = undefined;
+        this.currentRequest = undefined;
+        this.executed = false;
+    }
+
+    private onReset() {
+        if (this.executed) {
+            this.stop();
+            void this.start();
+        }
+
+        this.fallbackData = undefined;
+        this.fallbackError = undefined;
+    }
+
+    private decorateWithStateUpdates(promise: Promise<D>) {
+        this.currentRequest = promise;
+
         return promise
             .then((data) => {
                 if (this.currentRequest === promise) {
-                    if (!this.unsubscribe) {
+                    if (!this.unsubscribeFromQueryState) {
                         this.setState({ data, error: undefined });
                     }
                     this.setState({ loading: false });
                 }
+
+                return data;
             })
             .catch((error: Error) => {
                 if (this.currentRequest === promise) {
-                    if (!this.unsubscribe) {
-                        this.setState({ error });
+                    if (!this.unsubscribeFromQueryState) {
+                        this.setState({ error, data: undefined });
                     }
 
                     if (error !== this.nextState.error) {
@@ -126,13 +153,28 @@ export class ObservableQuery<C extends NonUndefined, D extends NonUndefined, E e
 
                     this.setState({ loading: false });
                 }
+
+                throw error;
             });
     }
 
     private setState(newState: Partial<ObservableQueryState<D, E>>) {
         this.nextState = { ...this.nextState, ...newState };
 
-        if (!this.state.loading || !this.nextState.loading) {
+        if (this.nextState.loading || this.isInvalidationState(newState)) {
+            if (this.nextState.data === undefined) {
+                this.nextState.data = this.fallbackData;
+
+                if (this.nextState.error === undefined) {
+                    this.nextState.error = this.fallbackError;
+                }
+            }
+        }
+
+        this.fallbackData = this.nextState.data;
+        this.fallbackError = this.nextState.error;
+
+        if (this.isInitialState(newState) || !this.state.loading || !this.nextState.loading) {
             if (!this.areStatesEqual(this.state, this.nextState)) {
                 this.state = this.nextState;
 
@@ -145,5 +187,19 @@ export class ObservableQuery<C extends NonUndefined, D extends NonUndefined, E e
 
     private areStatesEqual(first: ObservableQueryState<D, E>, second: ObservableQueryState<D, E>): boolean {
         return first.data === second.data && first.error === second.error && first.loading === second.loading;
+    }
+
+    private isInvalidationState(state: Partial<ObservableQueryState<D, E>>) {
+        return (
+            !('loading' in state) &&
+            'data' in state &&
+            'error' in state &&
+            state.data === undefined &&
+            state.error === undefined
+        );
+    }
+
+    private isInitialState(state: Partial<ObservableQueryState<D, E>>) {
+        return 'loading' in state && 'data' in state && 'error' in state;
     }
 }

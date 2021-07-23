@@ -14,6 +14,8 @@ export class ObservableMutation<C extends NonUndefined, D extends NonUndefined, 
     private mutation?: Mutation<C, D, E, R>;
     private currentRequest?: Promise<D>;
 
+    private unsubscribeFromOnReset?: () => void;
+
     private state: ObservableMutationState<D, E> = {
         loading: false,
         data: undefined,
@@ -30,28 +32,40 @@ export class ObservableMutation<C extends NonUndefined, D extends NonUndefined, 
     }
 
     public setOptions(client: Client, mutation?: Mutation<C, D, E, R>) {
-        if (this.client !== client && this.mutation !== mutation) {
-            this.reset();
-
-            this.client = client;
-            this.mutation = mutation;
+        if (this.client !== client) {
+            this.unsubscribeFromOnReset?.();
+            this.unsubscribeFromOnReset = client.onReset(this.reset);
         }
+
+        this.client = client;
+        this.mutation = mutation;
     }
 
-    public execute = () => {
-        if (this.client && this.mutation) {
-            this.setState({ loading: true, called: true });
+    public execute = (mutation?: Mutation<C, D, E, R>) => {
+        if (this.client) {
+            const mutationToExecute = mutation || this.mutation;
 
-            return this.decorateWithStateUpdates(this.client.mutate(this.mutation));
+            if (mutationToExecute) {
+                this.setState({ called: true, loading: true, data: undefined, error: undefined });
+
+                return this.decorateWithStateUpdates(this.client.mutate(mutationToExecute));
+            }
+
+            return Promise.reject(new Error('No mutation to execute'));
         }
 
-        return Promise.reject(new Error('No mutation to execute'));
+        return Promise.reject(new Error('No client provided'));
     };
 
     public reset = () => {
         this.currentRequest = undefined;
         this.setState({ loading: false, called: false, data: undefined, error: undefined });
     };
+
+    public dispose() {
+        this.unsubscribeFromOnReset?.();
+        this.unsubscribeFromOnReset = undefined;
+    }
 
     private decorateWithStateUpdates(promise: Promise<D>) {
         this.currentRequest = promise;
@@ -66,7 +80,7 @@ export class ObservableMutation<C extends NonUndefined, D extends NonUndefined, 
             })
             .catch((error: Error) => {
                 if (this.currentRequest === promise) {
-                    this.setState({ error, loading: false });
+                    this.setState({ data: undefined, error, loading: false });
                 }
 
                 throw error;

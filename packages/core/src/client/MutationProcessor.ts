@@ -35,7 +35,7 @@ export class MutationProcessor<C extends NonUndefined> {
     public mutate<D extends NonUndefined, E extends Error, R>(mutation: Mutation<C, D, E, R>): Promise<D> {
         const requestId = mutation.getRequestId ? mutation.getRequestId(mutation) : this.hash(mutation.requestParams);
 
-        if (mutation.optimisticData && mutation.toCache) {
+        if (mutation.optimisticData && mutation.toCache && mutation.fetchPolicy !== 'no-cache') {
             this.cache.update({
                 data: mutation.toCache({
                     cacheData: this.cache.getData(),
@@ -58,7 +58,7 @@ export class MutationProcessor<C extends NonUndefined> {
                     if (this.ongoingRequests.has(mutationRequest)) {
                         this.ongoingRequests.delete(mutationRequest);
 
-                        if (mutation.toCache) {
+                        if (mutation.toCache && mutation.fetchPolicy !== 'no-cache') {
                             this.cache.update({
                                 data: mutation.toCache({
                                     cacheData:
@@ -84,7 +84,11 @@ export class MutationProcessor<C extends NonUndefined> {
                     if (this.ongoingRequests.has(mutationRequest)) {
                         this.ongoingRequests.delete(mutationRequest);
 
-                        if (mutation.optimisticData && mutation.removeOptimisticData) {
+                        if (
+                            mutation.optimisticData &&
+                            mutation.removeOptimisticData &&
+                            mutation.fetchPolicy !== 'no-cache'
+                        ) {
                             this.cache.update({
                                 data: mutation.removeOptimisticData({
                                     cacheData: this.cache.getData(),

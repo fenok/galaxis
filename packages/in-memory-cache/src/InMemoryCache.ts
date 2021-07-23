@@ -65,11 +65,12 @@ class InMemoryCache<C extends NonUndefined> implements Cache<C> {
         return this.state.errors[requestId];
     }
 
-    public purge() {
+    public clear() {
         this.state = {
             errors: {},
             data: this.emptyData,
         };
+        this.devtools?.send({ type: 'CLEAR' }, this.state);
     }
 
     public extract(): CacheState<C, ErrorObject> {

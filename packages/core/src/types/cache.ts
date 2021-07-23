@@ -10,5 +10,5 @@ export interface Cache<C extends NonUndefined> {
     update(opts: UpdateOptions<C>): void;
     getData(): C;
     getError(requestId: string): Error | undefined;
-    purge(): void;
+    clear(): void;
 }

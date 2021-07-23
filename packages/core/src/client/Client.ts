@@ -49,8 +49,9 @@ class Client<
 
     public query<D extends BD, E extends BE, R extends BR>(
         query: Query<C, D, E, R>,
-    ): [QueryState<D, E>, Promise<D> | undefined] {
-        return this.queryProcessor.query(this.defaultsMerger.getMergedQuery(query));
+        onChange?: (queryState: QueryState<D, E>) => void,
+    ): [QueryState<D, E>, Promise<D> | undefined, (() => void) | undefined] {
+        return this.queryProcessor.query(this.defaultsMerger.getMergedQuery(query), onChange);
     }
 
     public fetchQuery<D extends BD, E extends BE, R extends BR>(query: Query<C, D, E, R>): Promise<D> {
@@ -73,9 +74,10 @@ class Client<
     }
 
     public reset() {
+        this.cache.clear();
+
         this.queryProcessor.onReset();
         this.mutationProcessor.onReset();
-        this.cache.purge();
 
         this.onResetListeners.forEach((cb) => cb());
     }

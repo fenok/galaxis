@@ -28,11 +28,13 @@ export function useQuery<C extends NonUndefined, D extends NonUndefined, E exten
 
     useEffect(() => {
         observableQuery.current?.start();
-
-        return () => {
-            observableQuery.current?.stop();
-        };
     }, [memoizedQuery]);
+
+    useEffect(() => {
+        return () => {
+            observableQuery.current?.dispose();
+        };
+    }, []);
 
     return { ...observableQuery.current.getState(), refetch: observableQuery.current.refetch };
 }

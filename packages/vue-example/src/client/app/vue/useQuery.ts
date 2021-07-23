@@ -30,7 +30,7 @@ export function useQuery<C extends NonUndefined, D extends NonUndefined, E exten
     });
 
     onUnmounted(() => {
-        observableQuery.stop();
+        observableQuery.dispose();
     });
 
     function updateState(nextState: ObservableQueryState<D, E>) {

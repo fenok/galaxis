@@ -10,8 +10,6 @@ export interface QueryCache<D extends NonUndefined, E extends Error> {
 
 export interface QueryState<D extends NonUndefined, E extends Error> extends QueryCache<D, E> {
     requestRequired: boolean;
-    requestAllowed: boolean;
-    cacheable: boolean;
 }
 
 export interface QueryRequest {
@@ -56,19 +54,33 @@ export class QueryProcessor<C extends NonUndefined> {
 
     public query<D extends NonUndefined, E extends Error, R>(
         query: Query<C, D, E, R>,
-    ): [QueryState<D, E>, Promise<D> | undefined] {
+        onChange?: (state: QueryState<D, E>) => void,
+    ): [QueryState<D, E>, Promise<D> | undefined, (() => void) | undefined] {
         const requestId = query.getRequestId ? query.getRequestId(query) : this.hash(query.requestParams);
-        const queryState = this.readQuery(query);
+
+        let queryState: QueryState<D, E>;
+        let unsubscribe: (() => void) | undefined;
+
+        if (onChange) {
+            [queryState, unsubscribe] = this.watchQuery(query, onChange);
+        } else {
+            queryState = this.readQuery(query);
+        }
 
         return [
             queryState,
-            queryState.requestRequired && queryState.requestAllowed
+            queryState.requestRequired && this.isRequestAllowed(query, queryState)
                 ? this.getRequestPromise(query, requestId)
                 : undefined,
+            unsubscribe,
         ];
     }
 
     public fetchQuery<D extends NonUndefined, E extends Error, R>(query: Query<C, D, E, R>): Promise<D> {
+        if (this.isFetchPolicy(query.fetchPolicy, 'cache-only')) {
+            return Promise.reject(new Error("Can't fetch query with 'cache-only' fetch policy"));
+        }
+
         const requestId = query.getRequestId ? query.getRequestId(query) : this.hash(query.requestParams);
         return this.getRequestPromise(query, requestId);
     }
@@ -90,8 +102,6 @@ export class QueryProcessor<C extends NonUndefined> {
         return {
             ...cache,
             requestRequired: this.isRequestRequired(query, cache),
-            requestAllowed: this.isRequestAllowed(query, cache),
-            cacheable: Boolean(cache),
         };
     }
 

@@ -44,7 +44,7 @@ export class TestCache<C extends NonUndefined> implements Cache<C> {
         };
     }
 
-    public purge() {
+    public clear() {
         this.state = {
             data: this.emptyData,
             requestErrors: {},
