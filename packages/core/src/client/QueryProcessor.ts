@@ -13,7 +13,7 @@ export interface QueryState<D extends NonUndefined, E extends Error> extends Que
 }
 
 export interface QueryRequest {
-    cacheableQuery?: unknown;
+    cacheableQueries: Query<NonUndefined, NonUndefined, Error, unknown>[];
     promise: Promise<unknown>;
     loading: number;
     abortController?: AbortController;
@@ -168,7 +168,7 @@ export class QueryProcessor<C extends NonUndefined> {
             const queryRequest: QueryRequest = {
                 abortController,
                 loading: 1,
-                cacheableQuery: isQueryCacheable ? query : undefined,
+                cacheableQueries: isQueryCacheable ? [query] : [],
                 promise: Promise.resolve(),
             };
 
@@ -177,8 +177,10 @@ export class QueryProcessor<C extends NonUndefined> {
             this.ongoingRequests[requestId] = queryRequest;
         } else {
             currentQueryRequest.loading++;
-            if (!currentQueryRequest.cacheableQuery && isQueryCacheable) {
-                currentQueryRequest.cacheableQuery = query;
+            if (isQueryCacheable) {
+                // TODO: Add query only if it updates the cache differently
+                // Update functions should be pure, so it should be possible to just compare the functions code
+                currentQueryRequest.cacheableQueries.push(query);
             }
 
             if (query.forceRequestOnMerge) {
@@ -212,8 +214,8 @@ export class QueryProcessor<C extends NonUndefined> {
                     } else {
                         this.ongoingRequests[requestId] = undefined;
 
-                        if (queryRequest.cacheableQuery) {
-                            this.updateCache(queryRequest.cacheableQuery as Query<C, D, E, R>, requestId, {
+                        if (queryRequest.cacheableQueries.length) {
+                            this.updateCache(queryRequest.cacheableQueries as Query<C, D, E, R>[], requestId, {
                                 type: 'success',
                                 data,
                             });
@@ -232,8 +234,8 @@ export class QueryProcessor<C extends NonUndefined> {
                     } else {
                         this.ongoingRequests[requestId] = undefined;
 
-                        if (queryRequest.cacheableQuery) {
-                            this.updateCache(queryRequest.cacheableQuery as Query<C, D, E, R>, requestId, {
+                        if (queryRequest.cacheableQueries.length) {
+                            this.updateCache(queryRequest.cacheableQueries as Query<C, D, E, R>[], requestId, {
                                 type: 'fail',
                                 error,
                             });
@@ -245,20 +247,24 @@ export class QueryProcessor<C extends NonUndefined> {
     }
 
     private updateCache<D extends NonUndefined, E extends Error, R>(
-        query: Query<C, D, E, R>,
+        queries: Query<C, D, E, R>[],
         requestId: string,
         action: { type: 'fail'; error: E } | { type: 'success'; data: D },
     ) {
         if (action.type === 'success') {
             this.cache.update({
-                data: query.toCache
-                    ? query.toCache({
-                          cacheData: this.cache.getData(),
-                          data: action.data,
-                          requestParams: query.requestParams,
-                          requestId,
-                      })
-                    : undefined,
+                data: queries.reduce(
+                    (data, query) =>
+                        query.toCache
+                            ? query.toCache({
+                                  cacheData: data,
+                                  data: action.data,
+                                  requestParams: query.requestParams,
+                                  requestId,
+                              })
+                            : data,
+                    this.cache.getData(),
+                ),
                 error: [requestId, undefined],
             });
         } else {
