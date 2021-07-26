@@ -2,7 +2,7 @@ import { NonUndefined, Query, ObservableQuery, Resource } from '@galaxis/core';
 import { useContext, useEffect, useReducer, useRef } from 'react';
 import { useClient } from '../providers';
 import { SsrPromisesManagerContext } from '../ssr';
-import { useMemoByHash } from './useMemoByHash';
+import { useMemoByHashObject } from './useMemoByHashObject';
 
 export function useQuery<C extends NonUndefined, D extends NonUndefined, E extends Error, R extends Resource>(
     query?: Query<C, D, E, R>,
@@ -10,7 +10,7 @@ export function useQuery<C extends NonUndefined, D extends NonUndefined, E exten
     const client = useClient();
     const ssrPromisesManager = useContext(SsrPromisesManagerContext);
 
-    const memoizedQuery = useMemoByHash(query, client.hash);
+    const memoizedQuery = useMemoByHashObject(query, getHashObject.bind(null, client.hash));
 
     const [, forceUpdate] = useReducer((i: number) => i + 1, 0);
 
@@ -37,4 +37,16 @@ export function useQuery<C extends NonUndefined, D extends NonUndefined, E exten
     }, []);
 
     return { ...observableQuery.current.getState(), refetch: observableQuery.current.refetch };
+}
+
+function getHashObject(
+    hash: (resource: unknown) => string,
+    query: Query<NonUndefined, NonUndefined, Error, Resource>,
+): Record<string, unknown> {
+    return Object.fromEntries(
+        Object.entries(query).map(([key, value]: [string, unknown]) => [
+            key,
+            key === 'resource' ? hash(value) : typeof value === 'function' ? value.toString() : value,
+        ]),
+    );
 }
