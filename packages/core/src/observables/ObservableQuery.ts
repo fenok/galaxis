@@ -5,7 +5,7 @@ import { logger } from '../logger';
 export interface ObservableQueryState<D extends NonUndefined, E extends Error> {
     loading: boolean;
     data: D | undefined;
-    error: E | Error | undefined;
+    error: E | undefined;
 }
 
 export class ObservableQuery<C extends NonUndefined, D extends NonUndefined, E extends Error, R extends Resource> {
@@ -33,7 +33,7 @@ export class ObservableQuery<C extends NonUndefined, D extends NonUndefined, E e
     };
 
     private fallbackData?: D;
-    private fallbackError?: Error;
+    private fallbackError?: E;
 
     public constructor(onChange: () => void) {
         this.onChange = onChange;
@@ -141,7 +141,7 @@ export class ObservableQuery<C extends NonUndefined, D extends NonUndefined, E e
             .catch((error: Error) => {
                 if (this.currentRequest === promise) {
                     if (!this.unsubscribeFromQueryState) {
-                        this.setState({ error, data: undefined });
+                        this.setState({ error: error as E, data: undefined });
                     }
 
                     if (error !== this.nextState.error) {

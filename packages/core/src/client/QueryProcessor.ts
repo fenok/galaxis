@@ -4,7 +4,7 @@ import { RequestHelper } from './RequestHelper';
 import { Query, Cache, NonUndefined, FetchPolicy, Resource } from '../types';
 
 export interface QueryCache<D extends NonUndefined, E extends Error> {
-    error?: E | Error; // Regular error can always slip through
+    error?: E;
     data?: D;
 }
 
@@ -94,7 +94,7 @@ export class QueryProcessor<C extends NonUndefined> {
 
         const cache = !this.isFetchPolicy(query.fetchPolicy, 'no-cache')
             ? {
-                  error: this.cache.getError(requestId),
+                  error: this.cache.getError(requestId) as E,
                   data: query.fromCache?.({
                       cacheData: this.cache.getData(),
                       resource: query.resource,
