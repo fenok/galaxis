@@ -33,7 +33,6 @@ class Client<
 
     public constructor({
         cache,
-        merge,
         defaultRequest,
         defaultQuery,
         defaultMutation,
@@ -44,7 +43,7 @@ class Client<
         this.cache = cache;
         this.queryProcessor = new QueryProcessor({ cache, requestQueue, hash });
         this.mutationProcessor = new MutationProcessor({ cache, requestQueue, hash });
-        this.defaultsMerger = new DefaultsMerger({ merge, defaultRequest, defaultQuery, defaultMutation });
+        this.defaultsMerger = new DefaultsMerger({ defaultRequest, defaultQuery, defaultMutation });
     }
 
     public query<D extends BD, E extends BE, R extends BR>(

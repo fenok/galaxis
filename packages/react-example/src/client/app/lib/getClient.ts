@@ -2,7 +2,7 @@ import { Client, NonUndefined } from '@galaxis/react';
 import { InMemoryCache } from '@galaxis/in-memory-cache';
 import { CacheData } from './CacheData';
 import { request, requestId, processResponseJson, FetchResource, ResponseError } from '@galaxis/fetch';
-import { mergeDeepNonUndefined, objectHash } from '@galaxis/utils';
+import { objectHash } from '@galaxis/utils';
 import { ErrorResponse } from './ErrorResponse';
 
 export const EMPTY_DATA: CacheData = {
@@ -42,6 +42,5 @@ export function getClient({ fetch }: GetClientOptions): AppClient {
             fetchPolicy: 'cache-and-network',
         },
         hash: objectHash,
-        merge: mergeDeepNonUndefined,
     });
 }
