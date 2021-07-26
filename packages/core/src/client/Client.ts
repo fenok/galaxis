@@ -12,7 +12,7 @@ interface ClientOptions<
     BR extends Resource = Resource
 > extends DefaultsMergerOptions<C, BD, BE, BR> {
     cache: CACHE;
-    hash(value: unknown): string;
+    hashResource(resource: unknown): string;
 }
 
 class Client<
@@ -29,20 +29,20 @@ class Client<
 
     private onResetListeners: Set<() => void> = new Set();
 
-    public readonly hash: (value: unknown) => string;
+    public readonly hashResource: (resource: unknown) => string;
 
     public constructor({
         cache,
         defaultRequest,
         defaultQuery,
         defaultMutation,
-        hash,
+        hashResource,
     }: ClientOptions<C, CACHE, BD, BE, BR>) {
         const requestQueue = new RequestQueue();
-        this.hash = hash;
+        this.hashResource = hashResource;
         this.cache = cache;
-        this.queryProcessor = new QueryProcessor({ cache, requestQueue, hash });
-        this.mutationProcessor = new MutationProcessor({ cache, requestQueue, hash });
+        this.queryProcessor = new QueryProcessor({ cache, requestQueue, hashResource });
+        this.mutationProcessor = new MutationProcessor({ cache, requestQueue, hashResource });
         this.defaultsMerger = new DefaultsMerger({ defaultRequest, defaultQuery, defaultMutation });
     }
 

@@ -23,7 +23,7 @@ export interface QueryRequest {
 export interface QueryProcessorOptions<C extends NonUndefined> {
     cache: Cache<C>;
     requestQueue: RequestQueue;
-    hash(value: unknown): string;
+    hashResource(resource: unknown): string;
 }
 
 export class QueryProcessor<C extends NonUndefined> {
@@ -31,12 +31,12 @@ export class QueryProcessor<C extends NonUndefined> {
     private isHydrate = true;
     private readonly cache: Cache<C>;
     private readonly requestQueue: RequestQueue;
-    private hash: (value: unknown) => string;
+    private hashResource: (resource: unknown) => string;
 
-    constructor({ cache, requestQueue, hash }: QueryProcessorOptions<C>) {
+    constructor({ cache, requestQueue, hashResource }: QueryProcessorOptions<C>) {
         this.cache = cache;
         this.requestQueue = requestQueue;
-        this.hash = hash;
+        this.hashResource = hashResource;
     }
 
     public onHydrateComplete() {
@@ -56,7 +56,7 @@ export class QueryProcessor<C extends NonUndefined> {
         query: Query<C, D, E, R>,
         onChange?: (state: QueryState<D, E>) => void,
     ): [QueryState<D, E>, Promise<D> | undefined, (() => void) | undefined] {
-        const requestId = query.requestId ? query.requestId(query.resource) : this.hash(query.resource);
+        const requestId = this.hashResource(query.resource);
 
         let queryState: QueryState<D, E>;
         let unsubscribe: (() => void) | undefined;
@@ -83,14 +83,14 @@ export class QueryProcessor<C extends NonUndefined> {
             return Promise.reject(new Error("Can't fetch query with 'cache-only' fetch policy"));
         }
 
-        const requestId = query.requestId ? query.requestId(query.resource) : this.hash(query.resource);
+        const requestId = this.hashResource(query.resource);
         return this.getRequestPromise(query, requestId);
     }
 
     public readQuery<D extends NonUndefined, E extends Error, R extends Resource>(
         query: Query<C, D, E, R>,
     ): QueryState<D, E> {
-        const requestId = query.requestId ? query.requestId(query.resource) : this.hash(query.resource);
+        const requestId = this.hashResource(query.resource);
 
         const cache = !this.isFetchPolicy(query.fetchPolicy, 'no-cache')
             ? {

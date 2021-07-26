@@ -21,7 +21,6 @@ export interface BaseRequest<C extends NonUndefined, D extends NonUndefined, E e
     resource: R;
     abortSignal?: AbortSignal;
     request?(resource: R, abortSignal?: AbortSignal): Promise<D>;
-    requestId?(resource: R): string;
     toCache?(opts: ToCacheOptions<C, D, R>): C;
     __errorType?: E;
 }

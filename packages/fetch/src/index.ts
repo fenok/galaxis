@@ -1,5 +1,5 @@
 export * from './request';
-export * from './requestId';
+export * from './hashResource';
 export * from './types';
 export * from './errors';
 export * from './getRequestInit';

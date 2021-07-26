@@ -10,7 +10,7 @@ export function useQuery<C extends NonUndefined, D extends NonUndefined, E exten
     const client = useClient();
     const ssrPromisesManager = useContext(SsrPromisesManagerContext);
 
-    const memoizedQuery = useMemoByHashObject(query, getHashObject.bind(null, client.hash));
+    const memoizedQuery = useMemoByHashObject(query, getHashObject.bind(null, client.hashResource));
 
     const [, forceUpdate] = useReducer((i: number) => i + 1, 0);
 
