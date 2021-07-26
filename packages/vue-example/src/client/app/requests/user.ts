@@ -11,8 +11,8 @@ export interface User {
 export type UserQueryRequestParams = { pathParams: { id: number } };
 
 export const userQuery = getQuery<User, UserQueryRequestParams>((params) => ({
-    requestParams: {
-        path: '/users/:id',
+    resource: {
+        key: '/users/:id',
         ...params,
     },
     toCache: immerify(({ cacheData, data }) => {
@@ -27,15 +27,15 @@ export const userQuery = getQuery<User, UserQueryRequestParams>((params) => ({
         };
     }),
     fromCache: memoize(
-        ({ cacheData, requestParams }) => {
-            const user = cacheData.users[requestParams.pathParams.id];
-            const email = cacheData.emails[requestParams.pathParams.id];
+        ({ cacheData, resource }) => {
+            const user = cacheData.users[resource.pathParams.id];
+            const email = cacheData.emails[resource.pathParams.id];
 
             return user && email ? { ...user, ...email } : undefined;
         },
-        ({ cacheData, requestParams }) => [
-            cacheData.users[requestParams.pathParams.id],
-            cacheData.emails[requestParams.pathParams.id],
+        ({ cacheData, resource }) => [
+            cacheData.users[resource.pathParams.id],
+            cacheData.emails[resource.pathParams.id],
         ],
     ),
 }));

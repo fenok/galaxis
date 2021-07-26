@@ -1,5 +1,5 @@
 import { RequestQueue } from '../../RequestQueue';
-import { Query, BaseRequest, RequestOptions } from '../../../types';
+import { Query, BaseRequest, Resource, Mutation } from '../../../types';
 import { QueryProcessor } from '../../QueryProcessor';
 import { TestCache } from './TestCache';
 import { wait } from '../../../promise';
@@ -34,7 +34,8 @@ export const SECOND_ITEM: ItemEntity = {
     freshness: 1,
 };
 
-export interface TestRequestInit {
+export interface TestRequestInit extends Resource {
+    key: 'item';
     id: string;
     updateItem?: Partial<Omit<ItemEntity, 'id' | 'freshness'>>;
     time?: number;
@@ -51,32 +52,30 @@ export function getNetworkError() {
 export function getGetRequestFactory() {
     const state: Record<string, ItemEntity> = { '1': FIRST_ITEM, '2': SECOND_ITEM };
 
-    return ({ requestParams }: RequestOptions<TestRequestInit>) => {
-        let freshness = 0;
+    const freshnesses = new Map<unknown, number>();
 
-        return (abortSignal?: AbortSignal) => {
-            freshness++;
+    return (resource: TestRequestInit, abortSignal?: AbortSignal) => {
+        freshnesses.set(resource, (freshnesses.get(resource) || 0) + 1);
 
-            return new Promise<ItemEntity>((resolve, reject) => {
-                function onAbort() {
-                    reject(getAbortError());
+        return new Promise<ItemEntity>((resolve, reject) => {
+            function onAbort() {
+                reject(getAbortError());
+            }
+
+            if (abortSignal?.aborted) {
+                onAbort();
+            } else {
+                abortSignal?.addEventListener('abort', onAbort);
+            }
+
+            void wait(resource.time ?? 200).then(() => {
+                if (resource.updateItem) {
+                    state[resource.id] = { ...state[resource.id], ...resource.updateItem };
                 }
 
-                if (abortSignal?.aborted) {
-                    onAbort();
-                } else {
-                    abortSignal?.addEventListener('abort', onAbort);
-                }
-
-                void wait(requestParams.time ?? 200).then(() => {
-                    if (requestParams.updateItem) {
-                        state[requestParams.id] = { ...state[requestParams.id], ...requestParams.updateItem };
-                    }
-
-                    resolve({ ...state[requestParams.id], freshness });
-                });
+                resolve({ ...state[resource.id], freshness: freshnesses.get(resource) || 0 });
             });
-        };
+        });
     };
 }
 
@@ -88,9 +87,9 @@ export const INITIAL_CACHE_DATA: TestCacheData = {
     items: {},
 };
 
-export const BASE_REQUEST: Pick<BaseRequest<TestCacheData, ItemEntity, Error, TestRequestInit>, 'getRequestId'> = {
-    getRequestId({ requestParams }: RequestOptions<TestRequestInit>): string {
-        return Buffer.from(JSON.stringify(requestParams)).toString('base64');
+export const BASE_REQUEST: Pick<BaseRequest<TestCacheData, ItemEntity, Error, TestRequestInit>, 'requestId'> = {
+    requestId(resource: TestRequestInit): string {
+        return Buffer.from(JSON.stringify(resource)).toString('base64');
     },
 };
 
@@ -100,16 +99,13 @@ export const BASE_QUERY: typeof BASE_REQUEST &
     fetchPolicy: 'cache-and-network',
 };
 
-export const ITEM_REQUEST: Omit<
-    Query<TestCacheData, ItemEntity, Error, TestRequestInit>,
-    'requestParams' | 'getRequestFactory'
-> = {
+export const ITEM_REQUEST: Omit<Query<TestCacheData, ItemEntity, Error, TestRequestInit>, 'resource' | 'request'> = {
     ...BASE_QUERY,
     toCache({ cacheData, data }) {
         return { ...cacheData, items: { ...cacheData.items, [data.id]: data } };
     },
-    fromCache({ cacheData, requestParams }) {
-        return cacheData.items[requestParams.id];
+    fromCache({ cacheData, resource }) {
+        return cacheData.items[resource.id];
     },
 };
 
@@ -118,16 +114,16 @@ export function getFirstItemRequest(
 ): Query<TestCacheData, ItemEntity, Error, TestRequestInit> {
     return {
         ...ITEM_REQUEST,
-        getRequestFactory,
-        requestParams: { id: '1' },
+        request: getRequestFactory,
+        resource: { key: 'item', id: '1' },
     };
 }
 
 export function getFailingFirstItemRequest(): Query<TestCacheData, ItemEntity, Error, TestRequestInit> {
     return {
         ...ITEM_REQUEST,
-        getRequestFactory: () => () => Promise.reject(getNetworkError()),
-        requestParams: { id: '1' },
+        request: () => Promise.reject(getNetworkError()),
+        resource: { key: 'item', id: '1' },
     };
 }
 
@@ -136,8 +132,8 @@ export function getSecondItemRequest(
 ): Query<TestCacheData, ItemEntity, Error, TestRequestInit> {
     return {
         ...ITEM_REQUEST,
-        getRequestFactory,
-        requestParams: { id: '2' },
+        request: getRequestFactory,
+        resource: { key: 'item', id: '2' },
     };
 }
 
@@ -173,7 +169,7 @@ export function getClient(cache = getCache()) {
     return new Client({
         cache,
         defaultQuery: getFirstItemRequest(),
-        defaultMutation: getFirstItemRequest(),
+        defaultMutation: getFirstItemRequest() as Mutation<any, any, any, any>,
         hash(value: unknown): string {
             return JSON.stringify(value);
         },

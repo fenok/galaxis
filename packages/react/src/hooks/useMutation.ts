@@ -1,8 +1,8 @@
 import { useClient } from '../providers';
-import { NonUndefined, ObservableMutation, Mutation } from '@galaxis/core';
+import { NonUndefined, ObservableMutation, Mutation, Resource } from '@galaxis/core';
 import { useEffect, useReducer, useRef } from 'react';
 
-export function useMutation<C extends NonUndefined, D extends NonUndefined, E extends Error, R>(
+export function useMutation<C extends NonUndefined, D extends NonUndefined, E extends Error, R extends Resource>(
     mutation?: Mutation<C, D, E, R>,
 ) {
     const client = useClient();

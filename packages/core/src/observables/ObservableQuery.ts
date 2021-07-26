@@ -1,4 +1,4 @@
-import { NonUndefined, Query } from '../types';
+import { NonUndefined, Query, Resource } from '../types';
 import { Client } from '../client';
 import { logger } from '../logger';
 
@@ -8,7 +8,7 @@ export interface ObservableQueryState<D extends NonUndefined, E extends Error> {
     error: E | Error | undefined;
 }
 
-export class ObservableQuery<C extends NonUndefined, D extends NonUndefined, E extends Error, R> {
+export class ObservableQuery<C extends NonUndefined, D extends NonUndefined, E extends Error, R extends Resource> {
     private query?: Query<C, D, E, R>;
 
     private client?: Client;

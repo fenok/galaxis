@@ -1,4 +1,4 @@
-import { BaseRequest, Mutation, NonUndefined, Query } from '../types';
+import { BaseRequest, Mutation, NonUndefined, Query, Resource } from '../types';
 
 export interface Merge {
     <R1, R2, R3>(r1: R1, r2: R2, r3: R3): R1 & R2 & R3;
@@ -8,7 +8,7 @@ export interface DefaultsMergerOptions<
     C extends NonUndefined = NonUndefined,
     BD extends NonUndefined = NonUndefined,
     BE extends Error = Error,
-    BR = unknown
+    BR extends Resource = Resource
 > {
     defaultRequest?: Partial<BaseRequest<C, BD, BE, BR>>;
     defaultQuery?: Partial<Query<C, BD, BE, BR>>;
@@ -20,7 +20,7 @@ export class DefaultsMerger<
     C extends NonUndefined = NonUndefined,
     BD extends NonUndefined = NonUndefined,
     BE extends Error = Error,
-    BR = unknown
+    BR extends Resource = Resource
 > {
     private defaultRequest?: Partial<BaseRequest<C, BD, BE, BR>>;
     private defaultQuery?: Partial<Query<C, BD, BE, BR>>;

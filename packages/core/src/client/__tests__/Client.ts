@@ -5,6 +5,7 @@ import {
     FIRST_ITEM_UPDATE_DTO,
     FIRST_ITEM_UPDATED,
 } from './utils/request-helpers';
+import { Mutation } from '../../types';
 
 it('guarantees that mutation waits for loading queries', async () => {
     const client = getClient();
@@ -12,17 +13,17 @@ it('guarantees that mutation waits for loading queries', async () => {
 
     const queryResult = client.fetchQuery({
         ...firstItemRequest,
-        requestParams: { ...firstItemRequest.requestParams, time: 400 },
+        resource: { ...firstItemRequest.resource, time: 400 },
     });
 
     const mutationResult = client.mutate({
-        ...firstItemRequest,
-        requestParams: { ...firstItemRequest.requestParams, time: 100, updateItem: FIRST_ITEM_UPDATE_DTO },
+        ...(firstItemRequest as Mutation<any, any, any, any>),
+        resource: { ...firstItemRequest.resource, time: 100, updateItem: FIRST_ITEM_UPDATE_DTO },
     });
 
     const finalQueryResult = client.fetchQuery({
         ...firstItemRequest,
-        requestParams: { ...firstItemRequest.requestParams, time: 100 },
+        resource: { ...firstItemRequest.resource, time: 100 },
     });
 
     await expect(queryResult).resolves.toEqual(FIRST_ITEM);

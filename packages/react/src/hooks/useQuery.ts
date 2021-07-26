@@ -1,10 +1,10 @@
-import { NonUndefined, Query, ObservableQuery } from '@galaxis/core';
+import { NonUndefined, Query, ObservableQuery, Resource } from '@galaxis/core';
 import { useContext, useEffect, useReducer, useRef } from 'react';
 import { useClient } from '../providers';
 import { SsrPromisesManagerContext } from '../ssr';
 import { useMemoByHash } from './useMemoByHash';
 
-export function useQuery<C extends NonUndefined, D extends NonUndefined, E extends Error, R>(
+export function useQuery<C extends NonUndefined, D extends NonUndefined, E extends Error, R extends Resource>(
     query?: Query<C, D, E, R>,
 ) {
     const client = useClient();

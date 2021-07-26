@@ -1,7 +1,7 @@
 import { Client, NonUndefined } from '@galaxis/react';
 import { InMemoryCache } from '@galaxis/in-memory-cache';
 import { CacheData } from './CacheData';
-import { getRequestFactory, getRequestId, processResponseJson, RequestParams, ResponseError } from '@galaxis/fetch';
+import { request, requestId, processResponseJson, FetchResource, ResponseError } from '@galaxis/fetch';
 import { mergeDeepNonUndefined, objectHash } from '@galaxis/utils';
 import { ErrorResponse } from './ErrorResponse';
 
@@ -19,7 +19,7 @@ export type AppClient = Client<
     InMemoryCache<CacheData>,
     NonUndefined,
     ResponseError<ErrorResponse>,
-    RequestParams
+    FetchResource
 >;
 
 export function getClient({ fetch }: GetClientOptions): AppClient {
@@ -30,12 +30,12 @@ export function getClient({ fetch }: GetClientOptions): AppClient {
             enableDevTools: true,
         }),
         defaultRequest: {
-            requestParams: {
+            request: request({
                 root: 'https://jsonplaceholder.typicode.com',
-                path: '',
-            },
-            getRequestFactory: getRequestFactory({ fetch, processResponse: processResponseJson }),
-            getRequestId: getRequestId({ hash: objectHash }),
+                fetch,
+                processResponse: processResponseJson,
+            }),
+            requestId: requestId({ hash: objectHash }),
         },
         defaultQuery: {
             optimizeOnHydrate: true,

@@ -1,4 +1,4 @@
-import { Mutation, NonUndefined } from '../types';
+import { Mutation, NonUndefined, Resource } from '../types';
 import { Client } from '../client';
 
 export interface ObservableMutationState<D extends NonUndefined, E extends Error> {
@@ -8,7 +8,7 @@ export interface ObservableMutationState<D extends NonUndefined, E extends Error
     called: boolean;
 }
 
-export class ObservableMutation<C extends NonUndefined, D extends NonUndefined, E extends Error, R> {
+export class ObservableMutation<C extends NonUndefined, D extends NonUndefined, E extends Error, R extends Resource> {
     private onChange: () => void;
     private client?: Client;
     private mutation?: Mutation<C, D, E, R>;

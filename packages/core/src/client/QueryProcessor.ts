@@ -1,7 +1,7 @@
 import { getAbortController, wireAbortSignals } from '../promise';
 import { RequestQueue } from './RequestQueue';
 import { RequestHelper } from './RequestHelper';
-import { Query, Cache, NonUndefined, FetchPolicy } from '../types';
+import { Query, Cache, NonUndefined, FetchPolicy, Resource } from '../types';
 
 export interface QueryCache<D extends NonUndefined, E extends Error> {
     error?: E | Error; // Regular error can always slip through
@@ -13,7 +13,7 @@ export interface QueryState<D extends NonUndefined, E extends Error> extends Que
 }
 
 export interface QueryRequest {
-    cacheableQueries: Query<NonUndefined, NonUndefined, Error, unknown>[];
+    cacheableQueries: Query<NonUndefined, NonUndefined, Error, Resource>[];
     promise: Promise<unknown>;
     loading: number;
     abortController?: AbortController;
@@ -52,11 +52,11 @@ export class QueryProcessor<C extends NonUndefined> {
         });
     }
 
-    public query<D extends NonUndefined, E extends Error, R>(
+    public query<D extends NonUndefined, E extends Error, R extends Resource>(
         query: Query<C, D, E, R>,
         onChange?: (state: QueryState<D, E>) => void,
     ): [QueryState<D, E>, Promise<D> | undefined, (() => void) | undefined] {
-        const requestId = query.getRequestId ? query.getRequestId(query) : this.hash(query.requestParams);
+        const requestId = query.requestId ? query.requestId(query.resource) : this.hash(query.resource);
 
         let queryState: QueryState<D, E>;
         let unsubscribe: (() => void) | undefined;
@@ -76,24 +76,28 @@ export class QueryProcessor<C extends NonUndefined> {
         ];
     }
 
-    public fetchQuery<D extends NonUndefined, E extends Error, R>(query: Query<C, D, E, R>): Promise<D> {
+    public fetchQuery<D extends NonUndefined, E extends Error, R extends Resource>(
+        query: Query<C, D, E, R>,
+    ): Promise<D> {
         if (this.isFetchPolicy(query.fetchPolicy, 'cache-only')) {
             return Promise.reject(new Error("Can't fetch query with 'cache-only' fetch policy"));
         }
 
-        const requestId = query.getRequestId ? query.getRequestId(query) : this.hash(query.requestParams);
+        const requestId = query.requestId ? query.requestId(query.resource) : this.hash(query.resource);
         return this.getRequestPromise(query, requestId);
     }
 
-    public readQuery<D extends NonUndefined, E extends Error, R>(query: Query<C, D, E, R>): QueryState<D, E> {
-        const requestId = query.getRequestId ? query.getRequestId(query) : this.hash(query.requestParams);
+    public readQuery<D extends NonUndefined, E extends Error, R extends Resource>(
+        query: Query<C, D, E, R>,
+    ): QueryState<D, E> {
+        const requestId = query.requestId ? query.requestId(query.resource) : this.hash(query.resource);
 
         const cache = !this.isFetchPolicy(query.fetchPolicy, 'no-cache')
             ? {
                   error: this.cache.getError(requestId),
                   data: query.fromCache?.({
                       cacheData: this.cache.getData(),
-                      requestParams: query.requestParams,
+                      resource: query.resource,
                       requestId,
                   }),
               }
@@ -105,7 +109,7 @@ export class QueryProcessor<C extends NonUndefined> {
         };
     }
 
-    public watchQuery<D extends NonUndefined, E extends Error, R>(
+    public watchQuery<D extends NonUndefined, E extends Error, R extends Resource>(
         query: Query<C, D, E, R>,
         onChange: (state: QueryState<D, E>) => void,
     ): [QueryState<D, E>, (() => void) | undefined] {
@@ -126,7 +130,7 @@ export class QueryProcessor<C extends NonUndefined> {
         ];
     }
 
-    private getRequestPromise<D extends NonUndefined, E extends Error, R>(
+    private getRequestPromise<D extends NonUndefined, E extends Error, R extends Resource>(
         query: Query<C, D, E, R>,
         requestId: string,
     ): Promise<D> {
@@ -151,7 +155,7 @@ export class QueryProcessor<C extends NonUndefined> {
         return queryRequest.promise as Promise<D>;
     }
 
-    private ensureQueryRequest<D extends NonUndefined, E extends Error, R>(
+    private ensureQueryRequest<D extends NonUndefined, E extends Error, R extends Resource>(
         query: Query<C, D, E, R>,
         requestId: string,
     ): QueryRequest {
@@ -192,7 +196,7 @@ export class QueryProcessor<C extends NonUndefined> {
         return this.ongoingRequests[requestId]!;
     }
 
-    private getQueryPromise<D extends NonUndefined, E extends Error, R>(
+    private getQueryPromise<D extends NonUndefined, E extends Error, R extends Resource>(
         query: Query<C, D, E, R>,
         requestId: string,
         queryRequest: QueryRequest,
@@ -246,7 +250,7 @@ export class QueryProcessor<C extends NonUndefined> {
             });
     }
 
-    private updateCache<D extends NonUndefined, E extends Error, R>(
+    private updateCache<D extends NonUndefined, E extends Error, R extends Resource>(
         queries: Query<C, D, E, R>[],
         requestId: string,
         action: { type: 'fail'; error: E } | { type: 'success'; data: D },
@@ -259,7 +263,7 @@ export class QueryProcessor<C extends NonUndefined> {
                             ? query.toCache({
                                   cacheData: data,
                                   data: action.data,
-                                  requestParams: query.requestParams,
+                                  resource: query.resource,
                                   requestId,
                               })
                             : data,
@@ -274,7 +278,7 @@ export class QueryProcessor<C extends NonUndefined> {
         }
     }
 
-    private isRequestRequired<D extends NonUndefined, E extends Error, R>(
+    private isRequestRequired<D extends NonUndefined, E extends Error, R extends Resource>(
         query: Query<C, D, E, R>,
         queryCache?: QueryCache<D, E>,
     ): boolean {
@@ -287,7 +291,7 @@ export class QueryProcessor<C extends NonUndefined> {
         );
     }
 
-    private isRequestAllowed<D extends NonUndefined, E extends Error, R>(
+    private isRequestAllowed<D extends NonUndefined, E extends Error, R extends Resource>(
         query: Query<C, D, E, R>,
         queryCache?: QueryCache<D, E>,
     ): boolean {

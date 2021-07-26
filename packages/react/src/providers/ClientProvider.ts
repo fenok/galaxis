@@ -1,4 +1,4 @@
-import { Cache, Client, NonUndefined } from '@galaxis/core';
+import { Cache, Client, NonUndefined, Resource } from '@galaxis/core';
 import { createContext, createElement, PropsWithChildren, useContext, useEffect } from 'react';
 
 const ClientContext = createContext<Client | undefined>(undefined);
@@ -8,7 +8,7 @@ export interface ClientProviderProps<
     CACHE extends Cache<C> = Cache<C>,
     BD extends NonUndefined = NonUndefined,
     BE extends Error = Error,
-    BR = unknown
+    BR extends Resource = Resource
 > {
     client: Client<C, CACHE, BD, BE, BR>;
     preventOnHydrateCompleteCall?: boolean;
@@ -19,7 +19,7 @@ const ClientProvider = <
     CACHE extends Cache<C> = Cache<C>,
     BD extends NonUndefined = NonUndefined,
     BE extends Error = Error,
-    BR = unknown
+    BR extends Resource = Resource
 >({
     children,
     client,
@@ -39,7 +39,7 @@ const useClient = <
     CACHE extends Cache<C> = Cache<C>,
     BD extends NonUndefined = NonUndefined,
     BE extends Error = Error,
-    BR = unknown
+    BR extends Resource = Resource
 >() => {
     const client = useContext(ClientContext);
 

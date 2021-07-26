@@ -193,20 +193,20 @@ it('correctly aborts previous request when the next one is executed immediately 
 
     const firstQueryResult = queryProcessor.query({
         ...firstItemRequest,
-        getRequestId: () => 'one-and-only',
+        requestId: () => 'one-and-only',
         abortSignal: abortController.signal,
     });
 
     abortController.abort();
 
-    const secondQueryResult = queryProcessor.query({ ...secondItemRequest, getRequestId: () => 'one-and-only' });
+    const secondQueryResult = queryProcessor.query({ ...secondItemRequest, requestId: () => 'one-and-only' });
 
     await expect(firstQueryResult[1]).rejects.toEqual(getAbortError());
     await expect(secondQueryResult[1]).resolves.toEqual(SECOND_ITEM);
 
     const dataFromCache = queryProcessor.readQuery({
         ...secondItemRequest,
-        getRequestId: () => 'one-and-only',
+        requestId: () => 'one-and-only',
     });
 
     expect(dataFromCache).toMatchObject({ data: SECOND_ITEM, error: undefined });

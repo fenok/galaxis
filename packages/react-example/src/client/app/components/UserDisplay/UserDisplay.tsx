@@ -12,7 +12,7 @@ const UserDisplay: FC<Props> = ({ fetchPolicy }) => {
 
     const { data, error, loading, refetch } = useQuery(
         userQuery({
-            requestParams: { pathParams: { id: userId } },
+            resource: { pathParams: { id: userId } },
             fetchPolicy,
         }),
     );

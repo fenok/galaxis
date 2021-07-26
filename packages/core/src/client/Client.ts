@@ -1,7 +1,7 @@
 import { QueryProcessor, QueryState } from './QueryProcessor';
 import { MutationProcessor } from './MutationProcessor';
 import { RequestQueue } from './RequestQueue';
-import { Cache, Mutation, NonUndefined, Query } from '../types';
+import { Cache, Mutation, NonUndefined, Query, Resource } from '../types';
 import { DefaultsMerger, DefaultsMergerOptions } from './DefaultsMerger';
 
 interface ClientOptions<
@@ -9,7 +9,7 @@ interface ClientOptions<
     CACHE extends Cache<C> = Cache<C>,
     BD extends NonUndefined = NonUndefined,
     BE extends Error = Error,
-    BR = unknown
+    BR extends Resource = Resource
 > extends DefaultsMergerOptions<C, BD, BE, BR> {
     cache: CACHE;
     hash(value: unknown): string;
@@ -20,7 +20,7 @@ class Client<
     CACHE extends Cache<C> = Cache<C>,
     BD extends NonUndefined = NonUndefined,
     BE extends Error = Error,
-    BR = unknown
+    BR extends Resource = Resource
 > {
     private readonly cache: CACHE;
     private queryProcessor: QueryProcessor<C>;

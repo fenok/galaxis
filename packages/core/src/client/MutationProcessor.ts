@@ -1,7 +1,7 @@
 import { wireAbortSignals, getAbortController } from '../promise';
 import { RequestQueue } from './RequestQueue';
 import { RequestHelper } from './RequestHelper';
-import { NonUndefined, Cache, Mutation } from '../types';
+import { NonUndefined, Cache, Mutation, Resource } from '../types';
 
 export interface MutationRequest {
     promise: Promise<unknown>;
@@ -32,15 +32,17 @@ export class MutationProcessor<C extends NonUndefined> {
         this.ongoingRequests.clear();
     }
 
-    public mutate<D extends NonUndefined, E extends Error, R>(mutation: Mutation<C, D, E, R>): Promise<D> {
-        const requestId = mutation.getRequestId ? mutation.getRequestId(mutation) : this.hash(mutation.requestParams);
+    public mutate<D extends NonUndefined, E extends Error, R extends Resource>(
+        mutation: Mutation<C, D, E, R>,
+    ): Promise<D> {
+        const requestId = mutation.requestId ? mutation.requestId(mutation.resource) : this.hash(mutation.resource);
 
         if (mutation.optimisticData && mutation.toCache && mutation.fetchPolicy !== 'no-cache') {
             this.cache.update({
                 data: mutation.toCache({
                     cacheData: this.cache.getData(),
                     data: mutation.optimisticData!,
-                    requestParams: mutation.requestParams,
+                    resource: mutation.resource,
                     requestId,
                 }),
             });
@@ -66,12 +68,12 @@ export class MutationProcessor<C extends NonUndefined> {
                                             ? mutation.removeOptimisticData({
                                                   cacheData: this.cache.getData(),
                                                   data: mutation.optimisticData,
-                                                  requestParams: mutation.requestParams,
+                                                  resource: mutation.resource,
                                                   requestId,
                                               })
                                             : this.cache.getData(),
                                     data,
-                                    requestParams: mutation.requestParams,
+                                    resource: mutation.resource,
                                     requestId,
                                 }),
                             });
@@ -93,7 +95,7 @@ export class MutationProcessor<C extends NonUndefined> {
                                 data: mutation.removeOptimisticData({
                                     cacheData: this.cache.getData(),
                                     data: mutation.optimisticData!,
-                                    requestParams: mutation.requestParams,
+                                    resource: mutation.resource,
                                     requestId,
                                 }),
                             });
