@@ -1,9 +1,5 @@
 import { BaseRequest, Mutation, NonUndefined, Query, Resource } from '../types';
 
-export interface Merge {
-    <R1, R2, R3>(r1: R1, r2: R2, r3: R3): R1 & R2 & R3;
-}
-
 export interface DefaultsMergerOptions<
     C extends NonUndefined = NonUndefined,
     BD extends NonUndefined = NonUndefined,
