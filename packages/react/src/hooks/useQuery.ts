@@ -40,13 +40,13 @@ export function useQuery<C extends NonUndefined, D extends NonUndefined, E exten
 }
 
 function getHashObject(
-    hash: (resource: unknown) => string,
+    hash: (resource: Resource) => string,
     query: Query<NonUndefined, NonUndefined, Error, Resource>,
 ): Record<string, unknown> {
     return Object.fromEntries(
         Object.entries(query).map(([key, value]: [string, unknown]) => [
             key,
-            key === 'resource' ? hash(value) : typeof value === 'function' ? value.toString() : value,
+            key === 'resource' ? hash(value as Resource) : typeof value === 'function' ? value.toString() : value,
         ]),
     );
 }

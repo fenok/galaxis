@@ -12,7 +12,7 @@ interface ClientOptions<
     BR extends Resource = Resource
 > extends DefaultsMergerOptions<C, BD, BE, BR> {
     cache: CACHE;
-    hashResource(resource: unknown): string;
+    hashResource(resource: BR): string;
 }
 
 class Client<
@@ -29,7 +29,7 @@ class Client<
 
     private onResetListeners: Set<() => void> = new Set();
 
-    public readonly hashResource: (resource: unknown) => string;
+    public readonly hashResource: (resource: BR) => string;
 
     public constructor({
         cache,
