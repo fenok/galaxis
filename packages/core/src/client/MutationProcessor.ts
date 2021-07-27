@@ -28,7 +28,6 @@ export class MutationProcessor<C extends NonUndefined> {
     }
 
     public onReset() {
-        this.ongoingRequests.forEach((mutation) => mutation.abort());
         this.ongoingRequests.clear();
     }
 
