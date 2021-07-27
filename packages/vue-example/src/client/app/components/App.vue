@@ -17,7 +17,7 @@ export default defineComponent({
         },
     },
     setup(props) {
-        useClientProvider(props.client);
+        useClientProvider({ client: props.client });
     },
 });
 </script>
