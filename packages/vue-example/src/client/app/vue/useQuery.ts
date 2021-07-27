@@ -1,10 +1,9 @@
-import { NonUndefined, Query, ObservableQuery, ObservableQueryState } from '@galaxis/core';
+import { NonUndefined, Query, ObservableQuery, ObservableQueryState, Resource } from '@galaxis/core';
 import { useClient } from './useClientProvider';
 import { computed, onServerPrefetch, onUnmounted, onMounted, reactive, toRefs, watch } from 'vue';
-import { Resource } from '../../../../../core/src';
 
 export function useQuery<C extends NonUndefined, D extends NonUndefined, E extends Error, R extends Resource>(
-    query: () => Query<C, D, E, R>,
+    query: () => Query<C, D, E, R> | undefined,
 ) {
     const client = useClient();
     const queryRef = computed(query);
