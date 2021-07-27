@@ -1,21 +1,10 @@
-import { Mutation, NonUndefined, Resource, useMutation as useMutationLib } from '@galaxis/react';
+import { Mutation, NonUndefined, useMutation as useMutationLib } from '@galaxis/react';
+import { CacheData } from './CacheData';
+import { FetchResource, ResponseError } from '@galaxis/fetch';
+import { ErrorResponse } from './ErrorResponse';
 
-export type ExtractTypesMutation<T extends Mutation<NonUndefined, NonUndefined, Error, Resource>> = T extends Mutation<
-    infer TCache,
-    infer TData,
-    infer TError,
-    infer TResource
->
-    ? [TCache, TData, TError, TResource]
-    : never;
-
-export function useMutation<TMutation extends Mutation<NonUndefined, NonUndefined, Error, Resource>>(
-    mutation?: TMutation,
+export function useMutation<TData extends NonUndefined>(
+    mutation?: Mutation<CacheData, TData, ResponseError<ErrorResponse>, FetchResource>,
 ) {
-    return useMutationLib<
-        ExtractTypesMutation<TMutation>[0],
-        ExtractTypesMutation<TMutation>[1],
-        ExtractTypesMutation<TMutation>[2],
-        ExtractTypesMutation<TMutation>[3]
-    >(mutation);
+    return useMutationLib<CacheData, TData, ResponseError<ErrorResponse>, FetchResource>(mutation);
 }

@@ -1,5 +1,5 @@
 import { FC, useState } from 'react';
-import { userQuery, userUpdateMutation } from '../../requests/user';
+import { User, userQuery, userUpdateMutation } from '../../requests/user';
 import { FetchPolicy, useQuery } from '@galaxis/react';
 import { isResponseError } from '../../lib/isResponseError';
 import { useMutation } from '../../lib/useMutation';
@@ -18,7 +18,7 @@ const UserDisplay: FC<Props> = ({ fetchPolicy }) => {
         }),
     );
 
-    const [updateUser] = useMutation<ReturnType<typeof userUpdateMutation>>();
+    const [updateUser] = useMutation<User>();
 
     return (
         <div>
