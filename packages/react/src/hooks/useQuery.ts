@@ -27,7 +27,9 @@ export function useQuery<C extends NonUndefined, D extends NonUndefined, E exten
     }
 
     useEffect(() => {
-        observableQuery.current?.start();
+        observableQuery.current?.start()?.catch(() => {
+            // Prevent unnecessary uncaught error message
+        });
     }, [memoizedQuery]);
 
     useEffect(() => {

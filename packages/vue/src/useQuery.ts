@@ -1,6 +1,6 @@
 import { NonUndefined, Query, ObservableQuery, ObservableQueryState, Resource } from '@galaxis/core';
 import { useClient } from './useClientProvider';
-import { computed, onServerPrefetch, onUnmounted, onMounted, reactive, toRefs, watch } from 'vue';
+import { computed, onServerPrefetch, onUnmounted, onUpdated, onMounted, reactive, toRefs, watch } from 'vue';
 
 export function useQuery<C extends NonUndefined, D extends NonUndefined, E extends Error, R extends Resource>(
     query: () => Query<C, D, E, R> | undefined,
@@ -18,11 +18,18 @@ export function useQuery<C extends NonUndefined, D extends NonUndefined, E exten
     watch(queryRef, (nextQuery) => {
         observableQuery.setOptions(client, nextQuery);
         updateState(observableQuery.getState());
-        void observableQuery.start();
     });
 
     onMounted(() => {
-        void observableQuery.start();
+        void observableQuery.start()?.catch(() => {
+            // Prevent unnecessary uncaught error message
+        });
+    });
+
+    onUpdated(() => {
+        void observableQuery.start()?.catch(() => {
+            // Prevent unnecessary uncaught error message
+        });
     });
 
     onServerPrefetch(() => {
