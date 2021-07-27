@@ -12,7 +12,7 @@ This package contains core [Galaxis](/README.md#galaxis-) functionality, which i
 yarn add @galaxis/core
 ```
 
-Note that you should use a framework-specific wrapper (such as Galaxis [React](/packages/react#galaxis-react) or Galaxis [Vue](/packages/react#galaxis-vue)) and not install Galaxis Core directly.
+Note that you should use a framework-specific wrapper (such as Galaxis [React](/packages/react#galaxis-react) or Galaxis [Vue](/packages/vue#galaxis-vue)) and not install Galaxis Core directly.
 
 The library is compiled to modern JS, but it should work in all reasonable browsers with the help of properly configured Babel.
 
@@ -324,7 +324,7 @@ client.onHydrateComplete();
 Get hash of the given `resource` using the `requestId` function that was passed to the constructor.
 
 ```typescript
-const hash = client.hash(request.resource);
+const hash = client.requestId(request.resource);
 ```
 
 ##### Arguments
@@ -360,9 +360,9 @@ Anything but `undefined`.
 
 The constraint for request `resource`.
 
-| Name | Type     | Description                                                                                                                                                          | Required |
-| ---- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
-| key  | `string` | Globally unique identifier of the resource. It's better to specify something that will actually be used for the request, like the resource URL (like `/entity/:id`). | Yes      |
+| Name | Type     | Description                                                                                                                                                                   | Required |
+| ---- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
+| key  | `string` | Globally unique identifier of the resource. It's better to specify something that will actually be used for the request, like the resource URL template (e.g. `/entity/:id`). | Yes      |
 
 #### `BaseRequest`
 
