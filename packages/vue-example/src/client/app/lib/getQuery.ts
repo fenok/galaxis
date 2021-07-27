@@ -1,4 +1,4 @@
-import { NonUndefined, Query } from '@galaxis/core';
+import { NonUndefined, Query } from '@galaxis/vue';
 import { getParametrizedRequest, getStaticRequest } from '@galaxis/utils';
 import { FetchResource, ResponseError, FetchResourceConstraint, DynamicFetchResource } from '@galaxis/fetch';
 import { CacheData } from './CacheData';

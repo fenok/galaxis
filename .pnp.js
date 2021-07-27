@@ -47,6 +47,10 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         "reference": "workspace:packages/utils"
       },
       {
+        "name": "@galaxis/vue",
+        "reference": "workspace:packages/vue"
+      },
+      {
         "name": "@galaxis/vue-example",
         "reference": "workspace:packages/vue-example"
       }
@@ -60,6 +64,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
       ["@galaxis/react", ["virtual:08278a02abf910cb0d4b830f25d01fc4b24dc3216cf232edeb20b399cd65a02c392c36cb0fc4853cc8212ce5c37899770ca5fa2ea488a91da2e8036d17f326f5#workspace:packages/react", "workspace:packages/react"]],
       ["@galaxis/react-example", ["workspace:packages/react-example"]],
       ["@galaxis/utils", ["virtual:08278a02abf910cb0d4b830f25d01fc4b24dc3216cf232edeb20b399cd65a02c392c36cb0fc4853cc8212ce5c37899770ca5fa2ea488a91da2e8036d17f326f5#workspace:packages/utils", "workspace:packages/utils"]],
+      ["@galaxis/vue", ["virtual:30aa7d055de116843c08e7dd5e41c24c7ae5c62c9e33f8069cdd1bc6ec68df5b7288c0f94727c88a234b2252e947439de93762e93faa2489a75e122d85b5d010#workspace:packages/vue", "workspace:packages/vue"]],
       ["@galaxis/vue-example", ["workspace:packages/vue-example"]],
       ["galaxis", ["workspace:."]]
     ],
@@ -2820,6 +2825,45 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "linkType": "SOFT",
         }]
       ]],
+      ["@galaxis/vue", [
+        ["virtual:30aa7d055de116843c08e7dd5e41c24c7ae5c62c9e33f8069cdd1bc6ec68df5b7288c0f94727c88a234b2252e947439de93762e93faa2489a75e122d85b5d010#workspace:packages/vue", {
+          "packageLocation": "./.yarn/$$virtual/@galaxis-vue-virtual-14d2b54bc4/1/packages/vue/",
+          "packageDependencies": [
+            ["@galaxis/vue", "virtual:30aa7d055de116843c08e7dd5e41c24c7ae5c62c9e33f8069cdd1bc6ec68df5b7288c0f94727c88a234b2252e947439de93762e93faa2489a75e122d85b5d010#workspace:packages/vue"],
+            ["@galaxis/core", "workspace:packages/core"],
+            ["@types/vue", null],
+            ["@typescript-eslint/eslint-plugin", "virtual:b9eb0b2f44c05ed1480f197d60db760ad7c95615d319d0d24ae4589e0d1fdc6d65fc8c9d4627d7f67f6dd64449a98acfd3421999fdad8765848ef2dbe1c9c15d#npm:4.20.0"],
+            ["@typescript-eslint/parser", "virtual:b9eb0b2f44c05ed1480f197d60db760ad7c95615d319d0d24ae4589e0d1fdc6d65fc8c9d4627d7f67f6dd64449a98acfd3421999fdad8765848ef2dbe1c9c15d#npm:4.20.0"],
+            ["eslint", "npm:7.23.0"],
+            ["eslint-config-prettier", "virtual:b9eb0b2f44c05ed1480f197d60db760ad7c95615d319d0d24ae4589e0d1fdc6d65fc8c9d4627d7f67f6dd64449a98acfd3421999fdad8765848ef2dbe1c9c15d#npm:8.1.0"],
+            ["prettier", "npm:2.2.1"],
+            ["rimraf", "npm:3.0.2"],
+            ["typescript", "patch:typescript@npm%3A4.2.3#builtin<compat/typescript>::version=4.2.3&hash=a45b0e"],
+            ["vue", "npm:3.1.0-beta.3"]
+          ],
+          "packagePeers": [
+            "@types/vue",
+            "vue"
+          ],
+          "linkType": "SOFT",
+        }],
+        ["workspace:packages/vue", {
+          "packageLocation": "./packages/vue/",
+          "packageDependencies": [
+            ["@galaxis/vue", "workspace:packages/vue"],
+            ["@galaxis/core", "workspace:packages/core"],
+            ["@typescript-eslint/eslint-plugin", "virtual:b9eb0b2f44c05ed1480f197d60db760ad7c95615d319d0d24ae4589e0d1fdc6d65fc8c9d4627d7f67f6dd64449a98acfd3421999fdad8765848ef2dbe1c9c15d#npm:4.20.0"],
+            ["@typescript-eslint/parser", "virtual:b9eb0b2f44c05ed1480f197d60db760ad7c95615d319d0d24ae4589e0d1fdc6d65fc8c9d4627d7f67f6dd64449a98acfd3421999fdad8765848ef2dbe1c9c15d#npm:4.20.0"],
+            ["eslint", "npm:7.23.0"],
+            ["eslint-config-prettier", "virtual:b9eb0b2f44c05ed1480f197d60db760ad7c95615d319d0d24ae4589e0d1fdc6d65fc8c9d4627d7f67f6dd64449a98acfd3421999fdad8765848ef2dbe1c9c15d#npm:8.1.0"],
+            ["prettier", "npm:2.2.1"],
+            ["rimraf", "npm:3.0.2"],
+            ["typescript", "patch:typescript@npm%3A4.2.3#builtin<compat/typescript>::version=4.2.3&hash=a45b0e"],
+            ["vue", "npm:3.1.0-beta.3"]
+          ],
+          "linkType": "SOFT",
+        }]
+      ]],
       ["@galaxis/vue-example", [
         ["workspace:packages/vue-example", {
           "packageLocation": "./packages/vue-example/",
@@ -2831,10 +2875,10 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@babel/preset-env", "virtual:08278a02abf910cb0d4b830f25d01fc4b24dc3216cf232edeb20b399cd65a02c392c36cb0fc4853cc8212ce5c37899770ca5fa2ea488a91da2e8036d17f326f5#npm:7.12.1"],
             ["@babel/preset-react", "virtual:08278a02abf910cb0d4b830f25d01fc4b24dc3216cf232edeb20b399cd65a02c392c36cb0fc4853cc8212ce5c37899770ca5fa2ea488a91da2e8036d17f326f5#npm:7.12.1"],
             ["@babel/preset-typescript", "virtual:08278a02abf910cb0d4b830f25d01fc4b24dc3216cf232edeb20b399cd65a02c392c36cb0fc4853cc8212ce5c37899770ca5fa2ea488a91da2e8036d17f326f5#npm:7.12.1"],
-            ["@galaxis/core", "workspace:packages/core"],
             ["@galaxis/fetch", "virtual:08278a02abf910cb0d4b830f25d01fc4b24dc3216cf232edeb20b399cd65a02c392c36cb0fc4853cc8212ce5c37899770ca5fa2ea488a91da2e8036d17f326f5#workspace:packages/fetch"],
             ["@galaxis/in-memory-cache", "virtual:08278a02abf910cb0d4b830f25d01fc4b24dc3216cf232edeb20b399cd65a02c392c36cb0fc4853cc8212ce5c37899770ca5fa2ea488a91da2e8036d17f326f5#workspace:packages/in-memory-cache"],
             ["@galaxis/utils", "virtual:08278a02abf910cb0d4b830f25d01fc4b24dc3216cf232edeb20b399cd65a02c392c36cb0fc4853cc8212ce5c37899770ca5fa2ea488a91da2e8036d17f326f5#workspace:packages/utils"],
+            ["@galaxis/vue", "virtual:30aa7d055de116843c08e7dd5e41c24c7ae5c62c9e33f8069cdd1bc6ec68df5b7288c0f94727c88a234b2252e947439de93762e93faa2489a75e122d85b5d010#workspace:packages/vue"],
             ["@types/express", "npm:4.17.8"],
             ["@types/node", "npm:14.14.37"],
             ["@types/node-fetch", "npm:2.5.7"],

@@ -7,7 +7,7 @@
 
 <script lang="ts">
 import { defineComponent, ref } from 'vue';
-import { useQuery } from '../vue/useQuery';
+import { useQuery } from '@galaxis/vue';
 import { userQuery } from '../requests/user';
 
 export default defineComponent({

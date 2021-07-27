@@ -4,9 +4,8 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { Client } from '@galaxis/core';
+import { Client, useClientProvider } from '@galaxis/vue';
 import UserDisplay from './UserDisplay.vue';
-import { useClientProvider } from '../vue/useClientProvider';
 
 export default defineComponent({
     components: { UserDisplay },

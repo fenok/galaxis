@@ -1,4 +1,4 @@
-import { Client, NonUndefined } from '@galaxis/core';
+import { Client, NonUndefined } from '@galaxis/vue';
 import { InMemoryCache } from '@galaxis/in-memory-cache';
 import { CacheData } from './CacheData';
 import { processResponseJson, FetchResource, ResponseError, hashResource, request } from '@galaxis/fetch';
