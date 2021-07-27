@@ -7,6 +7,10 @@ interface CacheState<C extends NonUndefined, E = Error> {
     errors: Record<string, E | undefined>;
 }
 
+interface SplitState<C extends NonUndefined, E = Error> extends CacheState<C, E> {
+    splitters: Set<unknown>;
+}
+
 interface CacheOptions<C extends NonUndefined> {
     emptyData: C;
     initialState?: CacheState<C, ErrorObject>;
@@ -16,18 +20,22 @@ interface CacheOptions<C extends NonUndefined> {
 class InMemoryCache<C extends NonUndefined> implements Cache<C> {
     private readonly devtools: ReduxDevTools | null;
 
-    private _state: CacheState<C>;
+    private splitStates: SplitState<C>[];
     private emptyData: C;
 
-    private subscribers: ((state: CacheState<C>) => void)[] = [];
+    private subscribers: Set<(state: CacheState<C>) => void> = new Set();
 
     constructor({ emptyData, initialState, enableDevTools }: CacheOptions<C>) {
         this.emptyData = emptyData;
 
-        this._state = {
-            errors: {},
-            data: this.emptyData,
-        };
+        this.splitStates = [
+            {
+                errors: {},
+                data: this.emptyData,
+                splitters: new Set(),
+                ...(initialState && this.deserializeState(initialState)),
+            },
+        ];
 
         this.devtools =
             enableDevTools && devTools
@@ -36,61 +44,57 @@ class InMemoryCache<C extends NonUndefined> implements Cache<C> {
                   })
                 : null;
         this.subscribeToDevtools();
-        this.devtools?.send({ type: 'INIT', state: this.state }, this.state);
 
-        if (initialState) {
-            this.state = this.deserializeState(initialState);
-            this.devtools?.send({ type: 'HYDRATE', state: initialState }, this.state);
-        }
+        this.devtools?.send({ type: 'INIT', state: this.getState() }, this.getState());
     }
 
     public subscribe(callback: (state: CacheState<C>) => void) {
-        this.subscribers.push(callback);
+        this.subscribers.add(callback);
 
         return () => {
-            this.subscribers = this.subscribers.filter((subscriber) => subscriber !== callback);
+            this.subscribers.delete(callback);
         };
     }
 
     public update(opts: UpdateOptions<C>) {
-        this.updateStateInner(opts);
-        this.devtools?.send({ type: 'UPDATE', ...opts }, this.state);
-    }
-
-    public getData() {
-        return this.state.data;
-    }
-
-    public getError(requestId: string): Error | undefined {
-        return this.state.errors[requestId];
+        this.updateSplitStates(opts);
+        this.notifySubscribers();
+        this.devtools?.send({ type: 'UPDATE', ...opts }, this.getState());
     }
 
     public clear() {
-        this.state = {
-            errors: {},
-            data: this.emptyData,
-        };
-        this.devtools?.send({ type: 'CLEAR' }, this.state);
+        this.splitStates = [{ errors: {}, data: this.emptyData, splitters: new Set() }];
+        this.notifySubscribers();
+        this.devtools?.send({ type: 'CLEAR' }, this.getState());
+    }
+
+    public getData() {
+        return this.getState().data;
+    }
+
+    public getError(requestId: string): Error | undefined {
+        return this.getState().errors[requestId];
     }
 
     public extract(): CacheState<C, ErrorObject> {
+        const originalState = this.splitStates[0];
+
         const serializableErrors = Object.fromEntries(
-            Object.entries(this.state.errors).map(([id, error]) => [id, error ? serializeError(error) : undefined]),
+            Object.entries(originalState.errors).map(([id, error]) => [id, error ? serializeError(error) : undefined]),
         );
 
         return {
-            ...this.state,
+            data: originalState.data,
             errors: serializableErrors,
         };
     }
 
-    private set state(newState: CacheState<C>) {
-        this._state = newState;
-        this.subscribers.forEach((subscriber) => subscriber(newState));
+    private notifySubscribers() {
+        this.subscribers.forEach((subscriber) => subscriber(this.getState()));
     }
 
-    private get state() {
-        return this._state;
+    private getState() {
+        return this.splitStates[this.splitStates.length - 1];
     }
 
     private deserializeState(serializableState: CacheState<C, ErrorObject>): CacheState<C> {
@@ -107,25 +111,52 @@ class InMemoryCache<C extends NonUndefined> implements Cache<C> {
         };
     }
 
-    private updateStateInner({ data, error }: UpdateOptions<C>) {
-        this.state = {
-            errors: error ? this.insertError(this.state.errors, error) : this.state.errors,
-            data: data !== undefined ? data : this.state.data,
-        };
+    private updateSplitStates({ data, errors, clearSplitFor, createSplitFor }: UpdateOptions<C>) {
+        if (clearSplitFor) {
+            this.splitStates = this.splitStates.filter((splitState) => !splitState.splitters.has(clearSplitFor));
+        }
+
+        for (let index = 0; index < this.splitStates.length; index++) {
+            const splitState = this.splitStates[index];
+
+            if (createSplitFor && index % 2 === 0) {
+                this.splitStates.splice(index, 0, {
+                    ...splitState,
+                    splitters: new Set(splitState.splitters),
+                });
+            } else if (!createSplitFor || index % 2 !== 0) {
+                if (data) {
+                    splitState.data = data(splitState.data);
+                }
+                if (errors) {
+                    splitState.errors = this.insertErrors(splitState.errors, errors);
+                }
+                if (createSplitFor) {
+                    splitState.splitters.add(createSplitFor);
+                }
+            }
+        }
     }
 
-    private insertError(errors: Record<string, Error | undefined>, error: [string, Error | undefined]) {
+    private insertErrors(
+        stateErrors: Record<string, Error | undefined>,
+        errors: Record<string, (prevError: Error | undefined) => Error | undefined>,
+    ) {
         const result: Record<string, Error | undefined> = {};
 
-        Object.keys(errors).forEach((key) => {
-            if (key !== error[0]) {
-                result[key] = errors[key];
+        Object.keys(stateErrors).forEach((key) => {
+            if (!(key in errors)) {
+                result[key] = stateErrors[key];
             }
         });
 
-        if (error[1]) {
-            result[error[0]] = error[1];
-        }
+        Object.keys(errors).forEach((key) => {
+            const newError = errors[key](stateErrors[key]);
+
+            if (newError) {
+                result[key] = newError;
+            }
+        });
 
         return result;
     }

@@ -31,7 +31,7 @@ export function getClient({ fetch }: GetClientOptions): AppClient {
         }),
         defaultRequest: {
             request: request({
-                root: 'https://jsonplaceholder.typicode.com',
+                root: 'http://localhost:3001/api',
                 fetch,
                 processResponse: processResponseJson,
             }),

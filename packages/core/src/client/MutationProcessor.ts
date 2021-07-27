@@ -37,17 +37,6 @@ export class MutationProcessor<C extends NonUndefined> {
     ): Promise<D> {
         const requestId = this.hashResource(mutation.resource);
 
-        if (mutation.optimisticData && mutation.toCache && mutation.fetchPolicy !== 'no-cache') {
-            this.cache.update({
-                data: mutation.toCache({
-                    cacheData: this.cache.getData(),
-                    data: mutation.optimisticData!,
-                    resource: mutation.resource,
-                    requestId,
-                }),
-            });
-        }
-
         const abortController = getAbortController();
 
         const mutationRequest: MutationRequest = {
@@ -62,20 +51,14 @@ export class MutationProcessor<C extends NonUndefined> {
 
                         if (mutation.toCache && mutation.fetchPolicy !== 'no-cache') {
                             this.cache.update({
-                                data: mutation.toCache({
-                                    cacheData:
-                                        mutation.optimisticData && mutation.removeOptimisticData
-                                            ? mutation.removeOptimisticData({
-                                                  cacheData: this.cache.getData(),
-                                                  data: mutation.optimisticData,
-                                                  resource: mutation.resource,
-                                                  requestId,
-                                              })
-                                            : this.cache.getData(),
-                                    data,
-                                    resource: mutation.resource,
-                                    requestId,
-                                }),
+                                data: (prevData) =>
+                                    mutation.toCache!({
+                                        cacheData: prevData,
+                                        data,
+                                        resource: mutation.resource,
+                                        requestId,
+                                    }),
+                                clearSplitFor: mutation.optimisticData ? mutationRequest : undefined,
                             });
                         }
                     }
@@ -86,18 +69,9 @@ export class MutationProcessor<C extends NonUndefined> {
                     if (this.ongoingRequests.has(mutationRequest)) {
                         this.ongoingRequests.delete(mutationRequest);
 
-                        if (
-                            mutation.optimisticData &&
-                            mutation.removeOptimisticData &&
-                            mutation.fetchPolicy !== 'no-cache'
-                        ) {
+                        if (mutation.optimisticData && mutation.fetchPolicy !== 'no-cache') {
                             this.cache.update({
-                                data: mutation.removeOptimisticData({
-                                    cacheData: this.cache.getData(),
-                                    data: mutation.optimisticData!,
-                                    resource: mutation.resource,
-                                    requestId,
-                                }),
+                                clearSplitFor: mutationRequest,
                             });
                         }
                     }
@@ -111,6 +85,19 @@ export class MutationProcessor<C extends NonUndefined> {
                 return Boolean(abortController?.signal.aborted);
             },
         };
+
+        if (mutation.optimisticData && mutation.toCache && mutation.fetchPolicy !== 'no-cache') {
+            this.cache.update({
+                data: (prevData) =>
+                    mutation.toCache!({
+                        cacheData: prevData,
+                        data: mutation.optimisticData!,
+                        resource: mutation.resource,
+                        requestId,
+                    }),
+                createSplitFor: mutationRequest,
+            });
+        }
 
         wireAbortSignals(mutationRequest.abort, mutation.abortSignal);
 

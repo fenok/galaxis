@@ -39,5 +39,4 @@ export interface Mutation<C extends NonUndefined, D extends NonUndefined, E exte
     extends BaseRequest<C, D, E, R> {
     fetchPolicy?: Extract<FetchPolicy, 'cache-and-network' | 'no-cache'>;
     optimisticData?: D;
-    removeOptimisticData?(opts: ToCacheOptions<C, D, R>): C;
 }

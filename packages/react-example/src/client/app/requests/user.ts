@@ -1,5 +1,6 @@
-import { getQuery } from '../lib/getQuery';
+import { getMutation, getQuery } from '../lib/getQuery';
 import { immerify, memoize } from '@galaxis/utils';
+import { JsonData } from '@galaxis/fetch';
 
 export interface User {
     id: number;
@@ -8,9 +9,19 @@ export interface User {
     email: string;
 }
 
-export type UserQueryRequestParams = { pathParams: { id: number } };
+export type UpdateUser = {
+    name?: string;
+    username?: string;
+    email?: string;
+};
 
-export const userQuery = getQuery<User, UserQueryRequestParams>((params) => ({
+export type UserQueryResource = { pathParams: { id: number } };
+
+export type UserUpdateMutationResource = { pathParams: { id: number }; body: JsonData<UpdateUser> };
+
+export type UserUpdateMutationSimpleResource = { id: number; data: UpdateUser };
+
+export const userQuery = getQuery<User, UserQueryResource>((params) => ({
     resource: {
         key: '/users/:id',
         ...params,
@@ -39,3 +50,25 @@ export const userQuery = getQuery<User, UserQueryRequestParams>((params) => ({
         ],
     ),
 }));
+
+export const userUpdateMutation = getMutation<User, UserUpdateMutationResource, UserUpdateMutationSimpleResource>(
+    (params) => ({
+        resource: {
+            key: '/users/:id',
+            method: 'POST',
+            pathParams: { id: params.id },
+            body: new JsonData(params.data),
+        },
+        toCache: immerify(({ cacheData, data }) => {
+            cacheData.users[data.id] = {
+                id: data.id,
+                name: data.name,
+                username: data.username,
+            };
+            cacheData.emails[data.id] = {
+                id: data.id,
+                email: data.email,
+            };
+        }),
+    }),
+);

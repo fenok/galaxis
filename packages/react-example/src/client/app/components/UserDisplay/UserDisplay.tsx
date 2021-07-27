@@ -1,6 +1,6 @@
 import { FC, useState } from 'react';
-import { userQuery } from '../../requests/user';
-import { FetchPolicy, useQuery } from '@galaxis/react';
+import { userQuery, userUpdateMutation } from '../../requests/user';
+import { FetchPolicy, useQuery, useMutation } from '@galaxis/react';
 import { isResponseError } from '../../lib/isResponseError';
 
 interface Props {
@@ -17,8 +17,27 @@ const UserDisplay: FC<Props> = ({ fetchPolicy }) => {
         }),
     );
 
+    const [updateUser] = useMutation(userUpdateMutation({ resource: { id: userId, data: {} } }));
+
     return (
         <div>
+            <button
+                onClick={() =>
+                    updateUser(
+                        userUpdateMutation({
+                            resource: { id: userId, data: { name: String(Math.random()) } },
+                            optimisticData: data
+                                ? {
+                                      ...data,
+                                      name: 'Will-change to something random',
+                                  }
+                                : undefined,
+                        }),
+                    )
+                }
+            >
+                Update name to Math.random()
+            </button>
             <button onClick={refetch}>Refetch</button>
             <button onClick={() => setUserId((prevId) => prevId + 1)}>Increment user id</button>
             <button onClick={() => setUserId((prevId) => prevId - 1)}>Decrement user id</button>

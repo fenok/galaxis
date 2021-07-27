@@ -257,23 +257,24 @@ export class QueryProcessor<C extends NonUndefined> {
     ) {
         if (action.type === 'success') {
             this.cache.update({
-                data: queries.reduce(
-                    (data, query) =>
-                        query.toCache
-                            ? query.toCache({
-                                  cacheData: data,
-                                  data: action.data,
-                                  resource: query.resource,
-                                  requestId,
-                              })
-                            : data,
-                    this.cache.getData(),
-                ),
-                error: [requestId, undefined],
+                data: (prevData) =>
+                    queries.reduce(
+                        (data, query) =>
+                            query.toCache
+                                ? query.toCache({
+                                      cacheData: data,
+                                      data: action.data,
+                                      resource: query.resource,
+                                      requestId,
+                                  })
+                                : data,
+                        prevData,
+                    ),
+                errors: { [requestId]: () => undefined },
             });
         } else {
             this.cache.update({
-                error: [requestId, action.error],
+                errors: { [requestId]: () => action.error },
             });
         }
     }

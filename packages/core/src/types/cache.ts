@@ -1,8 +1,10 @@
 import { NonUndefined } from './helpers';
 
 export interface UpdateOptions<C extends NonUndefined> {
-    data?: C;
-    error?: [string, Error | undefined];
+    data?: (prevData: C) => C;
+    errors?: Record<string, (prevError: Error | undefined) => Error | undefined>;
+    createSplitFor?: unknown;
+    clearSplitFor?: unknown;
 }
 
 export interface Cache<C extends NonUndefined> {
