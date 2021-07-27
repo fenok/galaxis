@@ -12,19 +12,19 @@ export interface MutationRequest {
 export interface MutationProcessorOptions<C extends NonUndefined> {
     cache: Cache<C>;
     requestQueue: RequestQueue;
-    hashResource(resource: unknown): string;
+    requestId(resource: unknown): string;
 }
 
 export class MutationProcessor<C extends NonUndefined> {
     private ongoingRequests: Set<MutationRequest> = new Set();
     private readonly cache: Cache<C>;
     private readonly requestQueue: RequestQueue;
-    private hashResource: (resource: unknown) => string;
+    private requestId: (resource: unknown) => string;
 
-    constructor({ cache, requestQueue, hashResource }: MutationProcessorOptions<C>) {
+    constructor({ cache, requestQueue, requestId }: MutationProcessorOptions<C>) {
         this.cache = cache;
         this.requestQueue = requestQueue;
-        this.hashResource = hashResource;
+        this.requestId = requestId;
     }
 
     public onReset() {
@@ -34,7 +34,7 @@ export class MutationProcessor<C extends NonUndefined> {
     public mutate<D extends NonUndefined, E extends Error, R extends Resource>(
         mutation: Mutation<C, D, E, R>,
     ): Promise<D> {
-        const requestId = this.hashResource(mutation.resource);
+        const requestId = this.requestId(mutation.resource);
 
         const abortController = getAbortController();
 

@@ -23,7 +23,7 @@ export interface QueryRequest {
 export interface QueryProcessorOptions<C extends NonUndefined> {
     cache: Cache<C>;
     requestQueue: RequestQueue;
-    hashResource(resource: unknown): string;
+    requestId(resource: unknown): string;
 }
 
 export class QueryProcessor<C extends NonUndefined> {
@@ -31,12 +31,12 @@ export class QueryProcessor<C extends NonUndefined> {
     private isHydrate = true;
     private readonly cache: Cache<C>;
     private readonly requestQueue: RequestQueue;
-    private hashResource: (resource: unknown) => string;
+    private requestId: (resource: unknown) => string;
 
-    constructor({ cache, requestQueue, hashResource }: QueryProcessorOptions<C>) {
+    constructor({ cache, requestQueue, requestId }: QueryProcessorOptions<C>) {
         this.cache = cache;
         this.requestQueue = requestQueue;
-        this.hashResource = hashResource;
+        this.requestId = requestId;
     }
 
     public onHydrateComplete() {
@@ -56,7 +56,7 @@ export class QueryProcessor<C extends NonUndefined> {
         query: Query<C, D, E, R>,
         onChange?: (state: QueryState<D, E>) => void,
     ): [QueryState<D, E>, Promise<D> | undefined, (() => void) | undefined] {
-        const requestId = this.hashResource(query.resource);
+        const requestId = this.requestId(query.resource);
 
         let queryState: QueryState<D, E>;
         let unsubscribe: (() => void) | undefined;
@@ -83,14 +83,14 @@ export class QueryProcessor<C extends NonUndefined> {
             return Promise.reject(new Error("Can't fetch query with 'cache-only' fetch policy"));
         }
 
-        const requestId = this.hashResource(query.resource);
+        const requestId = this.requestId(query.resource);
         return this.getRequestPromise(query, requestId);
     }
 
     public readQuery<D extends NonUndefined, E extends Error, R extends Resource>(
         query: Query<C, D, E, R>,
     ): QueryState<D, E> {
-        const requestId = this.hashResource(query.resource);
+        const requestId = this.requestId(query.resource);
 
         const cache = !this.isFetchPolicy(query.fetchPolicy, 'no-cache')
             ? {
@@ -306,7 +306,7 @@ export class QueryProcessor<C extends NonUndefined> {
     }
 
     private isFetchPolicy(fetchPolicy: FetchPolicy | undefined, value: FetchPolicy): boolean {
-        return (fetchPolicy || 'cache-only') === value;
+        return (fetchPolicy || 'cache-and-network') === value;
     }
 
     private areQueryStatesEqual<D extends NonUndefined, E extends Error>(

@@ -1,7 +1,7 @@
 import { Client, NonUndefined } from '@galaxis/react';
 import { InMemoryCache } from '@galaxis/in-memory-cache';
 import { CacheData } from './CacheData';
-import { request, hashResource, processResponseJson, FetchResource, ResponseError } from '@galaxis/fetch';
+import { request, requestId, processResponseJson, FetchResource, ResponseError } from '@galaxis/fetch';
 import { objectHash } from '@galaxis/utils';
 import { ErrorResponse } from './ErrorResponse';
 
@@ -40,6 +40,6 @@ export function getClient({ fetch }: GetClientOptions): AppClient {
             optimizeOnHydrate: true,
             fetchPolicy: 'cache-and-network',
         },
-        hashResource: hashResource({ hash: objectHash }),
+        requestId: requestId({ hash: objectHash }),
     });
 }

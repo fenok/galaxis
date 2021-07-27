@@ -1,11 +1,11 @@
 import { FetchResource } from './types';
 import { getUrl } from './getUrl';
 
-export interface HashResourceOptions {
+export interface RequestIdOptions {
     hash(value: unknown): string;
 }
 
-export function hashResource({ hash }: HashResourceOptions) {
+export function requestId({ hash }: RequestIdOptions) {
     return (resource: FetchResource) => {
         return `${getUrl({ resource })}:${hash(resource)}`;
     };
