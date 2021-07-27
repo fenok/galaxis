@@ -4,7 +4,7 @@ import { Client } from '../client';
 export interface ObservableMutationState<D extends NonUndefined, E extends Error> {
     loading: boolean;
     data: D | undefined;
-    error: E | Error | undefined;
+    error: E | undefined;
     called: boolean;
 }
 
@@ -78,7 +78,7 @@ export class ObservableMutation<C extends NonUndefined, D extends NonUndefined, 
 
                 return data;
             })
-            .catch((error: Error) => {
+            .catch((error: E) => {
                 if (this.currentRequest === promise) {
                     this.setState({ data: undefined, error, loading: false });
                 }
