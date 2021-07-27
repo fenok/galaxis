@@ -2786,14 +2786,12 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@galaxis/utils", "virtual:08278a02abf910cb0d4b830f25d01fc4b24dc3216cf232edeb20b399cd65a02c392c36cb0fc4853cc8212ce5c37899770ca5fa2ea488a91da2e8036d17f326f5#workspace:packages/utils"],
             ["@galaxis/core", "workspace:packages/core"],
             ["@types/galaxis__core", null],
-            ["@types/lodash.merge", "npm:4.6.6"],
             ["@types/object-hash", "npm:2.1.0"],
             ["@typescript-eslint/eslint-plugin", "virtual:b9eb0b2f44c05ed1480f197d60db760ad7c95615d319d0d24ae4589e0d1fdc6d65fc8c9d4627d7f67f6dd64449a98acfd3421999fdad8765848ef2dbe1c9c15d#npm:4.20.0"],
             ["@typescript-eslint/parser", "virtual:b9eb0b2f44c05ed1480f197d60db760ad7c95615d319d0d24ae4589e0d1fdc6d65fc8c9d4627d7f67f6dd64449a98acfd3421999fdad8765848ef2dbe1c9c15d#npm:4.20.0"],
             ["eslint", "npm:7.23.0"],
             ["eslint-config-prettier", "virtual:b9eb0b2f44c05ed1480f197d60db760ad7c95615d319d0d24ae4589e0d1fdc6d65fc8c9d4627d7f67f6dd64449a98acfd3421999fdad8765848ef2dbe1c9c15d#npm:8.1.0"],
             ["immer", "npm:9.0.1"],
-            ["lodash.merge", "npm:4.6.2"],
             ["object-hash", "npm:2.1.1"],
             ["prettier", "npm:2.2.1"],
             ["rimraf", "npm:3.0.2"],
@@ -2809,14 +2807,12 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageDependencies": [
             ["@galaxis/utils", "workspace:packages/utils"],
             ["@galaxis/core", "workspace:packages/core"],
-            ["@types/lodash.merge", "npm:4.6.6"],
             ["@types/object-hash", "npm:2.1.0"],
             ["@typescript-eslint/eslint-plugin", "virtual:b9eb0b2f44c05ed1480f197d60db760ad7c95615d319d0d24ae4589e0d1fdc6d65fc8c9d4627d7f67f6dd64449a98acfd3421999fdad8765848ef2dbe1c9c15d#npm:4.20.0"],
             ["@typescript-eslint/parser", "virtual:b9eb0b2f44c05ed1480f197d60db760ad7c95615d319d0d24ae4589e0d1fdc6d65fc8c9d4627d7f67f6dd64449a98acfd3421999fdad8765848ef2dbe1c9c15d#npm:4.20.0"],
             ["eslint", "npm:7.23.0"],
             ["eslint-config-prettier", "virtual:b9eb0b2f44c05ed1480f197d60db760ad7c95615d319d0d24ae4589e0d1fdc6d65fc8c9d4627d7f67f6dd64449a98acfd3421999fdad8765848ef2dbe1c9c15d#npm:8.1.0"],
             ["immer", "npm:9.0.1"],
-            ["lodash.merge", "npm:4.6.2"],
             ["object-hash", "npm:2.1.1"],
             ["prettier", "npm:2.2.1"],
             ["rimraf", "npm:3.0.2"],
@@ -3375,25 +3371,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageLocation": "./.yarn/cache/@types-json-schema-npm-7.0.7-95fb8178d7-b9d2c509fa.zip/node_modules/@types/json-schema/",
           "packageDependencies": [
             ["@types/json-schema", "npm:7.0.7"]
-          ],
-          "linkType": "HARD",
-        }]
-      ]],
-      ["@types/lodash", [
-        ["npm:4.14.168", {
-          "packageLocation": "./.yarn/cache/@types-lodash-npm-4.14.168-2d65abe211-9a4e25f89f.zip/node_modules/@types/lodash/",
-          "packageDependencies": [
-            ["@types/lodash", "npm:4.14.168"]
-          ],
-          "linkType": "HARD",
-        }]
-      ]],
-      ["@types/lodash.merge", [
-        ["npm:4.6.6", {
-          "packageLocation": "./.yarn/cache/@types-lodash.merge-npm-4.6.6-1bd609f0f2-63967ce152.zip/node_modules/@types/lodash.merge/",
-          "packageDependencies": [
-            ["@types/lodash.merge", "npm:4.6.6"],
-            ["@types/lodash", "npm:4.14.168"]
           ],
           "linkType": "HARD",
         }]
@@ -8471,15 +8448,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageLocation": "./.yarn/cache/lodash.flatten-npm-4.4.0-495935e617-f22a7f6f16.zip/node_modules/lodash.flatten/",
           "packageDependencies": [
             ["lodash.flatten", "npm:4.4.0"]
-          ],
-          "linkType": "HARD",
-        }]
-      ]],
-      ["lodash.merge", [
-        ["npm:4.6.2", {
-          "packageLocation": "./.yarn/cache/lodash.merge-npm-4.6.2-77cb4416bf-4e2bb42a87.zip/node_modules/lodash.merge/",
-          "packageDependencies": [
-            ["lodash.merge", "npm:4.6.2"]
           ],
           "linkType": "HARD",
         }]
