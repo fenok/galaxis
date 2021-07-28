@@ -2,8 +2,8 @@ import { RequestQueue } from '../../RequestQueue';
 import { Query, Request, Resource, Mutation } from '../../../types';
 import { QueryProcessor } from '../../QueryProcessor';
 import { TestCache } from './TestCache';
-import { wait } from '../../../promise';
 import { Client } from '../../Client';
+import { wait } from './promise-helpers';
 
 export interface ItemEntity {
     id: string;

@@ -1,4 +1,4 @@
-import { getAbortController, onResolve } from '../promise';
+import { getAbortController } from '../promise';
 import { NonUndefined } from '../types';
 
 export interface QueueSection {
@@ -56,4 +56,8 @@ export class RequestQueue {
 
         return promise;
     }
+}
+
+export function onResolve<U>(promise: Promise<unknown>, cb: () => U | Promise<U>): Promise<U> {
+    return promise.then(cb, cb);
 }
