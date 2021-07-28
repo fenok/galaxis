@@ -79,11 +79,8 @@ export class QueryProcessor<TCacheData extends NonUndefined> {
     public fetchQuery<TData extends NonUndefined, TError extends Error, TResource extends Resource>(
         query: Query<TCacheData, TData, TError, TResource>,
     ): Promise<TData> {
-        if (this.isFetchPolicy(query.fetchPolicy, 'cache-only')) {
-            return Promise.reject(new Error("Can't fetch query with 'cache-only' fetch policy"));
-        }
-
         const requestId = this.requestId(query.resource);
+
         return this.getRequestPromise(query, requestId);
     }
 

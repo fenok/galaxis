@@ -184,7 +184,7 @@ const [queryState, request, unsubscribe] = client.query(query, onChange);
 
 #### `client.fetchQuery()`
 
-Fetch the query. If the `fetchPolicy` is `cache-only`, the returned promise will be immediately rejected. Otherwise, this method will always create a network request.
+Fetch the query. This method will always create a network request.
 
 ```typescript
 const result = client.fetchQuery(query);
