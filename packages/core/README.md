@@ -337,6 +337,105 @@ const requestId = client.requestId(request.resource);
 
 <code>string</code>
 
+### ObservableQuery
+
+`ObservableQuery` maintains the state of the corresponding query. It has **its own state**, which synchronizes with the global cache.
+
+`ObservableQuery` can be active or inactive. If it's inactive, it won't report about its state changes, and the only way to change its state is to call the `observableQuery.setOptions()` function.
+
+Upon the client reset, all active observable queries will be re-executed. Inactive queries are supposed to be activated shortly (and executed anyway) or disposed.
+
+To make the UI less jumpy, the state synchronization is intentionally not perfect. The following rules apply:
+
+-   In loading state all updates are paused, except for updates that happen because of the `observableQuery.setOptions()` call.
+-   In the following conditions, If there is no data to show, the previous data is used, and if there is _also_ no error, the previous error is used:
+    -   Upon switching to loading state (and later). Rationale: don't make significant UI changes for a split second after which a similar data will arrive. If it doesn't arrive, it's still better to show the previous data and the new error. However, if there is no loading, it's better to show the new state right away, since it won't change automatically.
+    -   Upon cache invalidation (update to empty state that came after the query execution). Rationale: cache invalidation can happen at arbitrary time, and the UI shouldn't suddenly become empty and/or show a dozen loaders.
+-   Upon the client reset, the previous state will still be shown during the loading state (but will be cleared right after). Rationale: again, don't make significant UI changes for a split second, the data will likely remain the same.
+
+```typescript
+const observableQuery = new ObservableQuery(onChange);
+```
+
+##### Arguments
+
+| Name     | Type                    | Description                                                       | Required |
+| -------- | ----------------------- | ----------------------------------------------------------------- | -------- |
+| onChange | <code>() => void</code> | A function that will be called on observable query state changes. | Yes      |
+
+#### `observableQuery.setOptions()`
+
+Switch the observable query into the inactive state and update its client and query. It may lead to the state change, which won't be reported. You should manually request the state via the `observableQuery.getState()` function.
+
+Such behavior allows you to update the state and synchronously get it back without worrying about unnecessary calls of the `onChange` function.
+
+```typescript
+observableQuery.setOptions(client, query);
+```
+
+##### Arguments
+
+| Name   | Type                           | Description                                                                             | Required |
+| ------ | ------------------------------ | --------------------------------------------------------------------------------------- | -------- |
+| client | <code>[Client](#client)</code> | A `Client` instance.                                                                    | Yes      |
+| query  | <code>[Query](#query)</code>   | A query to maintain. If no query is passed, the observable query is essentially paused. | No       |
+
+#### `observableQuery.start()`
+
+Activate the observable query. Internally, the provided query is executed, and the observable query starts watching its state.
+
+This method is supposed to be called asynchronously after the `observableQuery.setOptions()` call. This allows to decouple the side effect of query execution from the render phase.
+
+This method is also supposed to be used to wait for the query execution during SSR.
+
+```typescript
+const request = observableQuery.start();
+```
+
+##### Return value
+
+The request from the query execution, if any.
+
+`Promise<TData> | undefined`
+
+#### `observableQuery.dispose()`
+
+When you don't need the instance anymore, call this method to perform the internal cleanup. Once the observable query is disposed, it can't be used again.
+
+```typescript
+observableQuery.dispose();
+```
+
+#### `observableQuery.getState()`
+
+Get the observable query state.
+
+```typescript
+const observableQueryState = observableQuery.getState();
+```
+
+##### Return value
+
+###### `ObservableQueryState`
+
+| Name    | Type                                                        | Description                                                                                                                     |
+| ------- | ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| data    | <code>[TData](#user-defined-types) &#124; undefined</code>  | The last known data. May show previous data from other query, if there is no data for the current query.                        |
+| error   | <code>[TError](#user-defined-types) &#124; undefined</code> | The error from the last request. May show previous error from other query, if there is no data and error for the current query. |
+| loading | <code>boolean</code>                                        | Whether the query is being fetched (or will be fetched upon activation) **by this observable query**.                           |
+
+#### `observableQuery.refetch()`
+
+Refetch the query from network. The query has to be executed first.
+
+```typescript
+const result = observableQuery.refetch();
+```
+
+##### Return value
+
+`Promise<TData>`
+
 ### Important Types
 
 #### User-defined types
