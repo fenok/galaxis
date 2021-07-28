@@ -4,6 +4,8 @@
 
 Vue bindings for [Galaxis](/README.md#galaxis-).
 
+> ⚠ The API is fairly basic, because I have a very little experience with Vue.
+
 ## Installation
 
 ```
@@ -24,7 +26,7 @@ You also need a version of Vue that supports Composition API.
 
 ### `useClientProvider()`
 
-`useClientProvider()` is used to configure and provide a [Client](/packages/core#client) instance for the rest of the application.
+`useClientProvider()` is used to configure and provide a <code>[Client](/packages/core#client)</code> instance for the rest of the application.
 
 ```vue
 <template>
@@ -79,7 +81,7 @@ export default defineComponent({
 
 ### `useQuery()`
 
-`useQuery` is a wrapper around [managed query](/packages/core#clientmanagequery).
+`useQuery` is a thin wrapper for <code>[ObservableQuery](/packages/core#observablequery)</code>.
 
 ```typescript
 import { defineComponent, ref } from 'vue';
@@ -106,17 +108,17 @@ export default defineComponent({
 
 #### Arguments
 
-| Name  | Type                                       | Description         | Required |
-| ----- | ------------------------------------------ | ------------------- | -------- |
-| query | <code>[Query](/packages/core#query)</code> | A query to process. | No       |
+| Name  | Type                                             | Description          | Required |
+| ----- | ------------------------------------------------ | -------------------- | -------- |
+| query | <code>() => [Query](/packages/core#query)</code> | A query to maintain. | No       |
 
 #### Return value
 
-<code>[QueryManagerResult](/packages/core#querymanagerresult)</code>
+<code>[ObservableQueryState](/packages/core#observablequerystate) & {refetch: [observableQuery.refetch](/packages/core#observablequeryrefetch)}</code>
 
 ### `useMutation()`
 
-`useMutation` is a wrapper around [managed mutation](/packages/core#clientmanagemutation).
+`useMutation` is a thin wrapper for <code>[ObservableMutation](/packages/core#clientmanagemutation)</code>.
 
 ```typescript jsx
 import { defineComponent, ref } from 'vue';
@@ -143,10 +145,13 @@ export default defineComponent({
 
 #### Arguments
 
-| Name     | Type                                             | Description            | Required |
-| -------- | ------------------------------------------------ | ---------------------- | -------- |
-| mutation | <code>[Mutation](/packages/core#mutation)</code> | A mutation to process. | No       |
+| Name     | Type                                                   | Description             | Required |
+| -------- | ------------------------------------------------------ | ----------------------- | -------- |
+| mutation | <code>() => [Mutation](/packages/core#mutation)</code> | A mutation to maintain. | No       |
 
 #### Return value
 
-<code>[MutationManagerResult](/packages/core#mutationmanagerresult)</code>
+| Name    | Type                                                                                                                                                         | Description                        |
+| ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------- |
+| execute | <code>(mutation?: [Mutation](/packages/core#mutation)) => Promise<[TData](/packages/core#user-defined-types)></code>                                         | A function for mutation execution. |
+| state   | <code>[ObservableMutationState](/packages/core#observablemutationstate) & {reset: [observableMutation.reset](/packages/core#observablemutationreset)}</code> | Mutation state and reset function. |
