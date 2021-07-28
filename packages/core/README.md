@@ -50,7 +50,7 @@ Mutation errors are never cached.
 
 ### Optimistic Responses
 
-You can specify `optimisticData` for mutations. During mutation execution, the cache will immediately be updated with this data, and then with the real data when it arrives. In case of an error, the cache will be reverted to a state without the optimistic data, but with subsequent changes.
+You can specify `optimisticData` for mutations. During mutation execution, the cache will immediately be updated with this data, and then with the real data when it arrives. In case of an error, the cache will be reverted to a state without the optimistic data, but with all subsequent changes.
 
 As expected, `fetchPolicy: 'no-cache'` disables optimistic response.
 
@@ -100,7 +100,7 @@ If you're doing SSR, you're going to have a hydrate stage on the client, which i
 
 It can be fixed by setting `optimizeOnHydrate: true` for all queries by default. In general, you should always do that, unless your cache is not coming from just-performed requests (e.g. you're caching the SSR results, or not doing SSR, but persist the cache to local storage, etc.).
 
-Note that you have to indicate that the hydrate stage is complete by calling <code>[client.onHydrateComplete()](#clientonhydratecomplete)</code>.
+Note that you have to indicate that the hydrate stage is complete by calling <code>[client.onHydrateComplete()](#clientonhydratecomplete)</code>. The framework-specific providers for React (<code>[ClientProvider](../react#clientprovider)</code>) and Vue (<code>[useClientProvider](../vue#useclientprovider)</code>) do this automatically by default.
 
 ### High Customizability
 
@@ -293,7 +293,7 @@ const unsubscribe = client.onReset(onReset);
 
 | Name    | Type                    | Description                         | Required |
 | ------- | ----------------------- | ----------------------------------- | -------- |
-| onReset | <code>() => void</code> | A callback ro call on client reset. | Yes      |
+| onReset | <code>() => void</code> | A callback to call on client reset. | Yes      |
 
 ##### Return value
 
@@ -309,7 +309,7 @@ const cache = client.getCache();
 
 ##### Return value
 
-[TCache](#user-defined-types)
+<code>[TCache](#user-defined-types)</code>
 
 #### `client.onHydrateComplete()`
 
@@ -349,7 +349,7 @@ const requestId = client.requestId(request.resource);
 | `TBaseError` | Client-specific  | Must extend `Error`                                    | Query or mutation error, common for all requests. Used for defaults. |
 | `TData`      | Request-specific | Must extend <code>TBaseData</code>                     | Query or mutation data.                                              |
 | `TError`     | Request-specific | Must extend `TBaseError`                               | Query or mutation error.                                             |
-| `TResource`  | Request-specific | Must extend <code>[Resource](#resource)</code>         | Query or mutation request parameters.                                |
+| `TResource`  | Request-specific | Must extend <code>[Resource](#resource)</code>         | Query or mutation `resource`, usually the request parameters.        |
 
 ##### `NonUndefined`
 
