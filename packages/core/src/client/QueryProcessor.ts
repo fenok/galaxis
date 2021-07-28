@@ -3,12 +3,12 @@ import { RequestQueue } from './RequestQueue';
 import { RequestHelper } from './RequestHelper';
 import { Query, Cache, NonUndefined, FetchPolicy, Resource } from '../types';
 
-export interface QueryCache<D extends NonUndefined, E extends Error> {
-    error?: E;
-    data?: D;
+export interface QueryCache<TData extends NonUndefined, TError extends Error> {
+    error?: TError;
+    data?: TData;
 }
 
-export interface QueryState<D extends NonUndefined, E extends Error> extends QueryCache<D, E> {
+export interface QueryState<TData extends NonUndefined, TError extends Error> extends QueryCache<TData, TError> {
     requestRequired: boolean;
 }
 
@@ -20,20 +20,20 @@ export interface QueryRequest {
     shouldRerun?: boolean;
 }
 
-export interface QueryProcessorOptions<C extends NonUndefined> {
-    cache: Cache<C>;
+export interface QueryProcessorOptions<TCacheData extends NonUndefined> {
+    cache: Cache<TCacheData>;
     requestQueue: RequestQueue;
     requestId(resource: unknown): string;
 }
 
-export class QueryProcessor<C extends NonUndefined> {
+export class QueryProcessor<TCacheData extends NonUndefined> {
     private ongoingRequests: { [requestId: string]: QueryRequest | undefined } = {};
     private isHydrate = true;
-    private readonly cache: Cache<C>;
+    private readonly cache: Cache<TCacheData>;
     private readonly requestQueue: RequestQueue;
     private requestId: (resource: unknown) => string;
 
-    constructor({ cache, requestQueue, requestId }: QueryProcessorOptions<C>) {
+    constructor({ cache, requestQueue, requestId }: QueryProcessorOptions<TCacheData>) {
         this.cache = cache;
         this.requestQueue = requestQueue;
         this.requestId = requestId;
@@ -52,13 +52,13 @@ export class QueryProcessor<C extends NonUndefined> {
         });
     }
 
-    public query<D extends NonUndefined, E extends Error, R extends Resource>(
-        query: Query<C, D, E, R>,
-        onChange?: (state: QueryState<D, E>) => void,
-    ): [QueryState<D, E>, Promise<D> | undefined, (() => void) | undefined] {
+    public query<TData extends NonUndefined, TError extends Error, TResource extends Resource>(
+        query: Query<TCacheData, TData, TError, TResource>,
+        onChange?: (state: QueryState<TData, TError>) => void,
+    ): [QueryState<TData, TError>, Promise<TData> | undefined, (() => void) | undefined] {
         const requestId = this.requestId(query.resource);
 
-        let queryState: QueryState<D, E>;
+        let queryState: QueryState<TData, TError>;
         let unsubscribe: (() => void) | undefined;
 
         if (onChange) {
@@ -76,9 +76,9 @@ export class QueryProcessor<C extends NonUndefined> {
         ];
     }
 
-    public fetchQuery<D extends NonUndefined, E extends Error, R extends Resource>(
-        query: Query<C, D, E, R>,
-    ): Promise<D> {
+    public fetchQuery<TData extends NonUndefined, TError extends Error, TResource extends Resource>(
+        query: Query<TCacheData, TData, TError, TResource>,
+    ): Promise<TData> {
         if (this.isFetchPolicy(query.fetchPolicy, 'cache-only')) {
             return Promise.reject(new Error("Can't fetch query with 'cache-only' fetch policy"));
         }
@@ -87,14 +87,14 @@ export class QueryProcessor<C extends NonUndefined> {
         return this.getRequestPromise(query, requestId);
     }
 
-    public readQuery<D extends NonUndefined, E extends Error, R extends Resource>(
-        query: Query<C, D, E, R>,
-    ): QueryState<D, E> {
+    public readQuery<TData extends NonUndefined, TError extends Error, TResource extends Resource>(
+        query: Query<TCacheData, TData, TError, TResource>,
+    ): QueryState<TData, TError> {
         const requestId = this.requestId(query.resource);
 
         const cache = !this.isFetchPolicy(query.fetchPolicy, 'no-cache')
             ? {
-                  error: this.cache.getError(requestId) as E,
+                  error: this.cache.getError(requestId) as TError,
                   data: query.fromCache?.({
                       cacheData: this.cache.getData(),
                       resource: query.resource,
@@ -109,10 +109,10 @@ export class QueryProcessor<C extends NonUndefined> {
         };
     }
 
-    public watchQuery<D extends NonUndefined, E extends Error, R extends Resource>(
-        query: Query<C, D, E, R>,
-        onChange: (state: QueryState<D, E>) => void,
-    ): [QueryState<D, E>, (() => void) | undefined] {
+    public watchQuery<TData extends NonUndefined, TError extends Error, TResource extends Resource>(
+        query: Query<TCacheData, TData, TError, TResource>,
+        onChange: (state: QueryState<TData, TError>) => void,
+    ): [QueryState<TData, TError>, (() => void) | undefined] {
         let queryState = this.readQuery(query);
 
         return [
@@ -130,10 +130,10 @@ export class QueryProcessor<C extends NonUndefined> {
         ];
     }
 
-    private getRequestPromise<D extends NonUndefined, E extends Error, R extends Resource>(
-        query: Query<C, D, E, R>,
+    private getRequestPromise<TData extends NonUndefined, TError extends Error, TResource extends Resource>(
+        query: Query<TCacheData, TData, TError, TResource>,
         requestId: string,
-    ): Promise<D> {
+    ): Promise<TData> {
         const queryRequest = this.ensureQueryRequest(query, requestId);
 
         const onAbort = () => {
@@ -152,11 +152,11 @@ export class QueryProcessor<C extends NonUndefined> {
         wireAbortSignals(onSoftAbort, query.softAbortSignal);
         wireAbortSignals(onAbort, query.abortSignal);
 
-        return queryRequest.promise as Promise<D>;
+        return queryRequest.promise as Promise<TData>;
     }
 
-    private ensureQueryRequest<D extends NonUndefined, E extends Error, R extends Resource>(
-        query: Query<C, D, E, R>,
+    private ensureQueryRequest<TData extends NonUndefined, TError extends Error, TResource extends Resource>(
+        query: Query<TCacheData, TData, TError, TResource>,
         requestId: string,
     ): QueryRequest {
         const isQueryCacheable = !this.isFetchPolicy(query.fetchPolicy, 'no-cache');
@@ -196,11 +196,11 @@ export class QueryProcessor<C extends NonUndefined> {
         return this.ongoingRequests[requestId]!;
     }
 
-    private getQueryPromise<D extends NonUndefined, E extends Error, R extends Resource>(
-        query: Query<C, D, E, R>,
+    private getQueryPromise<TData extends NonUndefined, TError extends Error, TResource extends Resource>(
+        query: Query<TCacheData, TData, TError, TResource>,
         requestId: string,
         queryRequest: QueryRequest,
-    ): Promise<D> {
+    ): Promise<TData> {
         return this.requestQueue
             .addPromise(
                 RequestHelper.getPromiseFactory(query, {
@@ -219,10 +219,14 @@ export class QueryProcessor<C extends NonUndefined> {
                         this.ongoingRequests[requestId] = undefined;
 
                         if (queryRequest.cacheableQueries.length) {
-                            this.updateCache(queryRequest.cacheableQueries as Query<C, D, E, R>[], requestId, {
-                                type: 'success',
-                                data,
-                            });
+                            this.updateCache(
+                                queryRequest.cacheableQueries as Query<TCacheData, TData, TError, TResource>[],
+                                requestId,
+                                {
+                                    type: 'success',
+                                    data,
+                                },
+                            );
                         }
                     }
                 }
@@ -239,10 +243,14 @@ export class QueryProcessor<C extends NonUndefined> {
                         this.ongoingRequests[requestId] = undefined;
 
                         if (queryRequest.cacheableQueries.length) {
-                            this.updateCache(queryRequest.cacheableQueries as Query<C, D, E, R>[], requestId, {
-                                type: 'fail',
-                                error,
-                            });
+                            this.updateCache(
+                                queryRequest.cacheableQueries as Query<TCacheData, TData, TError, TResource>[],
+                                requestId,
+                                {
+                                    type: 'fail',
+                                    error,
+                                },
+                            );
                         }
                     }
                 }
@@ -250,10 +258,10 @@ export class QueryProcessor<C extends NonUndefined> {
             });
     }
 
-    private updateCache<D extends NonUndefined, E extends Error, R extends Resource>(
-        queries: Query<C, D, E, R>[],
+    private updateCache<TData extends NonUndefined, TError extends Error, TResource extends Resource>(
+        queries: Query<TCacheData, TData, TError, TResource>[],
         requestId: string,
-        action: { type: 'fail'; error: E } | { type: 'success'; data: D },
+        action: { type: 'fail'; error: TError } | { type: 'success'; data: TData },
     ) {
         if (action.type === 'success') {
             this.cache.update({
@@ -279,9 +287,9 @@ export class QueryProcessor<C extends NonUndefined> {
         }
     }
 
-    private isRequestRequired<D extends NonUndefined, E extends Error, R extends Resource>(
-        query: Query<C, D, E, R>,
-        queryCache?: QueryCache<D, E>,
+    private isRequestRequired<TData extends NonUndefined, TError extends Error, TResource extends Resource>(
+        query: Query<TCacheData, TData, TError, TResource>,
+        queryCache?: QueryCache<TData, TError>,
     ): boolean {
         return !(
             this.isFetchPolicy(query.fetchPolicy, 'cache-only') ||
@@ -292,9 +300,9 @@ export class QueryProcessor<C extends NonUndefined> {
         );
     }
 
-    private isRequestAllowed<D extends NonUndefined, E extends Error, R extends Resource>(
-        query: Query<C, D, E, R>,
-        queryCache?: QueryCache<D, E>,
+    private isRequestAllowed<TData extends NonUndefined, TError extends Error, TResource extends Resource>(
+        query: Query<TCacheData, TData, TError, TResource>,
+        queryCache?: QueryCache<TData, TError>,
     ): boolean {
         return (
             typeof window !== 'undefined' ||
@@ -309,9 +317,9 @@ export class QueryProcessor<C extends NonUndefined> {
         return (fetchPolicy || 'cache-and-network') === value;
     }
 
-    private areQueryStatesEqual<D extends NonUndefined, E extends Error>(
-        a: QueryState<D, E>,
-        b: QueryState<D, E>,
+    private areQueryStatesEqual<TData extends NonUndefined, TError extends Error>(
+        a: QueryState<TData, TError>,
+        b: QueryState<TData, TError>,
     ): boolean {
         // Since we compare states of the same query, that's all we need, as flags are the same if data and error are.
         return a.error === b.error && a.data === b.data;

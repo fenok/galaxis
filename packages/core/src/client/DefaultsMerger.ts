@@ -1,27 +1,31 @@
 import { BaseRequest, Mutation, NonUndefined, Query, Resource } from '../types';
 
 export interface DefaultsMergerOptions<
-    C extends NonUndefined = NonUndefined,
-    BD extends NonUndefined = NonUndefined,
-    BE extends Error = Error,
-    BR extends Resource = Resource
+    TCacheData extends NonUndefined = NonUndefined,
+    TBaseData extends NonUndefined = NonUndefined,
+    TBaseError extends Error = Error,
+    TBaseResource extends Resource = Resource
 > {
-    defaultRequest?: Partial<BaseRequest<C, BD, BE, BR>>;
-    defaultQuery?: Partial<Query<C, BD, BE, BR>>;
-    defaultMutation?: Partial<Mutation<C, BD, BE, BR>>;
+    defaultRequest?: Partial<BaseRequest<TCacheData, TBaseData, TBaseError, TBaseResource>>;
+    defaultQuery?: Partial<Query<TCacheData, TBaseData, TBaseError, TBaseResource>>;
+    defaultMutation?: Partial<Mutation<TCacheData, TBaseData, TBaseError, TBaseResource>>;
 }
 
 export class DefaultsMerger<
-    C extends NonUndefined = NonUndefined,
-    BD extends NonUndefined = NonUndefined,
-    BE extends Error = Error,
-    BR extends Resource = Resource
+    TCacheData extends NonUndefined = NonUndefined,
+    TBaseData extends NonUndefined = NonUndefined,
+    TBaseError extends Error = Error,
+    TBaseResource extends Resource = Resource
 > {
-    private defaultRequest?: Partial<BaseRequest<C, BD, BE, BR>>;
-    private defaultQuery?: Partial<Query<C, BD, BE, BR>>;
-    private defaultMutation?: Partial<Mutation<C, BD, BE, BR>>;
+    private defaultRequest?: Partial<BaseRequest<TCacheData, TBaseData, TBaseError, TBaseResource>>;
+    private defaultQuery?: Partial<Query<TCacheData, TBaseData, TBaseError, TBaseResource>>;
+    private defaultMutation?: Partial<Mutation<TCacheData, TBaseData, TBaseError, TBaseResource>>;
 
-    constructor({ defaultRequest, defaultQuery, defaultMutation }: DefaultsMergerOptions<C, BD, BE, BR>) {
+    constructor({
+        defaultRequest,
+        defaultQuery,
+        defaultMutation,
+    }: DefaultsMergerOptions<TCacheData, TBaseData, TBaseError, TBaseResource>) {
         this.defaultRequest = defaultRequest;
         this.defaultQuery = defaultQuery;
         this.defaultMutation = defaultMutation;

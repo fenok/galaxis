@@ -2,13 +2,16 @@ import { NonUndefined, Query, ObservableQuery, ObservableQueryState, Resource } 
 import { useClient } from './useClientProvider';
 import { computed, onServerPrefetch, onUnmounted, onUpdated, onMounted, reactive, toRefs, watch } from 'vue';
 
-export function useQuery<C extends NonUndefined, D extends NonUndefined, E extends Error, R extends Resource>(
-    query: () => Query<C, D, E, R> | undefined,
-) {
+export function useQuery<
+    TCacheData extends NonUndefined,
+    TData extends NonUndefined,
+    TError extends Error,
+    TResource extends Resource
+>(query: () => Query<TCacheData, TData, TError, TResource> | undefined) {
     const client = useClient();
     const queryRef = computed(query);
 
-    const observableQuery = new ObservableQuery<C, D, E, R>(() => {
+    const observableQuery = new ObservableQuery<TCacheData, TData, TError, TResource>(() => {
         updateState(observableQuery.getState());
     });
 
@@ -40,7 +43,7 @@ export function useQuery<C extends NonUndefined, D extends NonUndefined, E exten
         observableQuery.dispose();
     });
 
-    function updateState(nextState: ObservableQueryState<D, E>) {
+    function updateState(nextState: ObservableQueryState<TData, TError>) {
         state = Object.assign(state, nextState);
     }
 

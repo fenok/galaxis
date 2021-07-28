@@ -3,17 +3,17 @@ import { getUrl } from './getUrl';
 import { getRequestInit } from './getRequestInit';
 import { NonUndefined } from '@galaxis/core';
 
-export interface GetRequestFactoryOptions<D extends NonUndefined> {
+export interface GetRequestFactoryOptions<TData extends NonUndefined> {
     root?: string;
     fetch?: typeof fetch;
-    processResponse(response: Response): Promise<D>;
+    processResponse(response: Response): Promise<TData>;
 }
 
-export function request<D extends NonUndefined>({
+export function request<TData extends NonUndefined>({
     root,
     fetch: fetchFn,
     processResponse,
-}: GetRequestFactoryOptions<D>) {
+}: GetRequestFactoryOptions<TData>) {
     return (resource: FetchResource, abortSignal?: AbortSignal) => {
         return (fetchFn || fetch)(getUrl({ root, resource }), {
             ...getRequestInit(resource),

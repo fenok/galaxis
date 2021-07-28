@@ -1,22 +1,27 @@
 import { Mutation, NonUndefined, Resource } from '../types';
 import { Client } from '../client';
 
-export interface ObservableMutationState<D extends NonUndefined, E extends Error> {
+export interface ObservableMutationState<TData extends NonUndefined, TError extends Error> {
     loading: boolean;
-    data: D | undefined;
-    error: E | undefined;
+    data: TData | undefined;
+    error: TError | undefined;
     called: boolean;
 }
 
-export class ObservableMutation<C extends NonUndefined, D extends NonUndefined, E extends Error, R extends Resource> {
+export class ObservableMutation<
+    TCacheData extends NonUndefined,
+    TData extends NonUndefined,
+    TError extends Error,
+    TResource extends Resource
+> {
     private onChange: () => void;
     private client?: Client;
-    private mutation?: Mutation<C, D, E, R>;
-    private currentRequest?: Promise<D>;
+    private mutation?: Mutation<TCacheData, TData, TError, TResource>;
+    private currentRequest?: Promise<TData>;
 
     private unsubscribeFromOnReset?: () => void;
 
-    private state: ObservableMutationState<D, E> = {
+    private state: ObservableMutationState<TData, TError> = {
         loading: false,
         data: undefined,
         error: undefined,
@@ -31,7 +36,7 @@ export class ObservableMutation<C extends NonUndefined, D extends NonUndefined, 
         return this.state;
     }
 
-    public setOptions(client: Client, mutation?: Mutation<C, D, E, R>) {
+    public setOptions(client: Client, mutation?: Mutation<TCacheData, TData, TError, TResource>) {
         if (this.client !== client) {
             this.unsubscribeFromOnReset?.();
             this.unsubscribeFromOnReset = client.onReset(this.reset);
@@ -41,7 +46,7 @@ export class ObservableMutation<C extends NonUndefined, D extends NonUndefined, 
         this.mutation = mutation;
     }
 
-    public execute = (mutation?: Mutation<C, D, E, R>) => {
+    public execute = (mutation?: Mutation<TCacheData, TData, TError, TResource>) => {
         if (this.client) {
             const mutationToExecute = mutation || this.mutation;
 
@@ -67,7 +72,7 @@ export class ObservableMutation<C extends NonUndefined, D extends NonUndefined, 
         this.unsubscribeFromOnReset = undefined;
     }
 
-    private decorateWithStateUpdates(promise: Promise<D>) {
+    private decorateWithStateUpdates(promise: Promise<TData>) {
         this.currentRequest = promise;
 
         return promise
@@ -78,7 +83,7 @@ export class ObservableMutation<C extends NonUndefined, D extends NonUndefined, 
 
                 return data;
             })
-            .catch((error: E) => {
+            .catch((error: TError) => {
                 if (this.currentRequest === promise) {
                     this.setState({ data: undefined, error, loading: false });
                 }
@@ -87,7 +92,7 @@ export class ObservableMutation<C extends NonUndefined, D extends NonUndefined, 
             });
     }
 
-    private setState(newState: Partial<ObservableMutationState<D, E>>) {
+    private setState(newState: Partial<ObservableMutationState<TData, TError>>) {
         const nextState = { ...this.state, ...newState };
 
         if (!this.areStatesEqual(this.state, nextState)) {
@@ -97,7 +102,10 @@ export class ObservableMutation<C extends NonUndefined, D extends NonUndefined, 
         }
     }
 
-    private areStatesEqual(first: ObservableMutationState<D, E>, second: ObservableMutationState<D, E>) {
+    private areStatesEqual(
+        first: ObservableMutationState<TData, TError>,
+        second: ObservableMutationState<TData, TError>,
+    ) {
         return (
             first.data === second.data &&
             first.loading === second.loading &&

@@ -151,13 +151,13 @@ const client = new Client({
 
 > ⚠ Note that defaults are static for the given client instance. Dynamic defaults would add too much complexity. If you really need dynamic defaults, such as a user-specific header that is common for all requests, you should do it on the network level, somewhere inside the `request` option of the <code>[BaseRequest](#baserequest)</code>. Ideally, if we're talking about authorization, you should rely on a `HttpOnly` cookie set by the server.
 
-| Name            | Type                                                         | Description                                                                                                                                                                                                                                                                                                                                                                                                                       | Required |
-| --------------- | ------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
-| cache           | <code>[CACHE](#user-defined-types)</code>                    | A cache for storing normalized data and errors. The library provides <code>[InMemoryCache](../in-memory-cache#inmemorycache)</code> that should work in a lot of cases.                                                                                                                                                                                                                                                           | Yes      |
-| requestId       | <code>(resource: [BR](#user-defined-types)) => string</code> | A function for hashing the `resource` field of <code>[BaseRequest](#baserequest)</code>. The resulting hash is considered the network request id. The library provides <code>[objectHash()](../utils#objecthash)</code> that should work in a lot of cases. If you only use the <code>[Fetch](../fetch)</code> network interface, consider its <code>[requestId()](../fetch#requestId)</code> for a bit more human-readable hash. | Yes      |
-| defaultRequest  | <code>Partial<[BaseRequest](#baserequest)></code>            | Default request. Can't be changed later. Merged shallowly.                                                                                                                                                                                                                                                                                                                                                                        | No       |
-| defaultQuery    | <code>Partial<[Query](#query)></code>                        | Default query. Can't be changed later. Merged shallowly.                                                                                                                                                                                                                                                                                                                                                                          | No       |
-| defaultMutation | <code>Partial<[Mutation](#mutation)></code>                  | Default mutation. Can't be changed later. Merged shallowly.                                                                                                                                                                                                                                                                                                                                                                       | No       |
+| Name            | Type                                                                    | Description                                                                                                                                                                                                                                                                                                                                                                                                                       | Required |
+| --------------- | ----------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
+| cache           | <code>[TCache](#user-defined-types)</code>                              | A cache for storing normalized data and errors. The library provides <code>[InMemoryCache](../in-memory-cache#inmemorycache)</code> that should work in a lot of cases.                                                                                                                                                                                                                                                           | Yes      |
+| requestId       | <code>(resource: [TBaseResource](#user-defined-types)) => string</code> | A function for hashing the `resource` field of <code>[BaseRequest](#baserequest)</code>. The resulting hash is considered the network request id. The library provides <code>[objectHash()](../utils#objecthash)</code> that should work in a lot of cases. If you only use the <code>[Fetch](../fetch)</code> network interface, consider its <code>[requestId()](../fetch#requestId)</code> for a bit more human-readable hash. | Yes      |
+| defaultRequest  | <code>Partial<[BaseRequest](#baserequest)></code>                       | Default request. Can't be changed later. Merged shallowly.                                                                                                                                                                                                                                                                                                                                                                        | No       |
+| defaultQuery    | <code>Partial<[Query](#query)></code>                                   | Default query. Can't be changed later. Merged shallowly.                                                                                                                                                                                                                                                                                                                                                                          | No       |
+| defaultMutation | <code>Partial<[Mutation](#mutation)></code>                             | Default mutation. Can't be changed later. Merged shallowly.                                                                                                                                                                                                                                                                                                                                                                       | No       |
 
 #### `client.query()`
 
@@ -176,11 +176,11 @@ const [queryState, request, unsubscribe] = client.query(query, onChange);
 
 ##### Return value
 
-| Name        | Type                                                            | Description                                                                                                                                                                                                    |
-| ----------- | --------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| queryState  | <code>[QueryState](#querystate)</code>                          | The state of the given query.                                                                                                                                                                                  |
-| request     | <code>Promise<[D](#user-defined-types)> &#124; undefined</code> | A promise representing network request. It will be `undefined`, if it wasn't required (or was required, but wasn't allowed on the server side). Internally, there may be more than one actual network request. |
-| unsubscribe | <code>(() => void) &#124; undefined</code>                      | A function for unsubscribing from query state updates. Will be `undefined` if no `onChange` callback was passed, or if the query itself is not cacheable.                                                      |
+| Name        | Type                                                                | Description                                                                                                                                                                                                    |
+| ----------- | ------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| queryState  | <code>[QueryState](#querystate)</code>                              | The state of the given query.                                                                                                                                                                                  |
+| request     | <code>Promise<[TData](#user-defined-types)> &#124; undefined</code> | A promise representing network request. It will be `undefined`, if it wasn't required (or was required, but wasn't allowed on the server side). Internally, there may be more than one actual network request. |
+| unsubscribe | <code>(() => void) &#124; undefined</code>                          | A function for unsubscribing from query state updates. Will be `undefined` if no `onChange` callback was passed, or if the query itself is not cacheable.                                                      |
 
 #### `client.fetchQuery()`
 
@@ -198,7 +198,7 @@ const result = client.fetchQuery(query);
 
 ##### Return value
 
-<code>Promise<[D](#user-defined-types)></code>
+<code>Promise<[TData](#user-defined-types)></code>
 
 #### `client.readQuery()`
 
@@ -218,11 +218,11 @@ const queryState = client.readQuery(query);
 
 ###### `QueryState`
 
-| Name            | Type                                                                | Description                                                                                                                                                                                                                                      |
-| --------------- | ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| data            | <code>[D](#user-defined-types) &#124; undefined</code>              | Data from the cache. `undefined` means no data. An unsuccessful request **will not** overwrite this field. Can be updated by other query or mutation. It can be thought of as _the last known data_. Always `undefined` for non-cacheable query. |
-| error           | <code>[E](#user-defined-types) &#124; Error &#124; undefined</code> | Error from the cache. `undefined` means no error. A successful request **will** overwrite this field to `undefined`. It can be thought of as _the error from the last request_. Always `undefined` for non-cacheable query.                      |
-| requestRequired | <code>boolean</code>                                                | Specifies whether a network request is required, based on cache state and fetch policy of the given query. The actual network request may still not be allowed on the server side. If `true`, the query should be rendered with `loading: true`. |
+| Name            | Type                                                                     | Description                                                                                                                                                                                                                                      |
+| --------------- | ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| data            | <code>[TData](#user-defined-types) &#124; undefined</code>               | Data from the cache. `undefined` means no data. An unsuccessful request **will not** overwrite this field. Can be updated by other query or mutation. It can be thought of as _the last known data_. Always `undefined` for non-cacheable query. |
+| error           | <code>[TError](#user-defined-types) &#124; Error &#124; undefined</code> | Error from the cache. `undefined` means no error. A successful request **will** overwrite this field to `undefined`. It can be thought of as _the error from the last request_. Always `undefined` for non-cacheable query.                      |
+| requestRequired | <code>boolean</code>                                                     | Specifies whether a network request is required, based on cache state and fetch policy of the given query. The actual network request may still not be allowed on the server side. If `true`, the query should be rendered with `loading: true`. |
 
 #### `client.watchQuery()`
 
@@ -262,7 +262,7 @@ const mutationResult = client.mutate(mutation);
 
 ##### Return value
 
-<code>Promise<[D](#user-defined-types)></code>
+<code>Promise<[TData](#user-defined-types)></code>
 
 #### `client.reset()`
 
@@ -309,7 +309,7 @@ const cache = client.getCache();
 
 ##### Return value
 
-[CACHE](#user-defined-types)
+[TCache](#user-defined-types)
 
 #### `client.onHydrateComplete()`
 
@@ -329,9 +329,9 @@ const hash = client.requestId(request.resource);
 
 ##### Arguments
 
-| Name     | Type                                   | Description           | Required |
-| -------- | -------------------------------------- | --------------------- | -------- |
-| resource | <code>[BR](#user-defined-types)</code> | A `resource` to hash. | Yes      |
+| Name     | Type                                              | Description           | Required |
+| -------- | ------------------------------------------------- | --------------------- | -------- |
+| resource | <code>[TBaseResource](#user-defined-types)</code> | A `resource` to hash. | Yes      |
 
 ##### Return value
 
@@ -341,16 +341,16 @@ const hash = client.requestId(request.resource);
 
 #### User-defined types
 
-| Name    | Scope            | Constraint                                             | Description                                                                       |
-| ------- | ---------------- | ------------------------------------------------------ | --------------------------------------------------------------------------------- |
-| `CACHE` | Client-specific  | Must extend <code>[Cache](#cache)</code>               | Cache for storing normalized data and errors.                                     |
-| `C`     | Client-specific  | Must extend <code>[NonUndefined](#nonundefined)</code> | Cache data. Normalized data from all requests.                                    |
-| `BD`    | Client-specific  | Must extend <code>[NonUndefined](#nonundefined)</code> | Query or mutation data, common for all requests. Used for defaults.               |
-| `BE`    | Client-specific  | Must extend `Error`                                    | Query or mutation error, common for all requests. Used for defaults.              |
-| `BR`    | Client-specific  | Must extend <code>[Resource](#resource)</code>         | Query or mutation request parameters, common for all requests. Used for defaults. |
-| `D`     | Request-specific | Must extend <code>BD</code>                            | Query or mutation data.                                                           |
-| `E`     | Request-specific | Must extend `BE`                                       | Query or mutation error.                                                          |
-| `R`     | Request-specific | Must extend `BR`                                       | Query or mutation request parameters.                                             |
+| Name            | Scope            | Constraint                                             | Description                                                                       |
+| --------------- | ---------------- | ------------------------------------------------------ | --------------------------------------------------------------------------------- |
+| `TCache`        | Client-specific  | Must extend <code>[Cache](#cache)</code>               | Cache for storing normalized data and errors.                                     |
+| `TCacheData`    | Client-specific  | Must extend <code>[NonUndefined](#nonundefined)</code> | Cache data. Normalized data from all requests.                                    |
+| `TBaseData`     | Client-specific  | Must extend <code>[NonUndefined](#nonundefined)</code> | Query or mutation data, common for all requests. Used for defaults.               |
+| `TBaseError`    | Client-specific  | Must extend `Error`                                    | Query or mutation error, common for all requests. Used for defaults.              |
+| `TBaseResource` | Client-specific  | Must extend <code>[Resource](#resource)</code>         | Query or mutation request parameters, common for all requests. Used for defaults. |
+| `TData`         | Request-specific | Must extend <code>TBaseData</code>                     | Query or mutation data.                                                           |
+| `TError`        | Request-specific | Must extend `TBaseError`                               | Query or mutation error.                                                          |
+| `TResource`     | Request-specific | Must extend `TBaseResource`                            | Query or mutation request parameters.                                             |
 
 ##### `NonUndefined`
 
@@ -368,50 +368,50 @@ The constraint for request `resource`.
 
 This type describes base request fields that are common for queries and mutations.
 
-| Name        | Type                                                                                                               | Description                                                                                                                                                                            | Required                                            |
-| ----------- | ------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------- |
-| resource    | <code>[R](#user-defined-types)</code>                                                                              | An object that uniquely describes the given resource. Usually contains request parameters.                                                                                             | Yes                                                 |
-| abortSignal | `AbortSignal`                                                                                                      | Signal for aborting the request.                                                                                                                                                       | No                                                  |
-| request     | <code>(resource: [R](#user-defined-types), abortSignal?: AbortSignal) => Promise<[D](#user-defined-types)>;</code> | A factory for creating network requests.<br/>Note that `abortSignal` for the factory is created by the library. It is **not** the same signal as `abortSignal` field of `BaseRequest`. | No, a rejected promise will be used by default      |
-| toCache     | <code>(opts: [ToCacheOptions](#tocacheoptions)) => [C](#user-defined-types);</code>                                | A function that modifies cache data based on request data (from network or optimistic response).                                                                                       | No, the cache data will not be modified by default. |
+| Name        | Type                                                                                                                           | Description                                                                                                                                                                            | Required                                            |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------- |
+| resource    | <code>[TResource](#user-defined-types)</code>                                                                                  | An object that uniquely describes the given resource. Usually contains request parameters.                                                                                             | Yes                                                 |
+| abortSignal | `AbortSignal`                                                                                                                  | Signal for aborting the request.                                                                                                                                                       | No                                                  |
+| request     | <code>(resource: [TResource](#user-defined-types), abortSignal?: AbortSignal) => Promise<[TData](#user-defined-types)>;</code> | A factory for creating network requests.<br/>Note that `abortSignal` for the factory is created by the library. It is **not** the same signal as `abortSignal` field of `BaseRequest`. | No, a rejected promise will be used by default      |
+| toCache     | <code>(opts: [ToCacheOptions](#tocacheoptions)) => [TCacheData](#user-defined-types);</code>                                   | A function that modifies cache data based on request data (from network or optimistic response).                                                                                       | No, the cache data will not be modified by default. |
 
 #### `Query`
 
 Extends [BaseRequest](#baserequest).
 
-| Name                | Type                                                                                                     | Description                                                                                                                                                          | Required                                                     |
-| ------------------- | -------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
-| fetchPolicy         | <code>[FetchPolicy](#fetchpolicy)</code>                                                                 | [FetchPolicy](#fetchpolicy).                                                                                                                                         | No, `'cache-and-network'` is used by default.                |
-| disableSsr          | `boolean`                                                                                                | If `true`, the query will not be fetched on the server.                                                                                                              | No                                                           |
-| optimizeOnHydrate   | `boolean`                                                                                                | If `true`, the query won't be fetched on the client during the hydrate stage, if there is data **or error** in the cache. `fetchPolicy` option is ignored.           | No                                                           |
-| forceRequestOnMerge | `boolean`                                                                                                | If `true`, the query will start a new network request, if it's merged with the existing query.                                                                       | No                                                           |
-| softAbortSignal     | `AbortSignal`                                                                                            | Soft aborting should be used to indicate loss of interest in the ongoing network request. The actual request won't be aborted if there are other interested parties. | No                                                           |
-| fromCache           | <code>(opts: [FromCacheOptions](#fromcacheoptions)) => [D](#user-defined-types) &#124; undefined </code> | A function for retrieving query data from cache data.                                                                                                                | No, a function returning `undefined` will be used by default |
+| Name                | Type                                                                                                         | Description                                                                                                                                                          | Required                                                     |
+| ------------------- | ------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
+| fetchPolicy         | <code>[FetchPolicy](#fetchpolicy)</code>                                                                     | [FetchPolicy](#fetchpolicy).                                                                                                                                         | No, `'cache-and-network'` is used by default.                |
+| disableSsr          | `boolean`                                                                                                    | If `true`, the query will not be fetched on the server.                                                                                                              | No                                                           |
+| optimizeOnHydrate   | `boolean`                                                                                                    | If `true`, the query won't be fetched on the client during the hydrate stage, if there is data **or error** in the cache. `fetchPolicy` option is ignored.           | No                                                           |
+| forceRequestOnMerge | `boolean`                                                                                                    | If `true`, the query will start a new network request, if it's merged with the existing query.                                                                       | No                                                           |
+| softAbortSignal     | `AbortSignal`                                                                                                | Soft aborting should be used to indicate loss of interest in the ongoing network request. The actual request won't be aborted if there are other interested parties. | No                                                           |
+| fromCache           | <code>(opts: [FromCacheOptions](#fromcacheoptions)) => [TData](#user-defined-types) &#124; undefined </code> | A function for retrieving query data from cache data.                                                                                                                | No, a function returning `undefined` will be used by default |
 
 #### `Mutation`
 
 Extends [BaseRequest](#baserequest).
 
-| Name           | Type                                     | Description                            | Required                                      |
-| -------------- | ---------------------------------------- | -------------------------------------- | --------------------------------------------- |
-| fetchPolicy    | <code>[FetchPolicy](#fetchpolicy)</code> | [FetchPolicy](#fetchpolicy).           | No, `'cache-and-network'` is used by default. |
-| optimisticData | <code>[D](#user-defined-types)</code>    | Optimistic data (optimistic response). | No                                            |
+| Name           | Type                                      | Description                            | Required                                      |
+| -------------- | ----------------------------------------- | -------------------------------------- | --------------------------------------------- |
+| fetchPolicy    | <code>[FetchPolicy](#fetchpolicy)</code>  | [FetchPolicy](#fetchpolicy).           | No, `'cache-and-network'` is used by default. |
+| optimisticData | <code>[TData](#user-defined-types)</code> | Optimistic data (optimistic response). | No                                            |
 
 ##### `FromCacheOptions`
 
-| Name      | Type                                  | Description                                         |
-| --------- | ------------------------------------- | --------------------------------------------------- |
-| cacheData | <code>[C](#user-defined-types)</code> | Cache data.                                         |
-| resource  | <code>[R](#user-defined-types)</code> | The `resource` of the corresponding query/mutation. |
-| requestId | `string`                              | Network request id.                                 |
+| Name      | Type                                           | Description                                         |
+| --------- | ---------------------------------------------- | --------------------------------------------------- |
+| cacheData | <code>[TCacheData](#user-defined-types)</code> | Cache data.                                         |
+| resource  | <code>[TResource](#user-defined-types)</code>  | The `resource` of the corresponding query/mutation. |
+| requestId | `string`                                       | Network request id.                                 |
 
 ##### `ToCacheOptions`
 
 Extends <code>[FromCacheOptions](#fromcacheoptions)</code>
 
-| Name | Type                                  | Description                                                      |
-| ---- | ------------------------------------- | ---------------------------------------------------------------- |
-| data | <code>[D](#user-defined-types)</code> | Data of the given request (from network or optimistic response). |
+| Name | Type                                      | Description                                                      |
+| ---- | ----------------------------------------- | ---------------------------------------------------------------- |
+| data | <code>[TData](#user-defined-types)</code> | Data of the given request (from network or optimistic response). |
 
 ##### `FetchPolicy`
 
@@ -428,15 +428,15 @@ Extends <code>[FromCacheOptions](#fromcacheoptions)</code>
 | --------- | ------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------- |
 | subscribe | <code>(callback: () => void) => () => void</code>            | Subscribe to the cache. The `callback` will be called on cache changes. Call returned function to unsubscribe. |
 | update    | <code>(opts: [UpdateOptions](#updateoptions)) => void</code> | Update cache state.                                                                                            |
-| getData   | <code>() => [C](#user-defined-types)</code>                  | Get cache data.                                                                                                |
+| getData   | <code>() => [TCacheData](#user-defined-types)</code>         | Get cache data.                                                                                                |
 | getError  | <code>(requestId: string) => Error &#124; undefined</code>   | Get cached error for the given request id.                                                                     |
 | clear     | <code>() => void</code>                                      | Reset the cache to empty state.                                                                                |
 
 ##### `UpdateOptions`
 
-| Name           | Type                                                                                       | Description                                                                                                                                                                                                                                  | Required |
-| -------------- | ------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
-| data           | <code>(prevData: [C](#user-defined-types)) => [C](#user-defined-types)</code>              | A function that returns new data based on the previous one.                                                                                                                                                                                  | No       |
-| errors         | <code>Record<string, (prevError: Error &#124; undefined) => Error &#124; undefined></code> | A dictionary of errors that need to be updated. The keys are the network request ids, and the values are functions that return new errors based on the previous ones.                                                                        | No       |
-| createSplitFor | `unknown`                                                                                  | A truthy value that will be compared by reference. If passed, the cache will split its state (or states in case of multiple splits) in two and apply the updates only to one copy, and the copy will be associated with the passed value.    | No       |
-| clearSplitFor  | `unknown`                                                                                  | A truthy value that will be compared by reference. If passed, the cache will drop the corresponding copy of its state, essentially reverting to a state that only lacks the updates introduced by the split, but has all subsequent changes. | No       |
+| Name           | Type                                                                                            | Description                                                                                                                                                                                                                                  | Required |
+| -------------- | ----------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
+| data           | <code>(prevData: [TCacheData](#user-defined-types)) => [TCacheData](#user-defined-types)</code> | A function that returns new data based on the previous one.                                                                                                                                                                                  | No       |
+| errors         | <code>Record<string, (prevError: Error &#124; undefined) => Error &#124; undefined></code>      | A dictionary of errors that need to be updated. The keys are the network request ids, and the values are functions that return new errors based on the previous ones.                                                                        | No       |
+| createSplitFor | `unknown`                                                                                       | A truthy value that will be compared by reference. If passed, the cache will split its state (or states in case of multiple splits) in two and apply the updates only to one copy, and the copy will be associated with the passed value.    | No       |
+| clearSplitFor  | `unknown`                                                                                       | A truthy value that will be compared by reference. If passed, the cache will drop the corresponding copy of its state, essentially reverting to a state that only lacks the updates introduced by the split, but has all subsequent changes. | No       |

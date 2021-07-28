@@ -4,9 +4,12 @@ import { useClient } from '../providers';
 import { SsrPromisesManagerContext } from '../ssr';
 import { useMemoByHashObject } from './useMemoByHashObject';
 
-export function useQuery<C extends NonUndefined, D extends NonUndefined, E extends Error, R extends Resource>(
-    query?: Query<C, D, E, R>,
-) {
+export function useQuery<
+    TCacheData extends NonUndefined,
+    TData extends NonUndefined,
+    TError extends Error,
+    TResource extends Resource
+>(query?: Query<TCacheData, TData, TError, TResource>) {
     const client = useClient();
     const ssrPromisesManager = useContext(SsrPromisesManagerContext);
 
@@ -14,8 +17,9 @@ export function useQuery<C extends NonUndefined, D extends NonUndefined, E exten
 
     const [, forceUpdate] = useReducer((i: number) => i + 1, 0);
 
-    const observableQuery = useRef<ObservableQuery<C, D, E, R>>();
-    observableQuery.current = observableQuery.current || new ObservableQuery<C, D, E, R>(forceUpdate);
+    const observableQuery = useRef<ObservableQuery<TCacheData, TData, TError, TResource>>();
+    observableQuery.current =
+        observableQuery.current || new ObservableQuery<TCacheData, TData, TError, TResource>(forceUpdate);
 
     observableQuery.current.setOptions(client, memoizedQuery);
 

@@ -2,13 +2,16 @@ import { Mutation, NonUndefined, ObservableMutation, ObservableMutationState, Re
 import { useClient } from './useClientProvider';
 import { computed, onUnmounted, reactive, toRefs, watch } from 'vue';
 
-export function useMutation<C extends NonUndefined, D extends NonUndefined, E extends Error, R extends Resource>(
-    mutation: () => Mutation<C, D, E, R> | undefined,
-) {
+export function useMutation<
+    TCacheData extends NonUndefined,
+    TData extends NonUndefined,
+    TError extends Error,
+    TResource extends Resource
+>(mutation: () => Mutation<TCacheData, TData, TError, TResource> | undefined) {
     const client = useClient();
     const mutationRef = computed(mutation);
 
-    const observableMutation = new ObservableMutation<C, D, E, R>(() => {
+    const observableMutation = new ObservableMutation<TCacheData, TData, TError, TResource>(() => {
         updateState(observableMutation.getState());
     });
 
@@ -23,7 +26,7 @@ export function useMutation<C extends NonUndefined, D extends NonUndefined, E ex
         observableMutation.dispose();
     });
 
-    function updateState(nextState: ObservableMutationState<D, E>) {
+    function updateState(nextState: ObservableMutationState<TData, TError>) {
         state = Object.assign(state, nextState);
     }
 

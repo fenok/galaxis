@@ -1,7 +1,7 @@
 import { NonUndefined } from '@galaxis/core';
 import { ResponseError } from '../errors';
 
-export async function processResponseJson<D extends NonUndefined>(response: Response): Promise<D> {
+export async function processResponseJson<TData extends NonUndefined>(response: Response): Promise<TData> {
     if (!response.ok) {
         throw new ResponseError(
             await response.json(),
@@ -10,5 +10,5 @@ export async function processResponseJson<D extends NonUndefined>(response: Resp
         );
     }
 
-    return (await response.json()) as D;
+    return (await response.json()) as TData;
 }

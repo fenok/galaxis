@@ -6,37 +6,50 @@ export interface Resource {
     key: string;
 }
 
-export interface FromCacheOptions<C extends NonUndefined, R extends Resource> {
-    cacheData: C;
-    resource: R;
+export interface FromCacheOptions<TCacheData extends NonUndefined, TResource extends Resource> {
+    cacheData: TCacheData;
+    resource: TResource;
     requestId: string;
 }
 
-export interface ToCacheOptions<C extends NonUndefined, D extends NonUndefined, R extends Resource>
-    extends FromCacheOptions<C, R> {
-    data: D;
+export interface ToCacheOptions<TCacheData extends NonUndefined, TData extends NonUndefined, TResource extends Resource>
+    extends FromCacheOptions<TCacheData, TResource> {
+    data: TData;
 }
 
-export interface BaseRequest<C extends NonUndefined, D extends NonUndefined, E extends Error, R extends Resource> {
-    resource: R;
+export interface BaseRequest<
+    TCacheData extends NonUndefined,
+    TData extends NonUndefined,
+    TError extends Error,
+    TResource extends Resource
+> {
+    resource: TResource;
     abortSignal?: AbortSignal;
-    request?(resource: R, abortSignal?: AbortSignal): Promise<D>;
-    toCache?(opts: ToCacheOptions<C, D, R>): C;
-    __errorType?: E;
+    request?(resource: TResource, abortSignal?: AbortSignal): Promise<TData>;
+    toCache?(opts: ToCacheOptions<TCacheData, TData, TResource>): TCacheData;
+    __errorType?: TError;
 }
 
-export interface Query<C extends NonUndefined, D extends NonUndefined, E extends Error, R extends Resource>
-    extends BaseRequest<C, D, E, R> {
+export interface Query<
+    TCacheData extends NonUndefined,
+    TData extends NonUndefined,
+    TError extends Error,
+    TResource extends Resource
+> extends BaseRequest<TCacheData, TData, TError, TResource> {
     fetchPolicy?: FetchPolicy;
     disableSsr?: boolean;
     optimizeOnHydrate?: boolean;
     forceRequestOnMerge?: boolean;
     softAbortSignal?: AbortSignal;
-    fromCache?(opts: FromCacheOptions<C, R>): D | undefined;
+    fromCache?(opts: FromCacheOptions<TCacheData, TResource>): TData | undefined;
 }
 
-export interface Mutation<C extends NonUndefined, D extends NonUndefined, E extends Error, R extends Resource>
-    extends BaseRequest<C, D, E, R> {
+export interface Mutation<
+    TCacheData extends NonUndefined,
+    TData extends NonUndefined,
+    TError extends Error,
+    TResource extends Resource
+> extends BaseRequest<TCacheData, TData, TError, TResource> {
     fetchPolicy?: Extract<FetchPolicy, 'cache-and-network' | 'no-cache'>;
-    optimisticData?: D;
+    optimisticData?: TData;
 }

@@ -1,16 +1,16 @@
 import { NonUndefined } from './helpers';
 
-export interface UpdateOptions<C extends NonUndefined> {
-    data?: (prevData: C) => C;
+export interface UpdateOptions<TCacheData extends NonUndefined> {
+    data?: (prevData: TCacheData) => TCacheData;
     errors?: Record<string, (prevError: Error | undefined) => Error | undefined>;
     createSplitFor?: unknown;
     clearSplitFor?: unknown;
 }
 
-export interface Cache<C extends NonUndefined> {
+export interface Cache<TCacheData extends NonUndefined> {
     subscribe(callback: () => void): () => void;
-    update(opts: UpdateOptions<C>): void;
-    getData(): C;
+    update(opts: UpdateOptions<TCacheData>): void;
+    getData(): TCacheData;
     getError(requestId: string): Error | undefined;
     clear(): void;
 }

@@ -2,12 +2,12 @@ import { devTools, ReduxDevTools } from './devTools';
 import { Cache, NonUndefined, UpdateOptions } from '@galaxis/core';
 import { serializeError, deserializeError, ErrorObject } from 'serialize-error';
 
-interface CacheState<C extends NonUndefined, E = Error> {
-    data: C;
-    errors: Record<string, E | undefined>;
+interface CacheState<TCacheData extends NonUndefined, TBaseError = Error> {
+    data: TCacheData;
+    errors: Record<string, TBaseError | undefined>;
 }
 
-interface SplitState<C extends NonUndefined, E = Error> extends CacheState<C, E> {
+interface SplitState<TCacheData extends NonUndefined, TBaseError = Error> extends CacheState<TCacheData, TBaseError> {
     splitters: Set<unknown>;
 }
 
@@ -17,15 +17,15 @@ interface CacheOptions<C extends NonUndefined> {
     enableDevTools?: boolean;
 }
 
-class InMemoryCache<C extends NonUndefined> implements Cache<C> {
+class InMemoryCache<TCacheData extends NonUndefined> implements Cache<TCacheData> {
     private readonly devtools: ReduxDevTools | null;
 
-    private splitStates: SplitState<C>[];
-    private emptyData: C;
+    private splitStates: SplitState<TCacheData>[];
+    private emptyData: TCacheData;
 
-    private subscribers: Set<(state: CacheState<C>) => void> = new Set();
+    private subscribers: Set<(state: CacheState<TCacheData>) => void> = new Set();
 
-    constructor({ emptyData, initialState, enableDevTools }: CacheOptions<C>) {
+    constructor({ emptyData, initialState, enableDevTools }: CacheOptions<TCacheData>) {
         this.emptyData = emptyData;
 
         this.splitStates = [
@@ -48,7 +48,7 @@ class InMemoryCache<C extends NonUndefined> implements Cache<C> {
         this.devtools?.send({ type: 'INIT', state: this.getState() }, this.getState());
     }
 
-    public subscribe(callback: (state: CacheState<C>) => void) {
+    public subscribe(callback: (state: CacheState<TCacheData>) => void) {
         this.subscribers.add(callback);
 
         return () => {
@@ -56,7 +56,7 @@ class InMemoryCache<C extends NonUndefined> implements Cache<C> {
         };
     }
 
-    public update(opts: UpdateOptions<C>) {
+    public update(opts: UpdateOptions<TCacheData>) {
         this.updateSplitStates(opts);
         this.notifySubscribers();
         this.devtools?.send({ type: 'UPDATE', ...opts }, this.getState());
@@ -76,7 +76,7 @@ class InMemoryCache<C extends NonUndefined> implements Cache<C> {
         return this.getState().errors[requestId];
     }
 
-    public extract(): CacheState<C, ErrorObject> {
+    public extract(): CacheState<TCacheData, ErrorObject> {
         const originalState = this.splitStates[0];
 
         const serializableErrors = Object.fromEntries(
@@ -97,7 +97,7 @@ class InMemoryCache<C extends NonUndefined> implements Cache<C> {
         return this.splitStates[this.splitStates.length - 1];
     }
 
-    private deserializeState(serializableState: CacheState<C, ErrorObject>): CacheState<C> {
+    private deserializeState(serializableState: CacheState<TCacheData, ErrorObject>): CacheState<TCacheData> {
         const deserializedErrors = Object.fromEntries(
             Object.entries(serializableState.errors).map(([id, error]) => [
                 id,
@@ -111,7 +111,7 @@ class InMemoryCache<C extends NonUndefined> implements Cache<C> {
         };
     }
 
-    private updateSplitStates({ data, errors, clearSplitFor, createSplitFor }: UpdateOptions<C>) {
+    private updateSplitStates({ data, errors, clearSplitFor, createSplitFor }: UpdateOptions<TCacheData>) {
         if (clearSplitFor) {
             this.splitStates = this.splitStates.filter((splitState) => !splitState.splitters.has(clearSplitFor));
         }

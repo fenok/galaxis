@@ -9,19 +9,19 @@ export interface MutationRequest {
     abort: () => void;
 }
 
-export interface MutationProcessorOptions<C extends NonUndefined> {
-    cache: Cache<C>;
+export interface MutationProcessorOptions<TCacheData extends NonUndefined> {
+    cache: Cache<TCacheData>;
     requestQueue: RequestQueue;
     requestId(resource: unknown): string;
 }
 
-export class MutationProcessor<C extends NonUndefined> {
+export class MutationProcessor<TCacheData extends NonUndefined> {
     private ongoingRequests: Set<MutationRequest> = new Set();
-    private readonly cache: Cache<C>;
+    private readonly cache: Cache<TCacheData>;
     private readonly requestQueue: RequestQueue;
     private requestId: (resource: unknown) => string;
 
-    constructor({ cache, requestQueue, requestId }: MutationProcessorOptions<C>) {
+    constructor({ cache, requestQueue, requestId }: MutationProcessorOptions<TCacheData>) {
         this.cache = cache;
         this.requestQueue = requestQueue;
         this.requestId = requestId;
@@ -31,9 +31,9 @@ export class MutationProcessor<C extends NonUndefined> {
         this.ongoingRequests.clear();
     }
 
-    public mutate<D extends NonUndefined, E extends Error, R extends Resource>(
-        mutation: Mutation<C, D, E, R>,
-    ): Promise<D> {
+    public mutate<TData extends NonUndefined, TError extends Error, TResource extends Resource>(
+        mutation: Mutation<TCacheData, TData, TError, TResource>,
+    ): Promise<TData> {
         const requestId = this.requestId(mutation.resource);
 
         const abortController = getAbortController();
@@ -102,6 +102,6 @@ export class MutationProcessor<C extends NonUndefined> {
 
         this.ongoingRequests.add(mutationRequest);
 
-        return mutationRequest.promise as Promise<D>;
+        return mutationRequest.promise as Promise<TData>;
     }
 }

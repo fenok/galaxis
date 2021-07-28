@@ -3,11 +3,14 @@ import { BaseRequest, NonUndefined, Resource } from '../types';
 
 export class RequestHelper {
     public static getPromiseFactory<
-        C extends NonUndefined,
-        D extends NonUndefined,
-        E extends Error,
-        R extends Resource
-    >(request: BaseRequest<C, D, E, R>, signals: Signals = {}): (abortDelaySignal?: AbortSignal) => Promise<D> {
+        TCacheData extends NonUndefined,
+        TData extends NonUndefined,
+        TError extends Error,
+        TResource extends Resource
+    >(
+        request: BaseRequest<TCacheData, TData, TError, TResource>,
+        signals: Signals = {},
+    ): (abortDelaySignal?: AbortSignal) => Promise<TData> {
         return (abortDelaySignal?: AbortSignal) =>
             delayedPromise(
                 request.request

@@ -5,29 +5,39 @@ import { CacheData } from './CacheData';
 import { ErrorResponse } from './ErrorResponse';
 
 export function getQuery<
-    D extends NonUndefined,
-    R extends FetchResourceConstraint = FetchResourceConstraint,
-    P = DynamicFetchResource<R>
->(factory: (params: P) => Query<CacheData, D, ResponseError<ErrorResponse>, FetchResource<R>>) {
+    TData extends NonUndefined,
+    TResourceConstraint extends FetchResourceConstraint = FetchResourceConstraint,
+    TFactoryParams = DynamicFetchResource<TResourceConstraint>
+>(
+    factory: (
+        params: TFactoryParams,
+    ) => Query<CacheData, TData, ResponseError<ErrorResponse>, FetchResource<TResourceConstraint>>,
+) {
     return getParametrizedRequest(factory);
 }
 
-export function getStaticQuery<D extends NonUndefined, R extends FetchResourceConstraint = FetchResourceConstraint>(
-    query: Query<CacheData, D, ResponseError<ErrorResponse>, FetchResource<R>>,
-) {
+export function getStaticQuery<
+    TData extends NonUndefined,
+    TResourceConstraint extends FetchResourceConstraint = FetchResourceConstraint
+>(query: Query<CacheData, TData, ResponseError<ErrorResponse>, FetchResource<TResourceConstraint>>) {
     return getStaticRequest(query);
 }
 
 export function getMutation<
-    D extends NonUndefined,
-    R extends FetchResourceConstraint = FetchResourceConstraint,
-    P = DynamicFetchResource<R>
->(factory: (params: P) => Mutation<CacheData, D, ResponseError<ErrorResponse>, FetchResource<R>>) {
+    TData extends NonUndefined,
+    TResourceConstraint extends FetchResourceConstraint = FetchResourceConstraint,
+    TFactoryParams = DynamicFetchResource<TResourceConstraint>
+>(
+    factory: (
+        params: TFactoryParams,
+    ) => Mutation<CacheData, TData, ResponseError<ErrorResponse>, FetchResource<TResourceConstraint>>,
+) {
     return getParametrizedRequest(factory);
 }
 
-export function getStaticMutation<D extends NonUndefined, R extends FetchResourceConstraint = FetchResourceConstraint>(
-    mutation: Mutation<CacheData, D, ResponseError<ErrorResponse>, FetchResource<R>>,
-) {
+export function getStaticMutation<
+    TData extends NonUndefined,
+    TResourceConstraint extends FetchResourceConstraint = FetchResourceConstraint
+>(mutation: Mutation<CacheData, TData, ResponseError<ErrorResponse>, FetchResource<TResourceConstraint>>) {
     return getStaticRequest(mutation);
 }

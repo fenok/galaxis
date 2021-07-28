@@ -2,38 +2,43 @@ import { NonUndefined, Query, Resource } from '../types';
 import { Client } from '../client';
 import { logger } from '../logger';
 
-export interface ObservableQueryState<D extends NonUndefined, E extends Error> {
+export interface ObservableQueryState<TData extends NonUndefined, TError extends Error> {
     loading: boolean;
-    data: D | undefined;
-    error: E | undefined;
+    data: TData | undefined;
+    error: TError | undefined;
 }
 
-export class ObservableQuery<C extends NonUndefined, D extends NonUndefined, E extends Error, R extends Resource> {
-    private query?: Query<C, D, E, R>;
+export class ObservableQuery<
+    TCacheData extends NonUndefined,
+    TData extends NonUndefined,
+    TError extends Error,
+    TResource extends Resource
+> {
+    private query?: Query<TCacheData, TData, TError, TResource>;
 
     private client?: Client;
     private onChange: () => void;
 
-    private currentRequest?: Promise<D>;
+    private currentRequest?: Promise<TData>;
     private unsubscribeFromQueryState?: () => void;
     private unsubscribeFromOnReset?: () => void;
 
     private executed = false;
 
-    private state: ObservableQueryState<D, E> = {
+    private state: ObservableQueryState<TData, TError> = {
         loading: false,
         data: undefined,
         error: undefined,
     };
 
-    private nextState: ObservableQueryState<D, E> = {
+    private nextState: ObservableQueryState<TData, TError> = {
         loading: false,
         data: undefined,
         error: undefined,
     };
 
-    private fallbackData?: D;
-    private fallbackError?: E;
+    private fallbackData?: TData;
+    private fallbackError?: TError;
 
     public constructor(onChange: () => void) {
         this.onChange = onChange;
@@ -43,7 +48,7 @@ export class ObservableQuery<C extends NonUndefined, D extends NonUndefined, E e
         return this.state;
     }
 
-    public setOptions(client: Client, query?: Query<C, D, E, R>) {
+    public setOptions(client: Client, query?: Query<TCacheData, TData, TError, TResource>) {
         if (this.client !== client || this.query !== query) {
             this.stop();
 
@@ -124,7 +129,7 @@ export class ObservableQuery<C extends NonUndefined, D extends NonUndefined, E e
         this.fallbackError = undefined;
     }
 
-    private decorateWithStateUpdates(promise: Promise<D>) {
+    private decorateWithStateUpdates(promise: Promise<TData>) {
         this.currentRequest = promise;
 
         return promise
@@ -141,7 +146,7 @@ export class ObservableQuery<C extends NonUndefined, D extends NonUndefined, E e
             .catch((error: Error) => {
                 if (this.currentRequest === promise) {
                     if (!this.unsubscribeFromQueryState) {
-                        this.setState({ error: error as E, data: undefined });
+                        this.setState({ error: error as TError, data: undefined });
                     }
 
                     if (error !== this.nextState.error) {
@@ -158,7 +163,7 @@ export class ObservableQuery<C extends NonUndefined, D extends NonUndefined, E e
             });
     }
 
-    private setState(newState: Partial<ObservableQueryState<D, E>>) {
+    private setState(newState: Partial<ObservableQueryState<TData, TError>>) {
         this.nextState = { ...this.nextState, ...newState };
 
         if (this.nextState.loading || this.isInvalidationState(newState)) {
@@ -185,11 +190,14 @@ export class ObservableQuery<C extends NonUndefined, D extends NonUndefined, E e
         }
     }
 
-    private areStatesEqual(first: ObservableQueryState<D, E>, second: ObservableQueryState<D, E>): boolean {
+    private areStatesEqual(
+        first: ObservableQueryState<TData, TError>,
+        second: ObservableQueryState<TData, TError>,
+    ): boolean {
         return first.data === second.data && first.error === second.error && first.loading === second.loading;
     }
 
-    private isInvalidationState(state: Partial<ObservableQueryState<D, E>>) {
+    private isInvalidationState(state: Partial<ObservableQueryState<TData, TError>>) {
         return (
             !('loading' in state) &&
             'data' in state &&
@@ -199,7 +207,7 @@ export class ObservableQuery<C extends NonUndefined, D extends NonUndefined, E e
         );
     }
 
-    private isInitialState(state: Partial<ObservableQueryState<D, E>>) {
+    private isInitialState(state: Partial<ObservableQueryState<TData, TError>>) {
         return 'loading' in state && 'data' in state && 'error' in state;
     }
 }
