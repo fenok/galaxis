@@ -17,7 +17,7 @@ export interface ToCacheOptions<TCacheData extends NonUndefined, TData extends N
     data: TData;
 }
 
-export interface BaseRequest<
+export interface Request<
     TCacheData extends NonUndefined,
     TData extends NonUndefined,
     TError extends Error,
@@ -35,7 +35,7 @@ export interface Query<
     TData extends NonUndefined,
     TError extends Error,
     TResource extends Resource
-> extends BaseRequest<TCacheData, TData, TError, TResource> {
+> extends Request<TCacheData, TData, TError, TResource> {
     fetchPolicy?: FetchPolicy;
     disableSsr?: boolean;
     optimizeOnHydrate?: boolean;
@@ -49,7 +49,7 @@ export interface Mutation<
     TData extends NonUndefined,
     TError extends Error,
     TResource extends Resource
-> extends BaseRequest<TCacheData, TData, TError, TResource> {
+> extends Request<TCacheData, TData, TError, TResource> {
     fetchPolicy?: Extract<FetchPolicy, 'cache-and-network' | 'no-cache'>;
     optimisticData?: TData;
 }

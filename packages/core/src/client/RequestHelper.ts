@@ -1,5 +1,5 @@
 import { delayedPromise, Signals } from '../promise';
-import { BaseRequest, NonUndefined, Resource } from '../types';
+import { Request, NonUndefined, Resource } from '../types';
 
 export class RequestHelper {
     public static getPromiseFactory<
@@ -8,7 +8,7 @@ export class RequestHelper {
         TError extends Error,
         TResource extends Resource
     >(
-        request: BaseRequest<TCacheData, TData, TError, TResource>,
+        request: Request<TCacheData, TData, TError, TResource>,
         signals: Signals = {},
     ): (abortDelaySignal?: AbortSignal) => Promise<TData> {
         return (abortDelaySignal?: AbortSignal) =>

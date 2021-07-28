@@ -1,5 +1,5 @@
 import { RequestQueue } from '../../RequestQueue';
-import { Query, BaseRequest, Resource, Mutation } from '../../../types';
+import { Query, Request, Resource, Mutation } from '../../../types';
 import { QueryProcessor } from '../../QueryProcessor';
 import { TestCache } from './TestCache';
 import { wait } from '../../../promise';
@@ -87,7 +87,7 @@ export const INITIAL_CACHE_DATA: TestCacheData = {
     items: {},
 };
 
-export const BASE_REQUEST: Pick<BaseRequest<TestCacheData, ItemEntity, Error, TestRequestInit>, 'requestId'> = {
+export const BASE_REQUEST: Pick<Request<TestCacheData, ItemEntity, Error, TestRequestInit>, 'requestId'> = {
     requestId(resource: TestRequestInit): string {
         return Buffer.from(JSON.stringify(resource)).toString('base64');
     },
