@@ -12,7 +12,7 @@ export type UserQueryRequestParams = { pathParams: { id: number } };
 
 export const userQuery = getQuery<User, UserQueryRequestParams>((params) => ({
     resource: {
-        key: '/users/:id',
+        name: '/users/:id',
         ...params,
     },
     toCache: immerify(({ cacheData, data }) => {

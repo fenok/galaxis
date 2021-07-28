@@ -4,7 +4,7 @@ import { inject, onMounted, provide } from 'vue';
 export const client = Symbol('client');
 
 export interface ClientProviderOptions {
-    client: Client<any, any, any, any, any>;
+    client: Client<any, any, any, any>;
     preventOnHydrateCompleteCall?: boolean;
 }
 
@@ -18,7 +18,7 @@ export function useClientProvider({ client: clientInstance, preventOnHydrateComp
     });
 }
 
-export function useClient<TClient extends Client<any, any, any, any, any>>() {
+export function useClient<TClient extends Client<any, any, any, any>>() {
     const instance = inject<TClient>(client);
 
     ensureClient(instance);

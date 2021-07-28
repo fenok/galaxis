@@ -23,7 +23,7 @@ export type UserUpdateMutationSimpleResource = { id: number; data: UpdateUser };
 
 export const userQuery = getQuery<User, UserQueryResource>((params) => ({
     resource: {
-        key: '/users/:id',
+        name: '/users/:id',
         ...params,
     },
     toCache: immerify(({ cacheData, data }) => {
@@ -54,7 +54,7 @@ export const userQuery = getQuery<User, UserQueryResource>((params) => ({
 export const userUpdateMutation = getMutation<User, UserUpdateMutationResource, UserUpdateMutationSimpleResource>(
     (params) => ({
         resource: {
-            key: '/users/:id',
+            name: '/users/:id',
             method: 'POST',
             pathParams: { id: params.id },
             body: new JsonData(params.data),

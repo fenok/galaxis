@@ -8,28 +8,26 @@ interface ClientOptions<
     TCacheData extends NonUndefined = NonUndefined,
     TCache extends Cache<TCacheData> = Cache<TCacheData>,
     TBaseData extends NonUndefined = NonUndefined,
-    TBaseError extends Error = Error,
-    TBaseResource extends Resource = Resource
-> extends DefaultsMergerOptions<TCacheData, TBaseData, TBaseError, TBaseResource> {
+    TBaseError extends Error = Error
+> extends DefaultsMergerOptions<TCacheData, TBaseData, TBaseError> {
     cache: TCache;
-    requestId(resource: TBaseResource): string;
+    requestId(resource: Resource): string;
 }
 
 class Client<
     TCacheData extends NonUndefined = NonUndefined,
     TCache extends Cache<TCacheData> = Cache<TCacheData>,
     TBaseData extends NonUndefined = NonUndefined,
-    TBaseError extends Error = Error,
-    TBaseResource extends Resource = Resource
+    TBaseError extends Error = Error
 > {
     private readonly cache: TCache;
     private queryProcessor: QueryProcessor<TCacheData>;
     private mutationProcessor: MutationProcessor<TCacheData>;
-    private defaultsMerger: DefaultsMerger<TCacheData, TBaseData, TBaseError, TBaseResource>;
+    private defaultsMerger: DefaultsMerger<TCacheData, TBaseData, TBaseError>;
 
     private onResetListeners: Set<() => void> = new Set();
 
-    public readonly requestId: (resource: TBaseResource) => string;
+    public readonly requestId: (resource: Resource) => string;
 
     public constructor({
         cache,
@@ -37,7 +35,7 @@ class Client<
         defaultRequest,
         defaultQuery,
         defaultMutation,
-    }: ClientOptions<TCacheData, TCache, TBaseData, TBaseError, TBaseResource>) {
+    }: ClientOptions<TCacheData, TCache, TBaseData, TBaseError>) {
         const requestQueue = new RequestQueue();
         this.requestId = requestId;
         this.cache = cache;
@@ -46,33 +44,33 @@ class Client<
         this.defaultsMerger = new DefaultsMerger({ defaultRequest, defaultQuery, defaultMutation });
     }
 
-    public query<TData extends TBaseData, TError extends TBaseError, TResource extends TBaseResource>(
+    public query<TData extends TBaseData, TError extends TBaseError, TResource extends Resource>(
         query: Query<TCacheData, TData, TError, TResource>,
         onChange?: (queryState: QueryState<TData, TError>) => void,
     ): [QueryState<TData, TError>, Promise<TData> | undefined, (() => void) | undefined] {
         return this.queryProcessor.query(this.defaultsMerger.getMergedQuery(query), onChange);
     }
 
-    public fetchQuery<TData extends TBaseData, TError extends TBaseError, TResource extends TBaseResource>(
+    public fetchQuery<TData extends TBaseData, TError extends TBaseError, TResource extends Resource>(
         query: Query<TCacheData, TData, TError, TResource>,
     ): Promise<TData> {
         return this.queryProcessor.fetchQuery(this.defaultsMerger.getMergedQuery(query));
     }
 
-    public readQuery<TData extends TBaseData, TError extends TBaseError, TResource extends TBaseResource>(
+    public readQuery<TData extends TBaseData, TError extends TBaseError, TResource extends Resource>(
         query: Query<TCacheData, TData, TError, TResource>,
     ): QueryState<TData, TError> {
         return this.queryProcessor.readQuery(this.defaultsMerger.getMergedQuery(query));
     }
 
-    public watchQuery<TData extends TBaseData, TError extends TBaseError, TResource extends TBaseResource>(
+    public watchQuery<TData extends TBaseData, TError extends TBaseError, TResource extends Resource>(
         query: Query<TCacheData, TData, TError, TResource>,
         onChange: (queryState: QueryState<TData, TError>) => void,
     ): [QueryState<TData, TError>, (() => void) | undefined] {
         return this.queryProcessor.watchQuery(this.defaultsMerger.getMergedQuery(query), onChange);
     }
 
-    public mutate<TData extends TBaseData, TError extends TBaseError, TResource extends TBaseResource>(
+    public mutate<TData extends TBaseData, TError extends TBaseError, TResource extends Resource>(
         mutation: Mutation<TCacheData, TData, TError, TResource>,
     ): Promise<TData> {
         return this.mutationProcessor.mutate(this.defaultsMerger.getMergedMutation(mutation));

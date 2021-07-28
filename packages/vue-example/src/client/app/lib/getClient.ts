@@ -1,7 +1,7 @@
 import { Client, NonUndefined } from '@galaxis/vue';
 import { InMemoryCache } from '@galaxis/in-memory-cache';
 import { CacheData } from './CacheData';
-import { processResponseJson, FetchResource, ResponseError, requestId, request } from '@galaxis/fetch';
+import { processResponseJson, ResponseError, requestId, request } from '@galaxis/fetch';
 import { objectHash } from '@galaxis/utils';
 import { ErrorResponse } from './ErrorResponse';
 
@@ -14,13 +14,7 @@ export interface GetClientOptions {
     fetch?: typeof fetch;
 }
 
-export type AppClient = Client<
-    CacheData,
-    InMemoryCache<CacheData>,
-    NonUndefined,
-    ResponseError<ErrorResponse>,
-    FetchResource
->;
+export type AppClient = Client<CacheData, InMemoryCache<CacheData>, NonUndefined, ResponseError<ErrorResponse>>;
 
 export function getClient({ fetch }: GetClientOptions): AppClient {
     return new Client({

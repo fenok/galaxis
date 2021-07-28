@@ -3,7 +3,7 @@ import { NonUndefined } from './helpers';
 export type FetchPolicy = 'cache-only' | 'cache-first' | 'cache-and-network' | 'no-cache';
 
 export interface Resource {
-    key: string;
+    name: string;
 }
 
 export interface FromCacheOptions<TCacheData extends NonUndefined, TResource extends Resource> {

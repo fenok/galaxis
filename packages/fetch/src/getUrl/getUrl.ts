@@ -7,6 +7,6 @@ export interface GetUrlOptions {
     root?: string;
 }
 
-export function getUrl({ root, resource: { key, pathParams, queryParams } }: GetUrlOptions) {
-    return `${root || ''}${compile(key)(pathParams)}${stringifyQuery(queryParams)}`;
+export function getUrl({ root, resource: { name, pathParams, queryParams } }: GetUrlOptions) {
+    return `${root || ''}${compile(name)(pathParams)}${stringifyQuery(queryParams)}`;
 }

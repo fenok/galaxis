@@ -3,29 +3,27 @@ import { BaseRequest, Mutation, NonUndefined, Query, Resource } from '../types';
 export interface DefaultsMergerOptions<
     TCacheData extends NonUndefined = NonUndefined,
     TBaseData extends NonUndefined = NonUndefined,
-    TBaseError extends Error = Error,
-    TBaseResource extends Resource = Resource
+    TBaseError extends Error = Error
 > {
-    defaultRequest?: Partial<BaseRequest<TCacheData, TBaseData, TBaseError, TBaseResource>>;
-    defaultQuery?: Partial<Query<TCacheData, TBaseData, TBaseError, TBaseResource>>;
-    defaultMutation?: Partial<Mutation<TCacheData, TBaseData, TBaseError, TBaseResource>>;
+    defaultRequest?: Partial<BaseRequest<TCacheData, TBaseData, TBaseError, Resource>>;
+    defaultQuery?: Partial<Query<TCacheData, TBaseData, TBaseError, Resource>>;
+    defaultMutation?: Partial<Mutation<TCacheData, TBaseData, TBaseError, Resource>>;
 }
 
 export class DefaultsMerger<
     TCacheData extends NonUndefined = NonUndefined,
     TBaseData extends NonUndefined = NonUndefined,
-    TBaseError extends Error = Error,
-    TBaseResource extends Resource = Resource
+    TBaseError extends Error = Error
 > {
-    private defaultRequest?: Partial<BaseRequest<TCacheData, TBaseData, TBaseError, TBaseResource>>;
-    private defaultQuery?: Partial<Query<TCacheData, TBaseData, TBaseError, TBaseResource>>;
-    private defaultMutation?: Partial<Mutation<TCacheData, TBaseData, TBaseError, TBaseResource>>;
+    private defaultRequest?: Partial<BaseRequest<TCacheData, TBaseData, TBaseError, Resource>>;
+    private defaultQuery?: Partial<Query<TCacheData, TBaseData, TBaseError, Resource>>;
+    private defaultMutation?: Partial<Mutation<TCacheData, TBaseData, TBaseError, Resource>>;
 
     constructor({
         defaultRequest,
         defaultQuery,
         defaultMutation,
-    }: DefaultsMergerOptions<TCacheData, TBaseData, TBaseError, TBaseResource>) {
+    }: DefaultsMergerOptions<TCacheData, TBaseData, TBaseError>) {
         this.defaultRequest = defaultRequest;
         this.defaultQuery = defaultQuery;
         this.defaultMutation = defaultMutation;

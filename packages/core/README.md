@@ -151,13 +151,13 @@ const client = new Client({
 
 > ⚠ Note that defaults are static for the given client instance. Dynamic defaults would add too much complexity. If you really need dynamic defaults, such as a user-specific header that is common for all requests, you should do it on the network level, somewhere inside the `request` option of the <code>[BaseRequest](#baserequest)</code>. Ideally, if we're talking about authorization, you should rely on a `HttpOnly` cookie set by the server.
 
-| Name            | Type                                                                    | Description                                                                                                                                                                                                                                                                                                                                                                                                                       | Required |
-| --------------- | ----------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
-| cache           | <code>[TCache](#user-defined-types)</code>                              | A cache for storing normalized data and errors. The library provides <code>[InMemoryCache](../in-memory-cache#inmemorycache)</code> that should work in a lot of cases.                                                                                                                                                                                                                                                           | Yes      |
-| requestId       | <code>(resource: [TBaseResource](#user-defined-types)) => string</code> | A function for hashing the `resource` field of <code>[BaseRequest](#baserequest)</code>. The resulting hash is considered the network request id. The library provides <code>[objectHash()](../utils#objecthash)</code> that should work in a lot of cases. If you only use the <code>[Fetch](../fetch)</code> network interface, consider its <code>[requestId()](../fetch#requestId)</code> for a bit more human-readable hash. | Yes      |
-| defaultRequest  | <code>Partial<[BaseRequest](#baserequest)></code>                       | Default request. Can't be changed later. Merged shallowly.                                                                                                                                                                                                                                                                                                                                                                        | No       |
-| defaultQuery    | <code>Partial<[Query](#query)></code>                                   | Default query. Can't be changed later. Merged shallowly.                                                                                                                                                                                                                                                                                                                                                                          | No       |
-| defaultMutation | <code>Partial<[Mutation](#mutation)></code>                             | Default mutation. Can't be changed later. Merged shallowly.                                                                                                                                                                                                                                                                                                                                                                       | No       |
+| Name            | Type                                                     | Description                                                                                                                                                                                                                                                                                                                                                                                                                       | Required |
+| --------------- | -------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
+| cache           | <code>[TCache](#user-defined-types)</code>               | A cache for storing normalized data and errors. The library provides <code>[InMemoryCache](../in-memory-cache#inmemorycache)</code> that should work in a lot of cases.                                                                                                                                                                                                                                                           | Yes      |
+| requestId       | <code>(resource: [Resource](#resource)) => string</code> | A function for hashing the `resource` field of <code>[BaseRequest](#baserequest)</code>. The resulting hash is considered the network request id. The library provides <code>[objectHash()](../utils#objecthash)</code> that should work in a lot of cases. If you only use the <code>[Fetch](../fetch)</code> network interface, consider its <code>[requestId()](../fetch#requestId)</code> for a bit more human-readable hash. | Yes      |
+| defaultRequest  | <code>Partial<[BaseRequest](#baserequest)></code>        | Default request. Can't be changed later. Merged shallowly.                                                                                                                                                                                                                                                                                                                                                                        | No       |
+| defaultQuery    | <code>Partial<[Query](#query)></code>                    | Default query. Can't be changed later. Merged shallowly.                                                                                                                                                                                                                                                                                                                                                                          | No       |
+| defaultMutation | <code>Partial<[Mutation](#mutation)></code>              | Default mutation. Can't be changed later. Merged shallowly.                                                                                                                                                                                                                                                                                                                                                                       | No       |
 
 #### `client.query()`
 
@@ -324,14 +324,14 @@ client.onHydrateComplete();
 Get hash of the given `resource` using the `requestId` function that was passed to the constructor.
 
 ```typescript
-const hash = client.requestId(request.resource);
+const requestId = client.requestId(request.resource);
 ```
 
 ##### Arguments
 
-| Name     | Type                                              | Description           | Required |
-| -------- | ------------------------------------------------- | --------------------- | -------- |
-| resource | <code>[TBaseResource](#user-defined-types)</code> | A `resource` to hash. | Yes      |
+| Name     | Type                               | Description           | Required |
+| -------- | ---------------------------------- | --------------------- | -------- |
+| resource | <code>[Resource](#resource)</code> | A `resource` to hash. | Yes      |
 
 ##### Return value
 
@@ -341,16 +341,15 @@ const hash = client.requestId(request.resource);
 
 #### User-defined types
 
-| Name            | Scope            | Constraint                                             | Description                                                                       |
-| --------------- | ---------------- | ------------------------------------------------------ | --------------------------------------------------------------------------------- |
-| `TCache`        | Client-specific  | Must extend <code>[Cache](#cache)</code>               | Cache for storing normalized data and errors.                                     |
-| `TCacheData`    | Client-specific  | Must extend <code>[NonUndefined](#nonundefined)</code> | Cache data. Normalized data from all requests.                                    |
-| `TBaseData`     | Client-specific  | Must extend <code>[NonUndefined](#nonundefined)</code> | Query or mutation data, common for all requests. Used for defaults.               |
-| `TBaseError`    | Client-specific  | Must extend `Error`                                    | Query or mutation error, common for all requests. Used for defaults.              |
-| `TBaseResource` | Client-specific  | Must extend <code>[Resource](#resource)</code>         | Query or mutation request parameters, common for all requests. Used for defaults. |
-| `TData`         | Request-specific | Must extend <code>TBaseData</code>                     | Query or mutation data.                                                           |
-| `TError`        | Request-specific | Must extend `TBaseError`                               | Query or mutation error.                                                          |
-| `TResource`     | Request-specific | Must extend `TBaseResource`                            | Query or mutation request parameters.                                             |
+| Name         | Scope            | Constraint                                             | Description                                                          |
+| ------------ | ---------------- | ------------------------------------------------------ | -------------------------------------------------------------------- |
+| `TCache`     | Client-specific  | Must extend <code>[Cache](#cache)</code>               | Cache for storing normalized data and errors.                        |
+| `TCacheData` | Client-specific  | Must extend <code>[NonUndefined](#nonundefined)</code> | Cache data. Normalized data from all requests.                       |
+| `TBaseData`  | Client-specific  | Must extend <code>[NonUndefined](#nonundefined)</code> | Query or mutation data, common for all requests. Used for defaults.  |
+| `TBaseError` | Client-specific  | Must extend `Error`                                    | Query or mutation error, common for all requests. Used for defaults. |
+| `TData`      | Request-specific | Must extend <code>TBaseData</code>                     | Query or mutation data.                                              |
+| `TError`     | Request-specific | Must extend `TBaseError`                               | Query or mutation error.                                             |
+| `TResource`  | Request-specific | Must extend <code>[Resource](#resource)</code>         | Query or mutation request parameters.                                |
 
 ##### `NonUndefined`
 
@@ -360,9 +359,9 @@ Anything but `undefined`.
 
 The constraint for request `resource`.
 
-| Name | Type     | Description                                                                                                                                                                   | Required |
-| ---- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
-| key  | `string` | Globally unique identifier of the resource. It's better to specify something that will actually be used for the request, like the resource URL template (e.g. `/entity/:id`). | Yes      |
+| Name | Type     | Description                                                                                                                                                                                                                                  | Required |
+| ---- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
+| name | `string` | A globally unique identifier of the resource or the group of similar resources (e.g. `/entities/:id`). In the latter case, the final `resource` object must include additional fields to uniquely identify the given resource (e.g. `id: 1`) | Yes      |
 
 #### `BaseRequest`
 
