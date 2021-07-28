@@ -436,6 +436,94 @@ const result = observableQuery.refetch();
 
 `Promise<TData>`
 
+### ObservableMutation
+
+`ObservableMutation` maintains the state of the corresponding mutation. It has **its own state**.
+
+Contrary to `ObservableQuery`, `ObservableMutation` is always active, and the only way to change its state is to call the `observableMutation.execute()` or the `observableMutation.reset()` methods.
+
+Upon the client reset, all observable mutations are reset (essentially by calling the `observableMutation.reset()` method).
+
+Unlike `ObservableQuery`, `ObservableMutation` will never show any previous state.
+
+```typescript
+const observableMutation = new ObservableMutation(onChange);
+```
+
+##### Arguments
+
+| Name     | Type                    | Description                                                          | Required |
+| -------- | ----------------------- | -------------------------------------------------------------------- | -------- |
+| onChange | <code>() => void</code> | A function that will be called on observable mutation state changes. | Yes      |
+
+#### `observableQuery.setOptions()`
+
+Update client and mutation of the observable mutation. The state won't be updated.
+
+```typescript
+observableMutation.setOptions(client, mutation);
+```
+
+##### Arguments
+
+| Name     | Type                               | Description                                                                                                              | Required |
+| -------- | ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------ | -------- |
+| client   | <code>[Client](#client)</code>     | A `Client` instance.                                                                                                     | Yes      |
+| mutation | <code>[Mutation](#mutation)</code> | A mutation to maintain. If no mutation is passed, it has to be specified during the `observableMutation.execute()` call. | No       |
+
+#### `observableMutation.execute()`
+
+Execute the passed or stored mutation.
+
+```typescript
+const result = observableMutation.execute(mutation);
+```
+
+##### Arguments
+
+| Name     | Type                               | Description                                      | Required |
+| -------- | ---------------------------------- | ------------------------------------------------ | -------- |
+| mutation | <code>[Mutation](#mutation)</code> | A mutation to execute instead of the stored one. | No       |
+
+##### Return value
+
+`Promise<TData>`
+
+#### `observableMutation.dispose()`
+
+When you don't need the instance anymore, call this method to perform the internal cleanup. Once the observable mutation is disposed, it can't be used again.
+
+```typescript
+observableMutation.dispose();
+```
+
+#### `observableMutation.getState()`
+
+Get the observable mutation state.
+
+```typescript
+const observableMutationState = observableMutation.getState();
+```
+
+##### Return value
+
+###### `ObservableMutationState`
+
+| Name    | Type                                                        | Description                                                                                                       |
+| ------- | ----------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| data    | <code>[TData](#user-defined-types) &#124; undefined</code>  | The data of the last mutation that was executed. Never shows the previous data.                                   |
+| error   | <code>[TError](#user-defined-types) &#124; undefined</code> | The error of the last mutation that was executed. Never shows the previous error.                                 |
+| loading | <code>boolean</code>                                        | Whether the mutation is being executed.                                                                           |
+| called  | <code>boolean</code>                                        | Whether the mutation was executed. Can only be switched back to `false` by the `observableMutation.reset()` call. |
+
+#### `observableMutation.reset()`
+
+Reset the observable mutation state.
+
+```typescript
+observableMutation.reset();
+```
+
 ### Important Types
 
 #### User-defined types
