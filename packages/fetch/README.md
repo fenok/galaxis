@@ -18,58 +18,59 @@ The library is compiled to modern JS, but it should work in all reasonable brows
 
 > ⚠ Anything that is not documented here is not considered a part of public API and may change at any time.
 
-### `getRequestFactory()`
+### `request()`
 
-Returns a `getRequestFactory` function that can be used in query or mutation.
+Returns a `request` function that can be used in query or mutation.
 
 ```typescript
 const query: AppQuery = {
     requestParams: { foo: 'foo' },
-    getRequestFactory: getRequestFactory({ processResponse, fetch }),
+    request: request({ processResponse, root, fetch }),
 };
 ```
 
 #### Arguments
 
-##### `GetRequestFactoryOptions`
+##### `RequestOptions`
 
-| Name            | Type                                                                        | Description                                                                   | Required |
-| --------------- | --------------------------------------------------------------------------- | ----------------------------------------------------------------------------- | -------- |
-| processResponse | <code>(response: Response) => [D](/packages/core#user-defined-types)</code> | A function that takes `Response` and returns request data or throws an error. | Yes      |
-| fetch           | `typeof fetch`                                                              | `fetch` function to use instead of built-in `fetch`.                          | No       |
+| Name            | Type                                                                            | Description                                                                                                                                | Required |
+| --------------- | ------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | -------- |
+| processResponse | <code>(response: Response) => [TData](/packages/core#user-defined-types)</code> | A function that takes `Response` and returns request data or throws an error, preferably the <code>[ResponseError](#responseerror)</code>. | Yes      |
+| root            | `string`                                                                        | A URL part that is common for all requests, e.g. `'https://jsonplaceholder.typicode.com'`.                                                 | No       |
+| fetch           | `typeof fetch`                                                                  | `fetch` function to use instead of built-in `fetch`.                                                                                       | No       |
 
 #### Return value
 
-<code>(opts: [RequestOptions](/packages/core#requestoptions)) => (abortSignal?: AbortSignal) => Promise<[D](/packages/core#user-defined-types)>;</code>
+<code>(resource: [FetchResource](#fetchresource), abortSignal?: AbortSignal) => Promise<[TData](../core#user-defined-types)>;</code>
 
-### `getRequestId()`
+### `requestId()`
 
-Returns a `getRequestId` function that can be used in query or mutation. Generates request id in the form of `[url]:[request-params-hash]`. Excludes server-specific parts of `requestParams`.
+Returns a `requestId` function that can be passed to the <code>[Client](../core#client)</code>. Generates request id in the form of `[url]:[resource-hash]`.
 
 ```typescript
-const query: AppQuery = {
-    requestParams: { foo: 'foo' },
-    getRequestId: getRequestId({ hash }),
-};
+const client = new Client({
+    cache: new MyCache(),
+    requestId: requestId({ hash }),
+});
 ```
 
 #### Arguments
 
-##### `GetRequestIdOptions`
+##### `RequestIdOptions`
 
-| Name | Type                                    | Description                                      | Required |
-| ---- | --------------------------------------- | ------------------------------------------------ | -------- |
-| hash | <code>(value: unknown) => string</code> | A function that takes hash from `requestParams`. | Yes      |
+| Name | Type                                                               | Description                                                                            | Required |
+| ---- | ------------------------------------------------------------------ | -------------------------------------------------------------------------------------- | -------- |
+| hash | <code>(resource: [FetchResource](#fetchresource)) => string</code> | A function that takes hash from a <code>[FetchResource](#fetchresource)</code> object. | Yes      |
 
 #### Return value
 
-<code>(opts: [RequestOptions](/packages/core#requestoptions)) => string;</code>
+<code>(resource: [FetchResource](#fetchresource)) => string;</code>
 
 ### `processResponseJson()`
 
-This function can be used as `processResponse` parameter of [getRequestFactory()](#getrequestfactory).
+This function can be used as `processResponse` parameter for the <code>[request()](#request)</code> function.
 
-It expects the `Response` to be in JSON format. If response code is not in 200-299 range, it throws a [ResponseError](#responseerror).
+It expects the `Response` to be in JSON format. If response code is not in 200-299 range, it throws a <code>[ResponseError](#responseerror)</code>.
 
 ### `CustomData`
 
@@ -83,7 +84,7 @@ This is an abstract class for representing formats of data that are not natively
 
 ### `JsonData`
 
-This class implements [CustomData](#customdata) and allows usage of JSON.
+This class implements <code>[CustomData](#customdata)</code> and allows usage of JSON.
 
 ```typescript
 const jsonData = new JsonData({ foo: 'foo' });
@@ -91,7 +92,7 @@ const jsonData = new JsonData({ foo: 'foo' });
 
 ### `ResponseError`
 
-This error should be thrown in `processResponse` function of [getRequestFactory()](#getrequestfactory).
+This constructor should be used to throw an error during response processing.
 
 ```typescript
 throw new ResponseError(response, code, message);
@@ -119,14 +120,14 @@ Extends `Error`.
 
 #### Constraints
 
-| Name              | Type                                                                        | Description       |
-| ----------------- | --------------------------------------------------------------------------- | ----------------- |
-| PathConstraint    | <code>Record<string, string &#124; number></code>                           | Path parameters.  |
-| QueryConstraint   | [StringifiableRecord](https://www.npmjs.com/package/query-string)           | Query parameters. |
-| HeadersConstraint | `HeadersInit`                                                               | Headers.          |
-| BodyConstraint    | <code>[CustomData](#customdata)<unknown> &#124; BodyInit &#124; null</code> | Body.             |
+| Name              | Type                                                                            | Description       |
+| ----------------- | ------------------------------------------------------------------------------- | ----------------- |
+| PathConstraint    | <code>Record<string, string &#124; number></code>                               | Path parameters.  |
+| QueryConstraint   | <code>[StringifiableRecord](https://www.npmjs.com/package/query-string) </code> | Query parameters. |
+| HeadersConstraint | `HeadersInit`                                                                   | Headers.          |
+| BodyConstraint    | <code>[CustomData](#customdata)<unknown> &#124; BodyInit &#124; null</code>     | Body.             |
 
-#### `RequestParamsConstraint`
+#### `FetchResourceConstraint`
 
 | Name        | Type                                           | Required |
 | ----------- | ---------------------------------------------- | -------- |
@@ -135,32 +136,19 @@ Extends `Error`.
 | headers     | <code>[HeadersConstraint](#constraints)</code> | No       |
 | body        | <code>[BodyConstraint](#constraints)</code>    | No       |
 
-#### `DynamicRequestParams`
+#### `DynamicFetchResource`
 
-It's a generic that takes the given type `T`, which is constrained by <code>[RequestParamsConstraint](#requestparamsconstraint)</code>, and adds fields from `RequestInit`, omitting `body` and `headers`. `RequestInit` is from Fetch API.
+It's a generic that takes the given type `T`, which is constrained by <code>[FetchResourceConstraint](#fetchresourceconstraint)</code>, and adds fields from `RequestInit`, omitting `body` and `headers`. `RequestInit` comes from Fetch API.
 
-It describes the part of `requestParams` that is dynamic for the given resource. Note how all fields are optional by default.
+It describes the part of `resource` that is dynamic. Note how all fields are optional by default.
 
 ```typescript
-export type DynamicParams<T extends ParamsConstraint = ParamsConstraint> = T & Omit<RequestInit, 'body' | 'headers'>;
+export type DynamicFetchResource<T extends FetchResourceConstraint = FetchResourceConstraint> = T &
+    Omit<RequestInit, 'body' | 'headers'>;
 ```
 
-#### `GlobalRequestParams`
+#### `FetchResource`
 
-This type describes `requestParams` that can be specified globally, for all resources. Note how all fields are optional by default.
+It's just an intersection of <code>[DynamicFetchResource](#dynamicfetchresource)</code> and <code>[Resource](../core#resource)</code>.
 
-Extends <code>[DynamicRequestParams](#dynamicrequestparams)</code>.
-
-| Name | Type     | Description                                                                                                             | Required |
-| ---- | -------- | ----------------------------------------------------------------------------------------------------------------------- | -------- |
-| root | `string` | Url part that is common for all resources, e.g. `'https://domain.com/api'`. May be different between client and server. | No       |
-
-#### `RequestParams`
-
-This type describes `requestParams` for a specific resource. Note how all fields are optional by default, except `path`.
-
-Extends <code>[GlobalRequestParams](#globalrequestparams)</code>.
-
-| Name | Type     | Description                                                                                                                          | Required |
-| ---- | -------- | ------------------------------------------------------------------------------------------------------------------------------------ | -------- |
-| path | `string` | Path to the given resource, e.g. `'/entity/:id'`. It is processed by [path-to-regexp](https://www.npmjs.com/package/path-to-regexp). | Yes      |
+Note that the `name` field (that came from <code>[Resource](../core#resource)</code>) represents the path to the given resource, e.g. `'/entity/:id'`. It is processed by [path-to-regexp](https://www.npmjs.com/package/path-to-regexp).

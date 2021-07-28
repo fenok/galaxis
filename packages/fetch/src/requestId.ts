@@ -2,7 +2,7 @@ import { FetchResource } from './types';
 import { getUrl } from './getUrl';
 
 export interface RequestIdOptions {
-    hash(value: unknown): string;
+    hash(resource: FetchResource): string;
 }
 
 export function requestId({ hash }: RequestIdOptions) {
