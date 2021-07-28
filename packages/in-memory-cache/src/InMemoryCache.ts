@@ -112,26 +112,26 @@ class InMemoryCache<TCacheData extends NonUndefined> implements Cache<TCacheData
     }
 
     private updateSplitStates({ data, errors, clearSplitFor, createSplitFor }: UpdateOptions<TCacheData>) {
-        if (clearSplitFor) {
+        if (clearSplitFor !== undefined) {
             this.splitStates = this.splitStates.filter((splitState) => !splitState.splitters.has(clearSplitFor));
         }
 
         for (let index = 0; index < this.splitStates.length; index++) {
             const splitState = this.splitStates[index];
 
-            if (createSplitFor && index % 2 === 0) {
+            if (createSplitFor !== undefined && index % 2 === 0) {
                 this.splitStates.splice(index, 0, {
                     ...splitState,
                     splitters: new Set(splitState.splitters),
                 });
-            } else if (!createSplitFor || index % 2 !== 0) {
+            } else if (createSplitFor === undefined || index % 2 !== 0) {
                 if (data) {
                     splitState.data = data(splitState.data);
                 }
                 if (errors) {
                     splitState.errors = this.insertErrors(splitState.errors, errors);
                 }
-                if (createSplitFor) {
+                if (createSplitFor !== undefined) {
                     splitState.splitters.add(createSplitFor);
                 }
             }

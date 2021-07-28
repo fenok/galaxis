@@ -3,8 +3,8 @@ import { NonUndefined } from './helpers';
 export interface UpdateOptions<TCacheData extends NonUndefined> {
     data?: (prevData: TCacheData) => TCacheData;
     errors?: Record<string, (prevError: Error | undefined) => Error | undefined>;
-    createSplitFor?: unknown;
-    clearSplitFor?: unknown;
+    createSplitFor?: NonUndefined;
+    clearSplitFor?: NonUndefined;
 }
 
 export interface Cache<TCacheData extends NonUndefined> {
