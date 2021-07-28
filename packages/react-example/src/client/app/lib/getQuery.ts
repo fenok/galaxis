@@ -1,43 +1,38 @@
-import { NonUndefined, Query, Mutation } from '@galaxis/react';
-import { getParametrizedRequest, getStaticRequest } from '@galaxis/utils';
-import { FetchResource, ResponseError, FetchResourceConstraint, DynamicFetchResource } from '@galaxis/fetch';
+import { Mutation, NonUndefined, Query } from '@galaxis/react';
+import { FetchVariables, FetchResource, FetchVariablesConstraint, ResponseError } from '@galaxis/fetch';
 import { CacheData } from './CacheData';
 import { ErrorResponse } from './ErrorResponse';
 
 export function getQuery<
     TData extends NonUndefined,
-    TResourceConstraint extends FetchResourceConstraint = FetchResourceConstraint,
-    TFactoryParams = DynamicFetchResource<TResourceConstraint>
+    TVariablesConstraint extends FetchVariablesConstraint = FetchVariablesConstraint,
+    TVariables = FetchVariables<TVariablesConstraint>
 >(
     factory: (
-        params: TFactoryParams,
-    ) => Query<CacheData, TData, ResponseError<ErrorResponse>, FetchResource<TResourceConstraint>>,
+        variables: TVariables,
+    ) => Query<CacheData, TData, ResponseError<ErrorResponse>, FetchResource<TVariablesConstraint>>,
 ) {
-    return getParametrizedRequest(factory);
-}
-
-export function getStaticQuery<
-    TData extends NonUndefined,
-    TResourceConstraint extends FetchResourceConstraint = FetchResourceConstraint
->(query: Query<CacheData, TData, ResponseError<ErrorResponse>, FetchResource<TResourceConstraint>>) {
-    return getStaticRequest(query);
+    return ({
+        variables,
+        ...request
+    }: { variables: TVariables } & Partial<
+        Query<CacheData, TData, ResponseError<ErrorResponse>, FetchResource<TVariablesConstraint>>
+    >) => ({ ...factory(variables), ...request });
 }
 
 export function getMutation<
     TData extends NonUndefined,
-    TResourceConstraint extends FetchResourceConstraint = FetchResourceConstraint,
-    TFactoryParams = DynamicFetchResource<TResourceConstraint>
+    TVariablesConstraint extends FetchVariablesConstraint = FetchVariablesConstraint,
+    TVariables = FetchVariables<TVariablesConstraint>
 >(
     factory: (
-        params: TFactoryParams,
-    ) => Mutation<CacheData, TData, ResponseError<ErrorResponse>, FetchResource<TResourceConstraint>>,
+        variables: TVariables,
+    ) => Mutation<CacheData, TData, ResponseError<ErrorResponse>, FetchResource<TVariablesConstraint>>,
 ) {
-    return getParametrizedRequest(factory);
-}
-
-export function getStaticMutation<
-    TData extends NonUndefined,
-    TResourceConstraint extends FetchResourceConstraint = FetchResourceConstraint
->(mutation: Mutation<CacheData, TData, ResponseError<ErrorResponse>, FetchResource<TResourceConstraint>>) {
-    return getStaticRequest(mutation);
+    return ({
+        variables,
+        ...request
+    }: { variables: TVariables } & Partial<
+        Mutation<CacheData, TData, ResponseError<ErrorResponse>, FetchResource<TVariablesConstraint>>
+    >) => ({ ...factory(variables), ...request });
 }

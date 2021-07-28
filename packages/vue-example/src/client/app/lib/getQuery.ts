@@ -1,24 +1,38 @@
-import { NonUndefined, Query } from '@galaxis/vue';
-import { getParametrizedRequest, getStaticRequest } from '@galaxis/utils';
-import { FetchResource, ResponseError, FetchResourceConstraint, DynamicFetchResource } from '@galaxis/fetch';
+import { Mutation, NonUndefined, Query } from '@galaxis/vue';
+import { FetchVariables, FetchResource, FetchVariablesConstraint, ResponseError } from '@galaxis/fetch';
 import { CacheData } from './CacheData';
 import { ErrorResponse } from './ErrorResponse';
 
 export function getQuery<
     TData extends NonUndefined,
-    TResourceConstraint extends FetchResourceConstraint = FetchResourceConstraint,
-    TFactoryParams = DynamicFetchResource<TResourceConstraint>
+    TVariablesConstraint extends FetchVariablesConstraint = FetchVariablesConstraint,
+    TVariables = FetchVariables<TVariablesConstraint>
 >(
     factory: (
-        params: TFactoryParams,
-    ) => Query<CacheData, TData, ResponseError<ErrorResponse>, FetchResource<TResourceConstraint>>,
+        variables: TVariables,
+    ) => Query<CacheData, TData, ResponseError<ErrorResponse>, FetchResource<TVariablesConstraint>>,
 ) {
-    return getParametrizedRequest(factory);
+    return ({
+        variables,
+        ...request
+    }: { variables: TVariables } & Partial<
+        Query<CacheData, TData, ResponseError<ErrorResponse>, FetchResource<TVariablesConstraint>>
+    >) => ({ ...factory(variables), ...request });
 }
 
-export function getStaticQuery<
+export function getMutation<
     TData extends NonUndefined,
-    TResourceConstraint extends FetchResourceConstraint = FetchResourceConstraint
->(query: Query<CacheData, TData, ResponseError<ErrorResponse>, FetchResource<TResourceConstraint>>) {
-    return getStaticRequest(query);
+    TVariablesConstraint extends FetchVariablesConstraint = FetchVariablesConstraint,
+    TVariables = FetchVariables<TVariablesConstraint>
+>(
+    factory: (
+        variables: TVariables,
+    ) => Mutation<CacheData, TData, ResponseError<ErrorResponse>, FetchResource<TVariablesConstraint>>,
+) {
+    return ({
+        variables,
+        ...request
+    }: { variables: TVariables } & Partial<
+        Mutation<CacheData, TData, ResponseError<ErrorResponse>, FetchResource<TVariablesConstraint>>
+    >) => ({ ...factory(variables), ...request });
 }

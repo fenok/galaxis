@@ -19,12 +19,12 @@ export type UserQueryResource = { pathParams: { id: number } };
 
 export type UserUpdateMutationResource = { pathParams: { id: number }; body: JsonData<UpdateUser> };
 
-export type UserUpdateMutationSimpleResource = { id: number; data: UpdateUser };
+export type UserUpdateMutationVariables = { id: number; data: UpdateUser };
 
-export const userQuery = getQuery<User, UserQueryResource>((params) => ({
+export const userQuery = getQuery<User, UserQueryResource>((variables) => ({
     resource: {
         name: '/users/:id',
-        ...params,
+        ...variables,
     },
     toCache: immerify(({ cacheData, data }) => {
         cacheData.users[data.id] = {
@@ -51,13 +51,13 @@ export const userQuery = getQuery<User, UserQueryResource>((params) => ({
     ),
 }));
 
-export const userUpdateMutation = getMutation<User, UserUpdateMutationResource, UserUpdateMutationSimpleResource>(
-    (params) => ({
+export const userUpdateMutation = getMutation<User, UserUpdateMutationResource, UserUpdateMutationVariables>(
+    (variables) => ({
         resource: {
             name: '/users/:id',
             method: 'POST',
-            pathParams: { id: params.id },
-            body: new JsonData(params.data),
+            pathParams: { id: variables.id },
+            body: new JsonData(variables.data),
         },
         toCache: immerify(({ cacheData, data }) => {
             cacheData.users[data.id] = {

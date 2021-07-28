@@ -7,15 +7,14 @@ export type QueryConstraint = StringifiableRecord;
 export type HeadersConstraint = HeadersInit;
 export type BodyConstraint = CustomData<unknown> | BodyInit | null;
 
-export interface FetchResourceConstraint {
+export interface FetchVariablesConstraint {
     pathParams?: PathConstraint;
     queryParams?: QueryConstraint;
     headers?: HeadersConstraint;
     body?: BodyConstraint;
 }
 
-export type DynamicFetchResource<T extends FetchResourceConstraint = FetchResourceConstraint> = T &
+export type FetchVariables<T extends FetchVariablesConstraint = FetchVariablesConstraint> = T &
     Omit<RequestInit, 'body' | 'headers'>;
 
-export type FetchResource<T extends FetchResourceConstraint = FetchResourceConstraint> = Resource &
-    DynamicFetchResource<T>;
+export type FetchResource<T extends FetchVariablesConstraint = FetchVariablesConstraint> = Resource & FetchVariables<T>;

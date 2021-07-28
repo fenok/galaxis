@@ -13,7 +13,7 @@ const UserDisplay: FC<Props> = ({ fetchPolicy }) => {
 
     const { data, error, loading, refetch } = useQuery(
         userQuery({
-            resource: { pathParams: { id: userId } },
+            variables: { pathParams: { id: userId } },
             fetchPolicy,
         }),
     );
@@ -26,7 +26,7 @@ const UserDisplay: FC<Props> = ({ fetchPolicy }) => {
                 onClick={() =>
                     updateUser(
                         userUpdateMutation({
-                            resource: { id: userId, data: { name: String(Math.random()) } },
+                            variables: { id: userId, data: { name: String(Math.random()) } },
                             optimisticData: data
                                 ? {
                                       ...data,

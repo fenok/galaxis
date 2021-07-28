@@ -15,7 +15,7 @@ export default defineComponent({
         const currentId = ref(1);
 
         const { loading, data, refetch } = useQuery(() =>
-            userQuery({ resource: { pathParams: { id: currentId.value } } }),
+            userQuery({ variables: { pathParams: { id: currentId.value } } }),
         );
 
         return { loading, data, currentId, refetch };

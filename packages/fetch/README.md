@@ -127,7 +127,7 @@ Extends `Error`.
 | HeadersConstraint | `HeadersInit`                                                                   | Headers.          |
 | BodyConstraint    | <code>[CustomData](#customdata)<unknown> &#124; BodyInit &#124; null</code>     | Body.             |
 
-#### `FetchResourceConstraint`
+#### `FetchVariablesConstraint`
 
 | Name        | Type                                           | Required |
 | ----------- | ---------------------------------------------- | -------- |
@@ -136,19 +136,19 @@ Extends `Error`.
 | headers     | <code>[HeadersConstraint](#constraints)</code> | No       |
 | body        | <code>[BodyConstraint](#constraints)</code>    | No       |
 
-#### `DynamicFetchResource`
+#### `FetchVariables`
 
-It's a generic that takes the given type `T`, which is constrained by <code>[FetchResourceConstraint](#fetchresourceconstraint)</code>, and adds fields from `RequestInit`, omitting `body` and `headers`. `RequestInit` comes from Fetch API.
+It's a generic that takes the given type `T`, which is constrained by <code>[FetchVariablesConstraint](#fetchvariablesconstraint)</code>, and adds fields from `RequestInit`, omitting `body` and `headers`. `RequestInit` comes from Fetch API.
 
 It describes the part of `resource` that is dynamic. Note how all fields are optional by default.
 
 ```typescript
-export type DynamicFetchResource<T extends FetchResourceConstraint = FetchResourceConstraint> = T &
+export type FetchVariables<T extends FetchVariablesConstraint = FetchVariablesConstraint> = T &
     Omit<RequestInit, 'body' | 'headers'>;
 ```
 
 #### `FetchResource`
 
-It's just an intersection of <code>[DynamicFetchResource](#dynamicfetchresource)</code> and <code>[Resource](../core#resource)</code>.
+It's just an intersection of <code>[FetchVariables](#fetchvariables)</code> and <code>[Resource](../core#resource)</code>.
 
 Note that the `name` field (that came from <code>[Resource](../core#resource)</code>) represents the path to the given resource, e.g. `'/entity/:id'`. It is processed by [path-to-regexp](https://www.npmjs.com/package/path-to-regexp).

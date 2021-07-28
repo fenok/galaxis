@@ -8,12 +8,12 @@ export interface User {
     email: string;
 }
 
-export type UserQueryRequestParams = { pathParams: { id: number } };
+export type UserQueryResource = { pathParams: { id: number } };
 
-export const userQuery = getQuery<User, UserQueryRequestParams>((params) => ({
+export const userQuery = getQuery<User, UserQueryResource>((variables) => ({
     resource: {
         name: '/users/:id',
-        ...params,
+        ...variables,
     },
     toCache: immerify(({ cacheData, data }) => {
         cacheData.users[data.id] = {
