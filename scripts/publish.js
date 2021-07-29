@@ -7,7 +7,7 @@ function publish() {
     execSync('yarn');
 
     execSync('yarn version check');
-    execSync('yarn version apply');
+    execSync('yarn version apply --all');
 
     const version = getVersion();
 
@@ -23,6 +23,8 @@ function publish() {
     execSync('git checkout master');
     execSync('git merge dev --no-ff');
     execSync('git push');
+
+    execSync('git checkout dev');
 }
 
 function getVersion() {
