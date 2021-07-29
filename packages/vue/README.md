@@ -1,6 +1,6 @@
 # Galaxis Vue
 
-[![npm](https://img.shields.io/npm/v/@galaxis/react)](https://www.npmjs.com/package/@galaxis/react)
+[![npm](https://img.shields.io/npm/v/@galaxis/vue)](https://www.npmjs.com/package/@galaxis/vue)
 
 Vue bindings for [Galaxis](/README.md#galaxis-).
 
