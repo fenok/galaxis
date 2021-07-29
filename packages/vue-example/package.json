@@ -34,7 +34,7 @@
         "@vue/server-renderer": "beta",
         "babel-loader": "8.1.0",
         "babel-preset-typescript-vue3": "^2.0.12",
-        "eslint": "^7.23.0",
+        "eslint": "^7.31.0",
         "eslint-config-prettier": "^8.1.0",
         "eslint-plugin-react-hooks": "^4.2.0",
         "node-fetch": "2.6.1",
