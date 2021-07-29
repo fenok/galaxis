@@ -8,7 +8,7 @@ import { getDataFromTree } from '@galaxis/react';
 import fetchFn from 'node-fetch';
 
 export default async function ssrMiddleware(_: Request, res: Response<unknown>) {
-    const client = getClient({ fetch: (fetchFn as unknown) as typeof fetch });
+    const client = getClient({ fetch: fetchFn as unknown as typeof fetch });
 
     console.log('Creating app...');
     const app = createElement(App, { client });

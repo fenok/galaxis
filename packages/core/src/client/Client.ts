@@ -9,7 +9,7 @@ interface ClientOptions<
     TCache extends Cache<TCacheData>,
     TBaseData extends NonUndefined,
     TBaseError extends Error,
-    TBaseResource extends Resource
+    TBaseResource extends Resource,
 > extends DefaultsMergerOptions<TCacheData, TBaseData, TBaseError> {
     cache: TCache;
     requestId(resource: TBaseResource): string;
@@ -20,7 +20,7 @@ class Client<
     TCache extends Cache<TCacheData>,
     TBaseData extends NonUndefined,
     TBaseError extends Error,
-    TBaseResource extends Resource
+    TBaseResource extends Resource,
 > {
     private readonly cache: TCache;
     private queryProcessor: QueryProcessor<TCacheData>;

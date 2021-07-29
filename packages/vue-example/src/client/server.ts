@@ -6,7 +6,7 @@ import { getClient } from './app/lib/Client';
 import fetchFn from 'node-fetch';
 
 export default async function ssrMiddleware(_: Request, res: Response<unknown>) {
-    const client = getClient({ fetch: (fetchFn as unknown) as typeof fetch });
+    const client = getClient({ fetch: fetchFn as unknown as typeof fetch });
 
     const app = createSSRApp(App, { client });
 

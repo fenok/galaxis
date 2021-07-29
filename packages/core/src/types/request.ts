@@ -21,7 +21,7 @@ export interface Request<
     TCacheData extends NonUndefined,
     TData extends NonUndefined,
     TError extends Error,
-    TResource extends Resource
+    TResource extends Resource,
 > {
     resource: TResource;
     abortSignal?: AbortSignal;
@@ -34,7 +34,7 @@ export interface Query<
     TCacheData extends NonUndefined,
     TData extends NonUndefined,
     TError extends Error,
-    TResource extends Resource
+    TResource extends Resource,
 > extends Request<TCacheData, TData, TError, TResource> {
     fetchPolicy?: FetchPolicy;
     disableSsr?: boolean;
@@ -48,7 +48,7 @@ export interface Mutation<
     TCacheData extends NonUndefined,
     TData extends NonUndefined,
     TError extends Error,
-    TResource extends Resource
+    TResource extends Resource,
 > extends Request<TCacheData, TData, TError, TResource> {
     fetchPolicy?: Extract<FetchPolicy, 'cache-and-network' | 'no-cache'>;
     optimisticData?: TData;

@@ -6,7 +6,7 @@ export class RequestHelper {
         TCacheData extends NonUndefined,
         TData extends NonUndefined,
         TError extends Error,
-        TResource extends Resource
+        TResource extends Resource,
     >(
         request: Request<TCacheData, TData, TError, TResource>,
         signals: Signals = {},

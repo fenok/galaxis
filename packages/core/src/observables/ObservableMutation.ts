@@ -12,7 +12,7 @@ export class ObservableMutation<
     TCacheData extends NonUndefined,
     TData extends NonUndefined,
     TError extends Error,
-    TResource extends Resource
+    TResource extends Resource,
 > {
     private onChange: () => void;
     private client?: Client<TCacheData, Cache<TCacheData>, TData, TError, TResource>;

@@ -3,7 +3,7 @@ import { Request, Mutation, NonUndefined, Query, Resource } from '../types';
 export interface DefaultsMergerOptions<
     TCacheData extends NonUndefined = NonUndefined,
     TBaseData extends NonUndefined = NonUndefined,
-    TBaseError extends Error = Error
+    TBaseError extends Error = Error,
 > {
     defaultRequest?: Partial<Request<TCacheData, TBaseData, TBaseError, Resource>>;
     defaultQuery?: Partial<Query<TCacheData, TBaseData, TBaseError, Resource>>;
@@ -13,7 +13,7 @@ export interface DefaultsMergerOptions<
 export class DefaultsMerger<
     TCacheData extends NonUndefined = NonUndefined,
     TBaseData extends NonUndefined = NonUndefined,
-    TBaseError extends Error = Error
+    TBaseError extends Error = Error,
 > {
     private defaultRequest?: Partial<Request<TCacheData, TBaseData, TBaseError, Resource>>;
     private defaultQuery?: Partial<Query<TCacheData, TBaseData, TBaseError, Resource>>;

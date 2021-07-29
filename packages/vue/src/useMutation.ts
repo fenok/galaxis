@@ -14,7 +14,7 @@ export function useMutation<
     TCacheData extends NonUndefined,
     TData extends NonUndefined,
     TError extends Error,
-    TResource extends Resource
+    TResource extends Resource,
 >(mutation: () => Mutation<TCacheData, TData, TError, TResource> | undefined) {
     const client = useClient<Client<TCacheData, Cache<TCacheData>, TData, TError, TResource>>();
     const mutationRef = computed(mutation);

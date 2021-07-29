@@ -6,7 +6,7 @@ import { ErrorResponse } from './ErrorResponse';
 export function query<
     TData extends NonUndefined,
     TVariablesConstraint extends FetchVariablesConstraint = FetchVariablesConstraint,
-    TVariables = FetchVariables<TVariablesConstraint>
+    TVariables = FetchVariables<TVariablesConstraint>,
 >(
     factory: (
         variables: TVariables,
@@ -23,7 +23,7 @@ export function query<
 export function mutation<
     TData extends NonUndefined,
     TVariablesConstraint extends FetchVariablesConstraint = FetchVariablesConstraint,
-    TVariables = FetchVariables<TVariablesConstraint>
+    TVariables = FetchVariables<TVariablesConstraint>,
 >(
     factory: (
         variables: TVariables,

@@ -12,7 +12,7 @@ export class ObservableQuery<
     TCacheData extends NonUndefined,
     TData extends NonUndefined,
     TError extends Error,
-    TResource extends Resource
+    TResource extends Resource,
 > {
     private query?: Query<TCacheData, TData, TError, TResource>;
 
