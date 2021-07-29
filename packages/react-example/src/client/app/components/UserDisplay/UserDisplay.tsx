@@ -27,12 +27,12 @@ const UserDisplay: FC<Props> = ({ fetchPolicy }) => {
                     updateUser(
                         userUpdateMutation({
                             variables: { id: userId, data: { name: String(Math.random()) } },
-                            optimisticData: data
-                                ? {
-                                      ...data,
-                                      name: 'Will-change to something random',
-                                  }
-                                : undefined,
+                            optimisticData: {
+                                id: userId,
+                                name: 'Optimistic name',
+                                username: data?.username ?? 'optimist',
+                                email: data?.email ?? 'optimistic@email.com',
+                            },
                         }),
                     )
                 }
