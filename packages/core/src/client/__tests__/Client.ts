@@ -1,3 +1,7 @@
+/**
+ * @jest-environment jsdom
+ */
+
 import {
     FIRST_ITEM,
     FIRST_ITEM_RESOURCE,

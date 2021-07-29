@@ -1,3 +1,7 @@
+/**
+ * @jest-environment jsdom
+ */
+
 import { RequestQueue } from '../RequestQueue';
 import { delayedPromise, wireAbortSignals } from '../../promise';
 import { resolveAfter } from './utils/promise-helpers';
