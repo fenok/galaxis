@@ -201,13 +201,7 @@ export class ObservableQuery<
     }
 
     private isInvalidationState(state: Partial<ObservableQueryState<TData, TError>>) {
-        return (
-            !('loading' in state) &&
-            'data' in state &&
-            'error' in state &&
-            state.data === undefined &&
-            state.error === undefined
-        );
+        return !('loading' in state) && 'data' in state && state.data === undefined;
     }
 
     private isInitialState(state: Partial<ObservableQueryState<TData, TError>>) {
