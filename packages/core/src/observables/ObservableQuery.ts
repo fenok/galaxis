@@ -81,7 +81,9 @@ export class ObservableQuery<
         if (!this.executed && this.query && this.client) {
             this.executed = true;
 
-            const [queryState, promise, unsubscribe] = this.client.query(this.query, this.setState.bind(this));
+            const [queryState, promise, unsubscribe] = this.client.query(this.query, ({ data, error }) =>
+                this.setState({ data, error }),
+            );
             this.unsubscribeFromQueryState = unsubscribe;
 
             this.setState({
