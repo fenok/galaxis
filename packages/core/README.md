@@ -341,16 +341,16 @@ const requestId = client.requestId(request.resource);
 
 `ObservableQuery` maintains the state of the corresponding query. It has **its own state**, which synchronizes with the global cache.
 
-`ObservableQuery` can be active or inactive. If it's inactive, it won't report about its state changes, and the only way to change its state is to call the `observableQuery.setOptions()` function.
+`ObservableQuery` can be active or inactive. If it's inactive, it won't report about its state changes, and the only way to change its state is to call the <code>[observableQuery.setOptions()](#observablequerysetoptions)</code> function.
 
 Upon the client reset, all active observable queries will be re-executed. Inactive queries are supposed to be activated shortly (and executed anyway) or disposed.
 
 To make the UI less jumpy, the state synchronization is intentionally not perfect. The following rules apply:
 
--   In loading state all updates are paused, except for updates that happen because of the `observableQuery.setOptions()` call.
+-   In loading state all updates are paused, except for updates that happen because of the <code>[observableQuery.setOptions()](#observablequerysetoptions)</code> call (or the query execution).
 -   In the following conditions, If there is no data to show, the previous data is used, and if there is _also_ no error, the previous error is used:
     -   Upon switching to loading state (and later). Rationale: don't make significant UI changes for a split second after which a similar data will arrive. If it doesn't arrive, it's still better to show the previous data and the new error. However, if there is no loading, it's better to show the new state right away, since it won't change automatically.
-    -   Upon cache invalidation (update to empty state that came after the query execution). Rationale: cache invalidation can happen at arbitrary time, and the UI shouldn't suddenly become empty and/or show a dozen loaders.
+    -   Upon cache invalidation (update to empty data when the query is already executed). Rationale: cache invalidation can happen at arbitrary time, and the UI shouldn't suddenly become empty and/or show a dozen loaders.
 -   Upon the client reset, the previous state will still be shown during the loading state (but will be cleared right after). Rationale: again, don't make significant UI changes for a split second, the data will likely remain the same.
 
 ```typescript
@@ -365,7 +365,7 @@ const observableQuery = new ObservableQuery(onChange);
 
 #### `observableQuery.setOptions()`
 
-Switch the observable query into the inactive state and update its client and query. It may lead to the state change, which won't be reported. You should manually request the state via the `observableQuery.getState()` function.
+Switch the observable query into the inactive state and update its client and query. It may lead to the state change, which won't be reported. You should manually request the state via the <code>[observableQuery.getState()](#observablequerygetstate)</code> function.
 
 Such behavior allows you to update the state and synchronously get it back without worrying about unnecessary calls of the `onChange` function.
 
@@ -382,9 +382,9 @@ observableQuery.setOptions(client, query);
 
 #### `observableQuery.start()`
 
-Activate the observable query. Internally, the provided query is executed, and the observable query starts watching its state.
+Activate the observable query. Internally, the provided query is executed, and the observable query starts watching its state. If the query state changed since the last <code>[observableQuery.setOptions()](#observablequerysetoptions)</code> call, the observable query state will be updated and immediately reported.
 
-This method is supposed to be called asynchronously after the `observableQuery.setOptions()` call. This allows to decouple the side effect of query execution from the render phase.
+This method is supposed to be called asynchronously after the <code>[observableQuery.setOptions()](#observablequerysetoptions)</code> call. This allows to decouple the side effect of query execution from the render phase.
 
 This method is also supposed to be used to wait for the query execution during SSR.
 
@@ -396,7 +396,7 @@ const request = observableQuery.start();
 
 The request from the query execution, if any.
 
-`Promise<TData> | undefined`
+<code>Promise<[TData](#user-defined-types)> | undefined</code>
 
 #### `observableQuery.dispose()`
 
@@ -434,17 +434,17 @@ const result = observableQuery.refetch();
 
 ##### Return value
 
-`Promise<TData>`
+<code>Promise<[TData](#user-defined-types)></code>
 
 ### ObservableMutation
 
 `ObservableMutation` maintains the state of the corresponding mutation. It has **its own state**.
 
-Contrary to `ObservableQuery`, `ObservableMutation` is always active, and the only way to change its state is to call the `observableMutation.execute()` or the `observableMutation.reset()` methods.
+Contrary to <code>[ObservableQuery](#observablequery)</code>, `ObservableMutation` is always active, and the only way to change its state is to call the <code>[observableMutation.execute()](#observablemutationexecute)</code> or the <code>[observableMutation.reset()](#observablemutationreset)</code> methods.
 
-Upon the client reset, all observable mutations are reset (essentially by calling the `observableMutation.reset()` method).
+Upon the client reset, all observable mutations are reset (essentially by calling the <code>[observableMutation.reset()](#observablemutationreset)</code> method).
 
-Unlike `ObservableQuery`, `ObservableMutation` will never show any previous state.
+Unlike <code>[ObservableQuery](#observablequery)</code>, `ObservableMutation` will never show any previous state.
 
 ```typescript
 const observableMutation = new ObservableMutation(onChange);
@@ -487,7 +487,7 @@ const result = observableMutation.execute(mutation);
 
 ##### Return value
 
-`Promise<TData>`
+<code>Promise<[TData](#user-defined-types)></code>
 
 #### `observableMutation.dispose()`
 
@@ -509,12 +509,12 @@ const observableMutationState = observableMutation.getState();
 
 ###### `ObservableMutationState`
 
-| Name    | Type                                                        | Description                                                                                                       |
-| ------- | ----------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| data    | <code>[TData](#user-defined-types) &#124; undefined</code>  | The data of the last mutation that was executed. Never shows the previous data.                                   |
-| error   | <code>[TError](#user-defined-types) &#124; undefined</code> | The error of the last mutation that was executed. Never shows the previous error.                                 |
-| loading | <code>boolean</code>                                        | Whether the mutation is being executed.                                                                           |
-| called  | <code>boolean</code>                                        | Whether the mutation was executed. Can only be switched back to `false` by the `observableMutation.reset()` call. |
+| Name    | Type                                                        | Description                                                                                                                                              |
+| ------- | ----------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| data    | <code>[TData](#user-defined-types) &#124; undefined</code>  | The data of the last mutation that was executed. Never shows the previous data.                                                                          |
+| error   | <code>[TError](#user-defined-types) &#124; undefined</code> | The error of the last mutation that was executed. Never shows the previous error.                                                                        |
+| loading | <code>boolean</code>                                        | Whether the mutation is being executed.                                                                                                                  |
+| called  | <code>boolean</code>                                        | Whether the mutation was executed. Can only be switched back to `false` by the <code>[observableMutation.reset()](#observablemutationreset)</code> call. |
 
 #### `observableMutation.reset()`
 

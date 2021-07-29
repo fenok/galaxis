@@ -26,8 +26,8 @@ Notable features:
 ## Documentation
 
 -   Framework-agnostic Galaxis [Core](packages/core#galaxis-core).
--   Galaxis [React](packages/react#galaxis-react) bindings.
--   Galaxis [Vue](packages/vue#galaxis-vue) bindings.
+    -   Galaxis [React](packages/react#galaxis-react) bindings.
+    -   Galaxis [Vue](packages/vue#galaxis-vue) bindings.
 -   Common [Utils](packages/utils#galaxis-utils).
 -   Recommended cache: [In-Memory Cache](packages/in-memory-cache#galaxis-in-memory-cache).
 -   Recommended network interface: [Fetch](packages/fetch#galaxis-fetch).
