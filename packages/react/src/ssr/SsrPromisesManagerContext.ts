@@ -1,5 +1,5 @@
-import { SsrPromisesManager } from '@galaxis/core';
 import { createContext } from 'react';
+import { SsrPromisesManager } from './SsrPromisesManager';
 
 const SsrPromisesManagerContext = createContext<SsrPromisesManager | undefined>(undefined);
 

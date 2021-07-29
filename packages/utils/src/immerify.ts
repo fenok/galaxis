@@ -1,12 +1,12 @@
-import { CacheAndDataOptions, NonUndefined } from '@galaxis/core';
+import { ToCacheOptions, NonUndefined, Resource } from '@galaxis/core';
 import produce from 'immer';
 
-export function immerify<C extends NonUndefined, D extends NonUndefined, R>(
-    toCache: (opts: CacheAndDataOptions<C, D, R>) => void,
-): (opts: CacheAndDataOptions<C, D, R>) => C {
+export function immerify<TCacheData extends NonUndefined, TData extends NonUndefined, TResource extends Resource>(
+    toCache: (opts: ToCacheOptions<TCacheData, TData, TResource>) => void,
+): (opts: ToCacheOptions<TCacheData, TData, TResource>) => TCacheData {
     return ({ cacheData, ...params }) => {
         return produce(cacheData, (draft) => {
-            toCache({ ...params, cacheData: draft as C });
+            toCache({ ...params, cacheData: draft as TCacheData });
         });
     };
 }

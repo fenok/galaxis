@@ -4,7 +4,7 @@
 
 [Apollo](https://www.apollographql.com)-inspired backend-agnostic fetching library with full SSR support.
 
-> ⚠ The library lacks battle-testing and minor features, but it should be suitable for non-demanding projects.
+> ⚠ The library lacks battle-testing and minor features, but it should be suitable for non-demanding projects. As the version implies, the API is not stable yet. This project exists primarily for fun and education purposes.
 
 Notable features:
 
@@ -16,16 +16,18 @@ Notable features:
 -   [Full Server-Side Rendering Support](packages/core#full-server-side-rendering-support) lets you render your data (and errors!) on the server with no additional code.
 -   [Hydrate Stage Optimization](packages/core#hydrate-stage-optimization) prevents double load on the server in case of SSR.
 -   [High Customizability](packages/core#high-customizability), among other things, lets you use the library for _any_ backend.
--   Framework agnosticism means that you _should_ be able to integrate the library with your framework. Right now you can use the library with [React](packages/react) and, of course, vanilla JS.
+-   Framework agnosticism means that you _should_ be able to integrate the library with your framework. Right now you can use the library with [React](packages/react), [Vue](packages/vue), and, of course, vanilla JS.
 
 ## Examples
 
 -   [React Example](packages/react-example#galaxis-react-example).
+-   [Vue Example](packages/vue-example#galaxis-vue-example).
 
 ## Documentation
 
 -   Framework-agnostic Galaxis [Core](packages/core#galaxis-core).
--   Galaxis [React](packages/react#galaxis-react) bindings.
+    -   Galaxis [React](packages/react#galaxis-react) bindings.
+    -   Galaxis [Vue](packages/vue#galaxis-vue) bindings.
 -   Common [Utils](packages/utils#galaxis-utils).
 -   Recommended cache: [In-Memory Cache](packages/in-memory-cache#galaxis-in-memory-cache).
 -   Recommended network interface: [Fetch](packages/fetch#galaxis-fetch).

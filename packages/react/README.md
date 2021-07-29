@@ -24,7 +24,7 @@ You also need a version of React that supports React Hooks.
 
 ### `ClientProvider`
 
-`ClientProvider` is used to configure and provide a [Client](/packages/core#client) instance for the rest of the application.
+`ClientProvider` is used to configure and provide a <code>[Client](/packages/core#client)</code> instance for the rest of the application.
 
 ```typescript jsx
 interface AppProps {
@@ -49,7 +49,7 @@ const App: FC<AppProps> = ({ client }) => (
 
 ### `useClient()`
 
-`useClient` is used to retrieve the [Client](/packages/core#client) instance that was passed to the <code>[Provider](#clientprovider)</code>. You can then use it to execute queries and mutations manually, access cache, etc.
+`useClient` is used to retrieve the <code>[Client](/packages/core#client)</code> instance that was passed to the <code>[Provider](#clientprovider)</code>. You can then use it to execute queries and mutations manually, access cache, etc.
 
 ```typescript jsx
 const MyComponent: FC = () => {
@@ -65,7 +65,13 @@ const MyComponent: FC = () => {
 
 ### `useQuery()`
 
-`useQuery` is a wrapper around [managed query](/packages/core#clientmanagequery).
+`useQuery` is a thin wrapper for <code>[ObservableQuery](/packages/core#observablequery)</code>.
+
+On rerender, the <code>[Query](/packages/core#query)</code> objects fields are shallowly compared by the following rules:
+
+-   The `query.resource` fields are compared by the result of the <code>[client.requestId()](../core#clientrequestid)</code> call.
+-   Functions are compared by their `.toString()` representation.
+-   Everything else is compared by strict equality (`===`).
 
 ```typescript jsx
 const MyComponent: FC = () => {
@@ -77,21 +83,23 @@ const MyComponent: FC = () => {
 
 #### Arguments
 
-| Name  | Type                                       | Description         | Required |
-| ----- | ------------------------------------------ | ------------------- | -------- |
-| query | <code>[Query](/packages/core#query)</code> | A query to process. | No       |
+| Name  | Type                                       | Description          | Required |
+| ----- | ------------------------------------------ | -------------------- | -------- |
+| query | <code>[Query](/packages/core#query)</code> | A query to maintain. | No       |
 
 #### Return value
 
-<code>[QueryManagerResult](/packages/core#querymanagerresult)</code>
+<code>[ObservableQueryState](/packages/core#observablequerystate) & {refetch: [observableQuery.refetch](/packages/core#observablequeryrefetch)}</code>
 
 ### `useMutation()`
 
-`useMutation` is a wrapper around [managed mutation](/packages/core#clientmanagemutation).
+`useMutation` is a thin wrapper for <code>[ObservableMutation](/packages/core#clientmanagemutation)</code>.
+
+On rerender, the <code>[Mutation](/packages/core#mutation)</code> object is just reassigned, because it doesn't lead to any side effects.
 
 ```typescript jsx
 const MyComponent: FC = () => {
-    const { execute } = useMutation(mutation);
+    const [execute, state] = useMutation(mutation);
 
     return <button onClick={execute}>Execute the mutation</button>;
 };
@@ -99,13 +107,16 @@ const MyComponent: FC = () => {
 
 #### Arguments
 
-| Name     | Type                                             | Description            | Required |
-| -------- | ------------------------------------------------ | ---------------------- | -------- |
-| mutation | <code>[Mutation](/packages/core#mutation)</code> | A mutation to process. | No       |
+| Name     | Type                                             | Description             | Required |
+| -------- | ------------------------------------------------ | ----------------------- | -------- |
+| mutation | <code>[Mutation](/packages/core#mutation)</code> | A mutation to maintain. | No       |
 
 #### Return value
 
-<code>[MutationManagerResult](/packages/core#mutationmanagerresult)</code>
+| Name    | Type                                                                                                                                                         | Description                        |
+| ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------- |
+| execute | <code>(mutation?: [Mutation](/packages/core#mutation)) => Promise<[TData](/packages/core#user-defined-types)></code>                                         | A function for mutation execution. |
+| state   | <code>[ObservableMutationState](/packages/core#observablemutationstate) & {reset: [observableMutation.reset](/packages/core#observablemutationreset)}</code> | Mutation state and reset function. |
 
 ### `getDataFromTree()`
 

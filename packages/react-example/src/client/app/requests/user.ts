@@ -1,5 +1,6 @@
-import { getQuery } from '../lib/getQuery';
+import { mutation, query } from '../lib/request';
 import { immerify, memoize } from '@galaxis/utils';
+import { JsonData } from '@galaxis/fetch';
 
 export interface User {
     id: number;
@@ -8,12 +9,26 @@ export interface User {
     email: string;
 }
 
-export type UserQueryRequestParams = { pathParams: { id: number } };
+export type UpdateUser = {
+    name?: string;
+    username?: string;
+    email?: string;
+};
 
-export const userQuery = getQuery<User, UserQueryRequestParams>((params) => ({
-    requestParams: {
-        path: '/users/:id',
-        ...params,
+export type UserQueryVariablesConstraint = { pathParams: { id: number } };
+export type UserQueryVariables = { id: number };
+
+export type UserUpdateMutationVariablesConstraint = {
+    method: 'POST';
+    pathParams: { id: number };
+    body: JsonData<UpdateUser>;
+};
+export type UserUpdateMutationVariables = { id: number; data: UpdateUser };
+
+export const userQuery = query<User, UserQueryVariablesConstraint, UserQueryVariables>((variables) => ({
+    resource: {
+        name: '/users/:id',
+        pathParams: { id: variables.id },
     },
     toCache: immerify(({ cacheData, data }) => {
         cacheData.users[data.id] = {
@@ -27,15 +42,37 @@ export const userQuery = getQuery<User, UserQueryRequestParams>((params) => ({
         };
     }),
     fromCache: memoize(
-        ({ cacheData, requestParams }) => {
-            const user = cacheData.users[requestParams.pathParams.id];
-            const email = cacheData.emails[requestParams.pathParams.id];
+        ({ cacheData, resource }) => {
+            const user = cacheData.users[resource.pathParams.id];
+            const email = cacheData.emails[resource.pathParams.id];
 
             return user && email ? { ...user, ...email } : undefined;
         },
-        ({ cacheData, requestParams }) => [
-            cacheData.users[requestParams.pathParams.id],
-            cacheData.emails[requestParams.pathParams.id],
+        ({ cacheData, resource }) => [
+            cacheData.users[resource.pathParams.id],
+            cacheData.emails[resource.pathParams.id],
         ],
     ),
 }));
+
+export const userUpdateMutation = mutation<User, UserUpdateMutationVariablesConstraint, UserUpdateMutationVariables>(
+    (variables) => ({
+        resource: {
+            name: '/users/:id',
+            method: 'POST',
+            pathParams: { id: variables.id },
+            body: new JsonData(variables.data),
+        },
+        toCache: immerify(({ cacheData, data }) => {
+            cacheData.users[data.id] = {
+                id: data.id,
+                name: data.name,
+                username: data.username,
+            };
+            cacheData.emails[data.id] = {
+                id: data.id,
+                email: data.email,
+            };
+        }),
+    }),
+);

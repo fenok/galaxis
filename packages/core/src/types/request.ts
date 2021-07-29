@@ -2,40 +2,54 @@ import { NonUndefined } from './helpers';
 
 export type FetchPolicy = 'cache-only' | 'cache-first' | 'cache-and-network' | 'no-cache';
 
-export interface CacheOptions<C extends NonUndefined, R> {
-    cacheData: C;
-    requestParams: R;
+export interface Resource {
+    name: string;
+}
+
+export interface FromCacheOptions<TCacheData extends NonUndefined, TResource extends Resource> {
+    cacheData: TCacheData;
+    resource: TResource;
     requestId: string;
 }
 
-export type CacheAndDataOptions<C extends NonUndefined, D extends NonUndefined, R> = CacheOptions<C, R> & { data: D };
-
-export interface RequestOptions<R> {
-    requestParams: R;
+export interface ToCacheOptions<TCacheData extends NonUndefined, TData extends NonUndefined, TResource extends Resource>
+    extends FromCacheOptions<TCacheData, TResource> {
+    data: TData;
 }
 
-export interface BaseRequest<C extends NonUndefined, D extends NonUndefined, E extends Error, R> {
-    requestParams: R;
+export interface Request<
+    TCacheData extends NonUndefined,
+    TData extends NonUndefined,
+    TError extends Error,
+    TResource extends Resource,
+> {
+    resource: TResource;
     abortSignal?: AbortSignal;
-    getRequestFactory?(opts: RequestOptions<R>): (abortSignal?: AbortSignal) => Promise<D>;
-    getRequestId?(opts: RequestOptions<R>): string;
-    toCache?(opts: CacheAndDataOptions<C, D, R>): C;
-    __errorType?: E;
+    request?(resource: TResource, abortSignal?: AbortSignal): Promise<TData>;
+    toCache?(opts: ToCacheOptions<TCacheData, TData, TResource>): TCacheData;
+    __errorType?: TError;
 }
 
-export interface Query<C extends NonUndefined, D extends NonUndefined, E extends Error, R>
-    extends BaseRequest<C, D, E, R> {
+export interface Query<
+    TCacheData extends NonUndefined,
+    TData extends NonUndefined,
+    TError extends Error,
+    TResource extends Resource,
+> extends Request<TCacheData, TData, TError, TResource> {
     fetchPolicy?: FetchPolicy;
-    lazy?: boolean;
     disableSsr?: boolean;
     optimizeOnHydrate?: boolean;
     forceRequestOnMerge?: boolean;
     softAbortSignal?: AbortSignal;
-    fromCache?(opts: CacheOptions<C, R>): D | undefined;
+    fromCache?(opts: FromCacheOptions<TCacheData, TResource>): TData | undefined;
 }
 
-export interface Mutation<C extends NonUndefined, D extends NonUndefined, E extends Error, R>
-    extends BaseRequest<C, D, E, R> {
-    optimisticData?: D;
-    removeOptimisticData?(opts: CacheAndDataOptions<C, D, R>): C;
+export interface Mutation<
+    TCacheData extends NonUndefined,
+    TData extends NonUndefined,
+    TError extends Error,
+    TResource extends Resource,
+> extends Request<TCacheData, TData, TError, TResource> {
+    fetchPolicy?: Extract<FetchPolicy, 'cache-and-network' | 'no-cache'>;
+    optimisticData?: TData;
 }

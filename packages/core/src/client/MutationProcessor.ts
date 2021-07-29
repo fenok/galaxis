@@ -1,7 +1,7 @@
 import { wireAbortSignals, getAbortController } from '../promise';
 import { RequestQueue } from './RequestQueue';
 import { RequestHelper } from './RequestHelper';
-import { NonUndefined, Cache, Mutation } from '../types';
+import { NonUndefined, Cache, Mutation, Resource } from '../types';
 
 export interface MutationRequest {
     promise: Promise<unknown>;
@@ -9,42 +9,32 @@ export interface MutationRequest {
     abort: () => void;
 }
 
-export interface MutationProcessorOptions<C extends NonUndefined> {
-    cache: Cache<C>;
+export interface MutationProcessorOptions<TCacheData extends NonUndefined> {
+    cache: Cache<TCacheData>;
     requestQueue: RequestQueue;
-    hash(value: unknown): string;
+    requestId(resource: unknown): string;
 }
 
-export class MutationProcessor<C extends NonUndefined> {
+export class MutationProcessor<TCacheData extends NonUndefined> {
     private ongoingRequests: Set<MutationRequest> = new Set();
-    private readonly cache: Cache<C>;
+    private readonly cache: Cache<TCacheData>;
     private readonly requestQueue: RequestQueue;
-    private hash: (value: unknown) => string;
+    private requestId: (resource: unknown) => string;
 
-    constructor({ cache, requestQueue, hash }: MutationProcessorOptions<C>) {
+    constructor({ cache, requestQueue, requestId }: MutationProcessorOptions<TCacheData>) {
         this.cache = cache;
         this.requestQueue = requestQueue;
-        this.hash = hash;
+        this.requestId = requestId;
     }
 
-    public purge() {
-        this.ongoingRequests.forEach((mutation) => mutation.abort());
+    public onReset() {
         this.ongoingRequests.clear();
     }
 
-    public mutate<D extends NonUndefined, E extends Error, R>(mutation: Mutation<C, D, E, R>): Promise<D> {
-        const requestId = mutation.getRequestId ? mutation.getRequestId(mutation) : this.hash(mutation.requestParams);
-
-        if (mutation.optimisticData && mutation.toCache) {
-            this.cache.update({
-                data: mutation.toCache({
-                    cacheData: this.cache.getData(),
-                    data: mutation.optimisticData!,
-                    requestParams: mutation.requestParams,
-                    requestId,
-                }),
-            });
-        }
+    public mutate<TData extends NonUndefined, TError extends Error, TResource extends Resource>(
+        mutation: Mutation<TCacheData, TData, TError, TResource>,
+    ): Promise<TData> {
+        const requestId = this.requestId(mutation.resource);
 
         const abortController = getAbortController();
 
@@ -58,22 +48,16 @@ export class MutationProcessor<C extends NonUndefined> {
                     if (this.ongoingRequests.has(mutationRequest)) {
                         this.ongoingRequests.delete(mutationRequest);
 
-                        if (mutation.toCache) {
+                        if (mutation.toCache && mutation.fetchPolicy !== 'no-cache') {
                             this.cache.update({
-                                data: mutation.toCache({
-                                    cacheData:
-                                        mutation.optimisticData && mutation.removeOptimisticData
-                                            ? mutation.removeOptimisticData({
-                                                  cacheData: this.cache.getData(),
-                                                  data: mutation.optimisticData,
-                                                  requestParams: mutation.requestParams,
-                                                  requestId,
-                                              })
-                                            : this.cache.getData(),
-                                    data,
-                                    requestParams: mutation.requestParams,
-                                    requestId,
-                                }),
+                                data: (prevData) =>
+                                    mutation.toCache!({
+                                        cacheData: prevData,
+                                        data,
+                                        resource: mutation.resource,
+                                        requestId,
+                                    }),
+                                clearSplitFor: mutation.optimisticData ? mutationRequest : undefined,
                             });
                         }
                     }
@@ -84,14 +68,9 @@ export class MutationProcessor<C extends NonUndefined> {
                     if (this.ongoingRequests.has(mutationRequest)) {
                         this.ongoingRequests.delete(mutationRequest);
 
-                        if (mutation.optimisticData && mutation.removeOptimisticData) {
+                        if (mutation.optimisticData && mutation.fetchPolicy !== 'no-cache') {
                             this.cache.update({
-                                data: mutation.removeOptimisticData({
-                                    cacheData: this.cache.getData(),
-                                    data: mutation.optimisticData!,
-                                    requestParams: mutation.requestParams,
-                                    requestId,
-                                }),
+                                clearSplitFor: mutationRequest,
                             });
                         }
                     }
@@ -106,10 +85,23 @@ export class MutationProcessor<C extends NonUndefined> {
             },
         };
 
+        if (mutation.optimisticData && mutation.toCache && mutation.fetchPolicy !== 'no-cache') {
+            this.cache.update({
+                data: (prevData) =>
+                    mutation.toCache!({
+                        cacheData: prevData,
+                        data: mutation.optimisticData!,
+                        resource: mutation.resource,
+                        requestId,
+                    }),
+                createSplitFor: mutationRequest,
+            });
+        }
+
         wireAbortSignals(mutationRequest.abort, mutation.abortSignal);
 
         this.ongoingRequests.add(mutationRequest);
 
-        return mutationRequest.promise as Promise<D>;
+        return mutationRequest.promise as Promise<TData>;
     }
 }

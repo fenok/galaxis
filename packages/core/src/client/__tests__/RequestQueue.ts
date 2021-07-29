@@ -1,5 +1,10 @@
+/**
+ * @jest-environment jsdom
+ */
+
 import { RequestQueue } from '../RequestQueue';
-import { resolveAfter, delayedPromise, wireAbortSignals } from '../../promise';
+import { delayedPromise, wireAbortSignals } from '../../promise';
+import { resolveAfter } from './utils/promise-helpers';
 
 function getPromiseFactory(value: string, timeout?: number, abortSignal?: AbortSignal) {
     return (abortDelaySignal?: AbortSignal) =>

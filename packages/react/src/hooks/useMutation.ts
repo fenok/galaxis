@@ -1,23 +1,30 @@
 import { useClient } from '../providers';
-import { Mutation, NonUndefined } from '@galaxis/core';
+import { NonUndefined, ObservableMutation, Mutation, Resource, Client, Cache } from '@galaxis/core';
 import { useEffect, useReducer, useRef } from 'react';
-import { ManagedMutationWrapper } from './ManagedMutationWrapper';
 
-export function useMutation<C extends NonUndefined, D extends NonUndefined, E extends Error, R>(
-    mutation?: Mutation<C, D, E, R>,
-) {
-    const client = useClient();
+export function useMutation<
+    TCacheData extends NonUndefined,
+    TData extends NonUndefined,
+    TError extends Error,
+    TResource extends Resource,
+>(mutation?: Mutation<TCacheData, TData, TError, TResource>) {
+    const client = useClient<Client<TCacheData, Cache<TCacheData>, TData, TError, TResource>>();
 
     const [, forceUpdate] = useReducer((i: number) => i + 1, 0);
 
-    const managedMutation = useRef<ManagedMutationWrapper<C, D, E, R>>();
-    managedMutation.current = managedMutation.current || new ManagedMutationWrapper(forceUpdate);
+    const observableMutation = useRef<ObservableMutation<TCacheData, TData, TError, TResource>>();
+    observableMutation.current = observableMutation.current || new ObservableMutation(forceUpdate);
+
+    observableMutation.current.setOptions(client, mutation);
 
     useEffect(() => {
         return () => {
-            managedMutation.current?.cleanup();
+            observableMutation.current?.dispose();
         };
     }, []);
 
-    return managedMutation.current.process(mutation, client);
+    return [
+        observableMutation.current.execute,
+        { ...observableMutation.current.getState(), reset: observableMutation.current.reset },
+    ] as const;
 }

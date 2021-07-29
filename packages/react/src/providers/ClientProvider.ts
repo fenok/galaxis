@@ -1,30 +1,16 @@
 import { Cache, Client, NonUndefined } from '@galaxis/core';
 import { createContext, createElement, PropsWithChildren, useContext, useEffect } from 'react';
 
-const ClientContext = createContext<Client | undefined>(undefined);
+type BaseClient = Client<NonUndefined, Cache<any>, NonUndefined, Error, any>;
 
-export interface ClientProviderProps<
-    C extends NonUndefined = NonUndefined,
-    CACHE extends Cache<C> = Cache<C>,
-    BD extends NonUndefined = NonUndefined,
-    BE extends Error = Error,
-    BR = unknown
-> {
-    client: Client<C, CACHE, BD, BE, BR>;
+const ClientContext = createContext<BaseClient | undefined>(undefined);
+
+export interface ClientProviderProps {
+    client: BaseClient;
     preventOnHydrateCompleteCall?: boolean;
 }
 
-const ClientProvider = <
-    C extends NonUndefined = NonUndefined,
-    CACHE extends Cache<C> = Cache<C>,
-    BD extends NonUndefined = NonUndefined,
-    BE extends Error = Error,
-    BR = unknown
->({
-    children,
-    client,
-    preventOnHydrateCompleteCall,
-}: PropsWithChildren<ClientProviderProps<C, CACHE, BD, BE, BR>>) => {
+const ClientProvider = ({ children, client, preventOnHydrateCompleteCall }: PropsWithChildren<ClientProviderProps>) => {
     useEffect(() => {
         if (!preventOnHydrateCompleteCall) {
             client.onHydrateComplete();
@@ -34,21 +20,15 @@ const ClientProvider = <
     return createElement(ClientContext.Provider, { value: client }, children);
 };
 
-const useClient = <
-    C extends NonUndefined = NonUndefined,
-    CACHE extends Cache<C> = Cache<C>,
-    BD extends NonUndefined = NonUndefined,
-    BE extends Error = Error,
-    BR = unknown
->() => {
+const useClient = <TClient extends BaseClient>() => {
     const client = useContext(ClientContext);
 
     ensureClient(client);
 
-    return client as Client<C, CACHE, BD, BE, BR>;
+    return client as TClient;
 };
 
-function ensureClient(client: Client | undefined): asserts client is Client {
+function ensureClient<TClient>(client: TClient | undefined): asserts client is TClient {
     if (!client) {
         throw new Error('No client provided');
     }

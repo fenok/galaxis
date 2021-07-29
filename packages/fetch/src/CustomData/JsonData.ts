@@ -1,6 +1,6 @@
 import { CustomData } from './CustomData';
 
-export class JsonData<D> extends CustomData<D> {
+export class JsonData<T> extends CustomData<T> {
     public readonly contentType = 'application/json';
 
     public serialize(): string {

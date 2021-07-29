@@ -1,4 +1,4 @@
-import { getAbortController, onResolve } from '../promise';
+import { getAbortController } from '../promise';
 import { NonUndefined } from '../types';
 
 export interface QueueSection {
@@ -11,10 +11,10 @@ export interface QueueSection {
 export class RequestQueue {
     private queue: (QueueSection | undefined)[] = [];
 
-    public addPromise<D extends NonUndefined>(
-        promiseFactory: (abortDelaySignal?: AbortSignal) => Promise<D>,
+    public addPromise<TData extends NonUndefined>(
+        promiseFactory: (abortDelaySignal?: AbortSignal) => Promise<TData>,
         type: 'query' | 'mutation',
-    ): Promise<D> {
+    ): Promise<TData> {
         const lastQueueSection = this.queue[this.queue.length - 1];
 
         const noMerge = lastQueueSection?.type === 'mutation' || type === 'mutation';
@@ -56,4 +56,8 @@ export class RequestQueue {
 
         return promise;
     }
+}
+
+export function onResolve<U>(promise: Promise<unknown>, cb: () => U | Promise<U>): Promise<U> {
+    return promise.then(cb, cb);
 }

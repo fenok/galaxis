@@ -28,15 +28,17 @@ const inMemoryCache = new InMemoryCache({ emptyData, initialState, enableDevTool
 
 ##### Arguments
 
-| Name           | Type                                                                                                                                          | Description                                                                         | Required |
-| -------------- | --------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- | -------- |
-| emptyData      | <code>[C](/packages/core#user-defined-types)</code>                                                                                           | A value that conforms to `C`, that is considered to be empty. E.g. `{entities: {}}` | Yes      |
-| initialState   | <code>[CacheState](#cachestate)<[C](/packages/core#user-defined-types), [ErrorObject](https://www.npmjs.com/package/serialize-error) ></code> | A value from <code>[cache.extract()](#cacheextract)</code>, most likely from SSR.   | No       |
-| enableDevTools | `boolean`                                                                                                                                     | Enable Redux DevTools integration.                                                  | No       |
+| Name           | Type                                                                                                                                                   | Description                                                                                  | Required |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------- | -------- |
+| emptyData      | <code>[TCacheData](/packages/core#user-defined-types)</code>                                                                                           | A value that conforms to `TCacheData`, that is considered to be empty. E.g. `{entities: {}}` | Yes      |
+| initialState   | <code>[CacheState](#cachestate)<[TCacheData](/packages/core#user-defined-types), [ErrorObject](https://www.npmjs.com/package/serialize-error) ></code> | A value from <code>[cache.extract()](#cacheextract)</code>, most likely from SSR.            | No       |
+| enableDevTools | `boolean`                                                                                                                                              | Enable Redux DevTools integration.                                                           | No       |
 
 #### `cache.extract()`
 
 Returns the cache state in serializable form. Uses [serialize-error](https://www.npmjs.com/package/serialize-error) to convert errors into serializable objects.
+
+If the cache is split, returns the state with the least amount of changes. It should never happen during SSR, and on the client side it means that the extracted state won't contain any optimistic data (but will contain everything else).
 
 ```typescript
 const state = cache.extract();
@@ -44,7 +46,7 @@ const state = cache.extract();
 
 ##### Return value
 
-<code>[CacheState](#cachestate)<[C](/packages/core#user-defined-types), [ErrorObject](https://www.npmjs.com/package/serialize-error) ></code>
+<code>[CacheState](#cachestate)<[TCacheData](/packages/core#user-defined-types), [ErrorObject](https://www.npmjs.com/package/serialize-error) ></code>
 
 ### Important types
 
@@ -52,7 +54,7 @@ const state = cache.extract();
 
 Internal state of the cache.
 
-| Name   | Type                                                | Description                               |
-| ------ | --------------------------------------------------- | ----------------------------------------- |
-| data   | <code>[C](/packages/core#user-defined-types)</code> | Cache data.                               |
-| errors | <code>Record<string, E &#124; undefined></code>     | Cached errors. `E` is `Error` by default. |
+| Name   | Type                                                         | Description                               |
+| ------ | ------------------------------------------------------------ | ----------------------------------------- |
+| data   | <code>[TCacheData](/packages/core#user-defined-types)</code> | Cache data.                               |
+| errors | <code>Record<string, E &#124; undefined></code>              | Cached errors. `E` is `Error` by default. |

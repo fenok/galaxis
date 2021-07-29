@@ -4,32 +4,39 @@
 
 import {
     getQueryProcessor,
-    getFirstItemRequest,
-    FIRST_ITEM,
-    getFailingFirstItemRequest,
     getNetworkError,
+    toCache,
+    fromCache,
+    FIRST_ITEM_RESOURCE,
+    request,
+    FIRST_ITEM,
 } from './utils/request-helpers';
 
 it('does not return promise if there is error in cache', async () => {
     const queryProcessor = getQueryProcessor();
 
-    const firstItemRequest = getFailingFirstItemRequest();
+    const failingQuery = {
+        resource: FIRST_ITEM_RESOURCE,
+        request: () => Promise.reject(getNetworkError()),
+        toCache,
+        fromCache,
+    };
 
-    const queryResult = queryProcessor.query(firstItemRequest);
+    const [, promise] = queryProcessor.query(failingQuery);
 
-    await expect(queryResult.request).rejects.toEqual(getNetworkError());
+    await expect(promise).rejects.toEqual(getNetworkError());
 
-    const dataFromCache = queryProcessor.readQuery(firstItemRequest);
+    const dataFromCache = queryProcessor.readQuery(failingQuery);
     expect(dataFromCache).toMatchObject({ data: undefined, error: getNetworkError() });
 
-    const nextQueryResult = queryProcessor.query(firstItemRequest);
+    const [, nextPromise] = queryProcessor.query(failingQuery);
 
-    const postQueryDataFromCache = queryProcessor.readQuery(firstItemRequest);
+    const postQueryDataFromCache = queryProcessor.readQuery(failingQuery);
     expect(postQueryDataFromCache).toMatchObject({ data: undefined, error: getNetworkError() });
 
-    expect(nextQueryResult.request).toEqual(undefined);
+    expect(nextPromise).toEqual(undefined);
 
-    const nextDataFromCache = queryProcessor.readQuery(firstItemRequest);
+    const nextDataFromCache = queryProcessor.readQuery(failingQuery);
 
     expect(nextDataFromCache).toMatchObject({ data: undefined, error: getNetworkError() });
 });
@@ -37,21 +44,26 @@ it('does not return promise if there is error in cache', async () => {
 it('does not return promise if there is data in cache', async () => {
     const queryProcessor = getQueryProcessor();
 
-    const firstItemRequest = getFirstItemRequest();
+    const firstItemQuery = {
+        resource: FIRST_ITEM_RESOURCE,
+        request: request(),
+        toCache,
+        fromCache,
+    };
 
-    const queryResult = queryProcessor.query(firstItemRequest);
+    const [, promise] = queryProcessor.query(firstItemQuery);
 
-    await expect(queryResult.request).resolves.toEqual(FIRST_ITEM);
+    await expect(promise).resolves.toEqual(FIRST_ITEM);
 
-    const dataFromCache = queryProcessor.readQuery(firstItemRequest);
+    const dataFromCache = queryProcessor.readQuery(firstItemQuery);
 
     expect(dataFromCache).toMatchObject({ data: FIRST_ITEM, error: undefined });
 
-    const nextQueryResult = queryProcessor.query(firstItemRequest);
+    const [, nextRequest] = queryProcessor.query(firstItemQuery);
 
-    expect(nextQueryResult.request).toEqual(undefined);
+    expect(nextRequest).toEqual(undefined);
 
-    const nextDataFromCache = queryProcessor.readQuery(firstItemRequest);
+    const nextDataFromCache = queryProcessor.readQuery(firstItemQuery);
 
     expect(nextDataFromCache).toMatchObject({ data: FIRST_ITEM, error: undefined });
 });
@@ -59,11 +71,16 @@ it('does not return promise if there is data in cache', async () => {
 it('can opt-out from returning the promise', () => {
     const queryProcessor = getQueryProcessor();
 
-    const firstItemRequest = getFirstItemRequest();
+    const firstItemQuery = {
+        resource: FIRST_ITEM_RESOURCE,
+        request: request(),
+        toCache,
+        fromCache,
+    };
 
-    const queryResult = queryProcessor.query({ ...firstItemRequest, disableSsr: true });
-    expect(queryResult.request).toEqual(undefined);
+    const [, promise] = queryProcessor.query({ ...firstItemQuery, disableSsr: true });
+    expect(promise).toEqual(undefined);
 
-    const dataFromCache = queryProcessor.readQuery(firstItemRequest);
+    const dataFromCache = queryProcessor.readQuery(firstItemQuery);
     expect(dataFromCache).toMatchObject({ data: undefined, error: undefined });
 });

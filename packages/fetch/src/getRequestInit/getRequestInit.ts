@@ -1,7 +1,7 @@
-import { RequestParams } from '../types';
+import { FetchResource } from '../types';
 import { CustomData } from '../CustomData';
 
-export function getRequestInit(requestParams: RequestParams): RequestInit {
+export function getRequestInit(requestParams: FetchResource): RequestInit {
     if (requestParams.body instanceof CustomData) {
         const body = requestParams.body.serialize();
         const headers = addContentTypeHeader(requestParams.headers, requestParams.body.contentType);

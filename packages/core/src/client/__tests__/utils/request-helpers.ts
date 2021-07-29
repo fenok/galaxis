@@ -1,15 +1,18 @@
 import { RequestQueue } from '../../RequestQueue';
-import { Query, BaseRequest, RequestOptions } from '../../../types';
+import { FromCacheOptions, Resource, ToCacheOptions } from '../../../types';
 import { QueryProcessor } from '../../QueryProcessor';
-import { TestCache } from './TestCache';
-import { wait } from '../../../promise';
+import { CacheState, InMemoryCache } from './InMemoryCache';
 import { Client } from '../../Client';
+import { wait } from './promise-helpers';
 
 export interface ItemEntity {
     id: string;
     value: string;
     freshness: number;
-    optimistic?: true;
+}
+
+export interface ItemEntityUpdateDTO {
+    value?: string;
 }
 
 export const FIRST_ITEM: ItemEntity = {
@@ -18,14 +21,14 @@ export const FIRST_ITEM: ItemEntity = {
     freshness: 1,
 };
 
-export const FIRST_ITEM_UPDATE_DTO: Partial<Omit<ItemEntity, 'id' | 'freshness'>> = {
-    value: 'first-updated',
-};
-
 export const FIRST_ITEM_UPDATED: ItemEntity = {
     id: '1',
     value: 'first-updated',
     freshness: 1,
+};
+
+export const FIRST_ITEM_UPDATE_DTO: ItemEntityUpdateDTO = {
+    value: 'first-updated',
 };
 
 export const SECOND_ITEM: ItemEntity = {
@@ -34,9 +37,10 @@ export const SECOND_ITEM: ItemEntity = {
     freshness: 1,
 };
 
-export interface TestRequestInit {
+export interface ItemResource extends Resource {
+    name: 'item';
     id: string;
-    updateItem?: Partial<Omit<ItemEntity, 'id' | 'freshness'>>;
+    updateItem?: ItemEntityUpdateDTO;
     time?: number;
 }
 
@@ -48,97 +52,62 @@ export function getNetworkError() {
     return new Error('Network error');
 }
 
-export function getGetRequestFactory() {
+export function request() {
     const state: Record<string, ItemEntity> = { '1': FIRST_ITEM, '2': SECOND_ITEM };
 
-    return ({ requestParams }: RequestOptions<TestRequestInit>) => {
-        let freshness = 0;
+    const freshnesses = new Map<unknown, number>();
 
-        return (abortSignal?: AbortSignal) => {
-            freshness++;
+    return (resource: ItemResource, abortSignal?: AbortSignal) => {
+        freshnesses.set(resource, (freshnesses.get(resource) || 0) + 1);
 
-            return new Promise<ItemEntity>((resolve, reject) => {
-                function onAbort() {
-                    reject(getAbortError());
+        return new Promise<ItemEntity>((resolve, reject) => {
+            function onAbort() {
+                reject(getAbortError());
+            }
+
+            if (abortSignal?.aborted) {
+                onAbort();
+            } else {
+                abortSignal?.addEventListener('abort', onAbort);
+            }
+
+            void wait(resource.time ?? 200).then(() => {
+                if (resource.updateItem) {
+                    state[resource.id] = { ...state[resource.id], ...resource.updateItem };
                 }
 
-                if (abortSignal?.aborted) {
-                    onAbort();
-                } else {
-                    abortSignal?.addEventListener('abort', onAbort);
-                }
-
-                void wait(requestParams.time ?? 200).then(() => {
-                    if (requestParams.updateItem) {
-                        state[requestParams.id] = { ...state[requestParams.id], ...requestParams.updateItem };
-                    }
-
-                    resolve({ ...state[requestParams.id], freshness });
-                });
+                resolve({ ...state[resource.id], freshness: freshnesses.get(resource) || 0 });
             });
-        };
+        });
     };
 }
 
-export interface TestCacheData {
+export interface CacheData {
     items: Record<string, ItemEntity>;
 }
 
-export const INITIAL_CACHE_DATA: TestCacheData = {
+export const EMPTY_CACHE_DATA = {
     items: {},
 };
 
-export const BASE_REQUEST: Pick<BaseRequest<TestCacheData, ItemEntity, Error, TestRequestInit>, 'getRequestId'> = {
-    getRequestId({ requestParams }: RequestOptions<TestRequestInit>): string {
-        return Buffer.from(JSON.stringify(requestParams)).toString('base64');
-    },
+export const INITIAL_CACHE_STATE: CacheState<CacheData> = {
+    data: EMPTY_CACHE_DATA,
+    errors: {},
 };
 
-export const BASE_QUERY: typeof BASE_REQUEST &
-    Pick<Query<TestCacheData, ItemEntity, Error, TestRequestInit>, 'fetchPolicy'> = {
-    ...BASE_REQUEST,
-    fetchPolicy: 'cache-and-network',
-};
+export const FIRST_ITEM_RESOURCE: ItemResource = { name: 'item', id: '1' };
+export const SECOND_ITEM_RESOURCE: ItemResource = { name: 'item', id: '2' };
 
-export const ITEM_REQUEST: Omit<
-    Query<TestCacheData, ItemEntity, Error, TestRequestInit>,
-    'requestParams' | 'getRequestFactory'
-> = {
-    ...BASE_QUERY,
-    toCache({ cacheData, data }) {
-        return { ...cacheData, items: { ...cacheData.items, [data.id]: data } };
-    },
-    fromCache({ cacheData, requestParams }) {
-        return cacheData.items[requestParams.id];
-    },
-};
-
-export function getFirstItemRequest(
-    getRequestFactory = getGetRequestFactory(),
-): Query<TestCacheData, ItemEntity, Error, TestRequestInit> {
-    return {
-        ...ITEM_REQUEST,
-        getRequestFactory,
-        requestParams: { id: '1' },
-    };
+export function toCache({ cacheData, data }: ToCacheOptions<CacheData, ItemEntity, ItemResource>) {
+    return { ...cacheData, items: { ...cacheData.items, [data.id]: data } };
 }
 
-export function getFailingFirstItemRequest(): Query<TestCacheData, ItemEntity, Error, TestRequestInit> {
-    return {
-        ...ITEM_REQUEST,
-        getRequestFactory: () => () => Promise.reject(getNetworkError()),
-        requestParams: { id: '1' },
-    };
+export function fromCache({ cacheData, resource }: FromCacheOptions<CacheData, ItemResource>) {
+    return cacheData.items[resource.id];
 }
 
-export function getSecondItemRequest(
-    getRequestFactory = getGetRequestFactory(),
-): Query<TestCacheData, ItemEntity, Error, TestRequestInit> {
-    return {
-        ...ITEM_REQUEST,
-        getRequestFactory,
-        requestParams: { id: '2' },
-    };
+export function requestId(resource: ItemResource): string {
+    return Buffer.from(JSON.stringify(resource)).toString('base64');
 }
 
 export function getRequestQueue() {
@@ -146,16 +115,14 @@ export function getRequestQueue() {
 }
 
 export function getCache() {
-    return new TestCache({ initialData: INITIAL_CACHE_DATA, emptyData: INITIAL_CACHE_DATA });
+    return new InMemoryCache({ initialState: INITIAL_CACHE_STATE, emptyData: EMPTY_CACHE_DATA });
 }
 
 export function getQueryProcessor(requestQueue = getRequestQueue(), cache = getCache()) {
     return new QueryProcessor({
         cache,
         requestQueue,
-        hash(value: unknown): string {
-            return JSON.stringify(value);
-        },
+        requestId,
     });
 }
 
@@ -163,22 +130,13 @@ export function getMutationProcessor(requestQueue = getRequestQueue(), cache = g
     return new QueryProcessor({
         cache,
         requestQueue,
-        hash(value: unknown): string {
-            return JSON.stringify(value);
-        },
+        requestId,
     });
 }
 
 export function getClient(cache = getCache()) {
-    return new Client({
+    return new Client<CacheData, InMemoryCache<CacheData>, ItemEntity, Error, ItemResource>({
         cache,
-        defaultQuery: getFirstItemRequest(),
-        defaultMutation: getFirstItemRequest(),
-        hash(value: unknown): string {
-            return JSON.stringify(value);
-        },
-        merge<R1, R2, R3>(r1: R1, r2: R2, r3: R3): R1 & R2 & R3 {
-            return { ...r1, ...r2, ...r3 };
-        },
+        requestId,
     });
 }

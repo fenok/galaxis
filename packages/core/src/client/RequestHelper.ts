@@ -1,15 +1,20 @@
 import { delayedPromise, Signals } from '../promise';
-import { BaseRequest, NonUndefined } from '../types';
+import { Request, NonUndefined, Resource } from '../types';
 
 export class RequestHelper {
-    public static getPromiseFactory<C extends NonUndefined, D extends NonUndefined, E extends Error, R>(
-        request: BaseRequest<C, D, E, R>,
+    public static getPromiseFactory<
+        TCacheData extends NonUndefined,
+        TData extends NonUndefined,
+        TError extends Error,
+        TResource extends Resource,
+    >(
+        request: Request<TCacheData, TData, TError, TResource>,
         signals: Signals = {},
-    ): (abortDelaySignal?: AbortSignal) => Promise<D> {
+    ): (abortDelaySignal?: AbortSignal) => Promise<TData> {
         return (abortDelaySignal?: AbortSignal) =>
             delayedPromise(
-                request.getRequestFactory
-                    ? request.getRequestFactory(request)
+                request.request
+                    ? request.request.bind(null, request.resource)
                     : () => Promise.reject(new Error('No request factory provided')),
                 {
                     ...signals,

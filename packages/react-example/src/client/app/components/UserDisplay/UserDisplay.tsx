@@ -1,7 +1,8 @@
 import { FC, useState } from 'react';
-import { userQuery } from '../../requests/user';
+import { User, userQuery, userUpdateMutation } from '../../requests/user';
 import { FetchPolicy, useQuery } from '@galaxis/react';
 import { isResponseError } from '../../lib/isResponseError';
+import { useMutation } from '../../lib/useMutation';
 
 interface Props {
     fetchPolicy: FetchPolicy;
@@ -10,36 +11,39 @@ interface Props {
 const UserDisplay: FC<Props> = ({ fetchPolicy }) => {
     const [userId, setUserId] = useState(1);
 
-    const { data, error, loading, refetch, abort, execute, executed, reset } = useQuery(
+    const { data, error, loading, refetch } = useQuery(
         userQuery({
-            requestParams: { pathParams: { id: userId } },
+            variables: { id: userId },
             fetchPolicy,
         }),
     );
 
+    const [updateUser] = useMutation<User>();
+
     return (
         <div>
             <button
-                onClick={() => {
-                    console.log(execute());
-                }}
+                onClick={() =>
+                    updateUser(
+                        userUpdateMutation({
+                            variables: { id: userId, data: { name: String(Math.random()) } },
+                            optimisticData: {
+                                id: userId,
+                                name: 'Optimistic name',
+                                username: data?.username ?? 'optimist',
+                                email: data?.email ?? 'optimistic@email.com',
+                            },
+                        }),
+                    )
+                }
             >
-                Execute
+                Update name to Math.random()
             </button>
-            <button disabled={!executed} onClick={refetch}>
-                Refetch
-            </button>
-            <button disabled={!loading} onClick={abort}>
-                Abort
-            </button>
-            <button disabled={!executed} onClick={reset}>
-                Reset
-            </button>
+            <button onClick={refetch}>Refetch</button>
             <button onClick={() => setUserId((prevId) => prevId + 1)}>Increment user id</button>
             <button onClick={() => setUserId((prevId) => prevId - 1)}>Decrement user id</button>
             <div>User id: {userId}</div>
             <div>Fetch policy: {fetchPolicy}</div>
-            <div>Executed: {JSON.stringify(executed)}</div>
             <div>Data: {JSON.stringify(data)}</div>
             <div>Loading: {JSON.stringify(loading)}</div>
             <div>Error: {formatError(error)}</div>

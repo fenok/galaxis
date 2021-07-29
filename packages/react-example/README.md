@@ -1,12 +1,10 @@
 # Galaxis React Example
 
-This example demonstrates usage of queries with SSR. Mutations are not shown, but they are very similar to queries.
+This example demonstrates the use of queries and mutations with SSR.
 
-The example uses [Fetch](/packages/fetch#galaxis-fetch) as a network interface and [In-Memory Cache](/packages/in-memory-cache#galaxis-in-memory-cache) as a cache. Note that you can use [Redux DevTools](https://github.com/reduxjs/redux-devtools) to observe the cache state.
+The example uses <code>[Fetch](/packages/fetch#galaxis-fetch)</code> as a network interface and <code>[InMemoryCache](/packages/in-memory-cache#galaxis-in-memory-cache)</code> as a cache. Note that you can use [Redux DevTools](https://github.com/reduxjs/redux-devtools) to observe the cache state.
 
-It also demonstrates how to use the <code>[getParametrizedRequest()](/packages/utils#getparametrizedrequest)</code> utility from [Utils](/packages/utils#galaxis-utils) for convenient queries creation.
-
-Queries are made to [{JSON} Placeholder](https://jsonplaceholder.typicode.com) fake API.
+Requests are artificially slowed down to take at least one second to finish.
 
 ## Run it locally
 
