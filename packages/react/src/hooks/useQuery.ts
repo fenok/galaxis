@@ -1,4 +1,4 @@
-import { NonUndefined, Query, ObservableQuery, Resource } from '@galaxis/core';
+import { Cache, Client, NonUndefined, ObservableQuery, Query, Resource } from '@galaxis/core';
 import { useContext, useEffect, useReducer, useRef } from 'react';
 import { useClient } from '../providers';
 import { SsrPromisesManagerContext } from '../ssr';
@@ -10,10 +10,10 @@ export function useQuery<
     TError extends Error,
     TResource extends Resource
 >(query?: Query<TCacheData, TData, TError, TResource>) {
-    const client = useClient();
+    const client = useClient<Client<TCacheData, Cache<TCacheData>, TData, TError, TResource>>();
     const ssrPromisesManager = useContext(SsrPromisesManagerContext);
 
-    const memoizedQuery = useMemoByHashObject(query, getHashObject.bind(null, client.requestId));
+    const memoizedQuery = useMemoByHashObject(query, getHashObject(client.requestId));
 
     const [, forceUpdate] = useReducer((i: number) => i + 1, 0);
 
@@ -45,14 +45,14 @@ export function useQuery<
     return { ...observableQuery.current.getState(), refetch: observableQuery.current.refetch };
 }
 
-function getHashObject(
-    hash: (resource: Resource) => string,
-    query: Query<NonUndefined, NonUndefined, Error, Resource>,
-): Record<string, unknown> {
-    return Object.fromEntries(
-        Object.entries(query).map(([key, value]: [string, unknown]) => [
-            key,
-            key === 'resource' ? hash(value as Resource) : typeof value === 'function' ? value.toString() : value,
-        ]),
-    );
+function getHashObject<TResource extends Resource>(
+    hash: (resource: TResource) => string,
+): (query: Query<NonUndefined, NonUndefined, Error, TResource>) => Record<string, unknown> {
+    return (query) =>
+        Object.fromEntries(
+            Object.entries(query).map(([key, value]: [string, unknown]) => [
+                key,
+                key === 'resource' ? hash(value as TResource) : typeof value === 'function' ? value.toString() : value,
+            ]),
+        );
 }

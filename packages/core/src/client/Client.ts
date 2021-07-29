@@ -5,22 +5,22 @@ import { Cache, Mutation, NonUndefined, Query, Resource } from '../types';
 import { DefaultsMerger, DefaultsMergerOptions } from './DefaultsMerger';
 
 interface ClientOptions<
-    TCacheData extends NonUndefined = NonUndefined,
-    TCache extends Cache<TCacheData> = Cache<TCacheData>,
-    TBaseData extends NonUndefined = NonUndefined,
-    TBaseError extends Error = Error,
-    TBaseResource extends Resource = Resource
+    TCacheData extends NonUndefined,
+    TCache extends Cache<TCacheData>,
+    TBaseData extends NonUndefined,
+    TBaseError extends Error,
+    TBaseResource extends Resource
 > extends DefaultsMergerOptions<TCacheData, TBaseData, TBaseError> {
     cache: TCache;
     requestId(resource: TBaseResource): string;
 }
 
 class Client<
-    TCacheData extends NonUndefined = NonUndefined,
-    TCache extends Cache<TCacheData> = Cache<TCacheData>,
-    TBaseData extends NonUndefined = NonUndefined,
-    TBaseError extends Error = Error,
-    TBaseResource extends Resource = Resource
+    TCacheData extends NonUndefined,
+    TCache extends Cache<TCacheData>,
+    TBaseData extends NonUndefined,
+    TBaseError extends Error,
+    TBaseResource extends Resource
 > {
     private readonly cache: TCache;
     private queryProcessor: QueryProcessor<TCacheData>;

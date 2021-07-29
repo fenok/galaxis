@@ -1,4 +1,4 @@
-import { NonUndefined, Query, Resource } from '../types';
+import { NonUndefined, Query, Resource, Cache } from '../types';
 import { Client } from '../client';
 import { logger } from '../logger';
 
@@ -16,7 +16,7 @@ export class ObservableQuery<
 > {
     private query?: Query<TCacheData, TData, TError, TResource>;
 
-    private client?: Client;
+    private client?: Client<TCacheData, Cache<TCacheData>, TData, TError, TResource>;
     private onChange: () => void;
 
     private currentRequest?: Promise<TData>;
@@ -48,7 +48,10 @@ export class ObservableQuery<
         return this.state;
     }
 
-    public setOptions(client: Client, query?: Query<TCacheData, TData, TError, TResource>) {
+    public setOptions(
+        client: Client<TCacheData, Cache<TCacheData>, TData, TError, TResource>,
+        query?: Query<TCacheData, TData, TError, TResource>,
+    ) {
         if (this.client !== client || this.query !== query) {
             this.stop();
 

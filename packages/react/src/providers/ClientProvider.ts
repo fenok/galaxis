@@ -1,10 +1,12 @@
-import { Client } from '@galaxis/core';
+import { Cache, Client, NonUndefined } from '@galaxis/core';
 import { createContext, createElement, PropsWithChildren, useContext, useEffect } from 'react';
 
-const ClientContext = createContext<Client<any, any, any, any, any> | undefined>(undefined);
+type BaseClient = Client<NonUndefined, Cache<any>, NonUndefined, Error, any>;
+
+const ClientContext = createContext<BaseClient | undefined>(undefined);
 
 export interface ClientProviderProps {
-    client: Client<any, any, any, any, any>;
+    client: BaseClient;
     preventOnHydrateCompleteCall?: boolean;
 }
 
@@ -18,7 +20,7 @@ const ClientProvider = ({ children, client, preventOnHydrateCompleteCall }: Prop
     return createElement(ClientContext.Provider, { value: client }, children);
 };
 
-const useClient = <TClient extends Client<any, any, any, any, any>>() => {
+const useClient = <TClient extends BaseClient>() => {
     const client = useContext(ClientContext);
 
     ensureClient(client);

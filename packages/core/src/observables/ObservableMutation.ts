@@ -1,4 +1,4 @@
-import { Mutation, NonUndefined, Resource } from '../types';
+import { Cache, Mutation, NonUndefined, Resource } from '../types';
 import { Client } from '../client';
 
 export interface ObservableMutationState<TData extends NonUndefined, TError extends Error> {
@@ -15,7 +15,7 @@ export class ObservableMutation<
     TResource extends Resource
 > {
     private onChange: () => void;
-    private client?: Client;
+    private client?: Client<TCacheData, Cache<TCacheData>, TData, TError, TResource>;
     private mutation?: Mutation<TCacheData, TData, TError, TResource>;
     private currentRequest?: Promise<TData>;
 
@@ -36,7 +36,10 @@ export class ObservableMutation<
         return this.state;
     }
 
-    public setOptions(client: Client, mutation?: Mutation<TCacheData, TData, TError, TResource>) {
+    public setOptions(
+        client: Client<TCacheData, Cache<TCacheData>, TData, TError, TResource>,
+        mutation?: Mutation<TCacheData, TData, TError, TResource>,
+    ) {
         if (this.client !== client) {
             this.unsubscribeFromOnReset?.();
             this.unsubscribeFromOnReset = client.onReset(this.reset);

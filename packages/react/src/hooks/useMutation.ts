@@ -1,5 +1,5 @@
 import { useClient } from '../providers';
-import { NonUndefined, ObservableMutation, Mutation, Resource } from '@galaxis/core';
+import { NonUndefined, ObservableMutation, Mutation, Resource, Client, Cache } from '@galaxis/core';
 import { useEffect, useReducer, useRef } from 'react';
 
 export function useMutation<
@@ -8,7 +8,7 @@ export function useMutation<
     TError extends Error,
     TResource extends Resource
 >(mutation?: Mutation<TCacheData, TData, TError, TResource>) {
-    const client = useClient();
+    const client = useClient<Client<TCacheData, Cache<TCacheData>, TData, TError, TResource>>();
 
     const [, forceUpdate] = useReducer((i: number) => i + 1, 0);
 

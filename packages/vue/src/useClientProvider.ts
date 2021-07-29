@@ -1,10 +1,12 @@
-import { Client } from '@galaxis/core';
+import { Client, NonUndefined, Cache } from '@galaxis/core';
 import { inject, onMounted, provide } from 'vue';
+
+type BaseClient = Client<NonUndefined, Cache<any>, NonUndefined, Error, any>;
 
 export const client = Symbol('client');
 
 export interface ClientProviderOptions {
-    client: Client<any, any, any, any, any>;
+    client: BaseClient;
     preventOnHydrateCompleteCall?: boolean;
 }
 
@@ -18,7 +20,7 @@ export function useClientProvider({ client: clientInstance, preventOnHydrateComp
     });
 }
 
-export function useClient<TClient extends Client<any, any, any, any, any>>() {
+export function useClient<TClient extends BaseClient>() {
     const instance = inject<TClient>(client);
 
     ensureClient(instance);
