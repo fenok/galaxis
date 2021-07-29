@@ -17,8 +17,8 @@
         "dist/"
     ],
     "scripts": {
-        "prepare": "yarn build",
-        "prepublishOnly": "yarn lint",
+        "prepack": "yarn build",
+        "prepublish": "yarn lint",
         "build": "rimraf ./dist && tsc",
         "lint": "eslint .",
         "format": "prettier --write \"**/*.{js,ts,tsx,json,md,*rc}\""

@@ -20,8 +20,8 @@
         "dist/"
     ],
     "scripts": {
-        "prepare": "yarn build",
-        "prepublishOnly": "yarn test && yarn lint",
+        "prepack": "yarn build",
+        "prepublish": "yarn test && yarn lint",
         "build": "rimraf ./dist && tsc -p tsconfig.build.json",
         "lint": "eslint .",
         "test": "jest",
