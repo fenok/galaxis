@@ -94,7 +94,9 @@ class InMemoryCache<TCacheData extends NonUndefined> implements Cache<TCacheData
     }
 
     private getState() {
-        return this.splitStates[this.splitStates.length - 1];
+        const lastState = this.splitStates[this.splitStates.length - 1];
+
+        return { data: lastState.data, errors: lastState.errors };
     }
 
     private deserializeState(serializableState: CacheState<TCacheData, ErrorObject>): CacheState<TCacheData> {
