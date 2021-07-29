@@ -1,4 +1,4 @@
-import { getQuery } from '../lib/getQuery';
+import { query } from '../lib/request';
 import { immerify, memoize } from '@galaxis/utils';
 
 export interface User {
@@ -8,12 +8,13 @@ export interface User {
     email: string;
 }
 
-export type UserQueryResource = { pathParams: { id: number } };
+export type UserQueryVariablesConstraint = { pathParams: { id: number } };
+export type UserQueryVariables = { id: number };
 
-export const userQuery = getQuery<User, UserQueryResource>((variables) => ({
+export const userQuery = query<User, UserQueryVariablesConstraint, UserQueryVariables>((variables) => ({
     resource: {
         name: '/users/:id',
-        ...variables,
+        pathParams: { id: variables.id },
     },
     toCache: immerify(({ cacheData, data }) => {
         cacheData.users[data.id] = {

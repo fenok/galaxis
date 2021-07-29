@@ -1,5 +1,5 @@
 import { FC } from 'react';
-import { useClient } from '@galaxis/react';
+import { useClient } from '../../lib/Client';
 
 const Reset: FC = () => {
     const client = useClient();

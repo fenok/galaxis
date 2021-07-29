@@ -3,7 +3,7 @@ import { createElement } from 'react';
 import { Html } from './app/components/Html';
 import { renderToStaticMarkup, renderToString } from 'react-dom/server';
 import { App } from './app/components/App';
-import { getClient } from './app/lib/getClient';
+import { getClient } from './app/lib/Client';
 import { getDataFromTree } from '@galaxis/react';
 import fetchFn from 'node-fetch';
 

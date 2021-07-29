@@ -1,9 +1,9 @@
-import { Mutation, NonUndefined, Query } from '@galaxis/react';
+import { Mutation, NonUndefined, Query } from '@galaxis/vue';
 import { FetchVariables, FetchResource, FetchVariablesConstraint, ResponseError } from '@galaxis/fetch';
 import { CacheData } from './CacheData';
 import { ErrorResponse } from './ErrorResponse';
 
-export function getQuery<
+export function query<
     TData extends NonUndefined,
     TVariablesConstraint extends FetchVariablesConstraint = FetchVariablesConstraint,
     TVariables = FetchVariables<TVariablesConstraint>
@@ -20,7 +20,7 @@ export function getQuery<
     >) => ({ ...factory(variables), ...request });
 }
 
-export function getMutation<
+export function mutation<
     TData extends NonUndefined,
     TVariablesConstraint extends FetchVariablesConstraint = FetchVariablesConstraint,
     TVariables = FetchVariables<TVariablesConstraint>

@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { createSSRApp } from 'vue';
 import { renderToString } from '@vue/server-renderer';
 import App from './app/components/App.vue';
-import { getClient } from './app/lib/getClient';
+import { getClient } from './app/lib/Client';
 import fetchFn from 'node-fetch';
 
 export default async function ssrMiddleware(_: Request, res: Response<unknown>) {

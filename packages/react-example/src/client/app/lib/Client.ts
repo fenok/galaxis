@@ -1,14 +1,9 @@
-import { Client, NonUndefined } from '@galaxis/react';
+import { Client, NonUndefined, useClient as useClientLib } from '@galaxis/react';
 import { InMemoryCache } from '@galaxis/in-memory-cache';
-import { CacheData } from './CacheData';
+import { CacheData, EMPTY_DATA } from './CacheData';
 import { processResponseJson, request, requestId, ResponseError } from '@galaxis/fetch';
 import { objectHash } from '@galaxis/utils';
 import { ErrorResponse } from './ErrorResponse';
-
-export const EMPTY_DATA: CacheData = {
-    users: {},
-    emails: {},
-};
 
 export interface GetClientOptions {
     fetch?: typeof fetch;
@@ -32,8 +27,11 @@ export function getClient({ fetch }: GetClientOptions): AppClient {
         },
         defaultQuery: {
             optimizeOnHydrate: true,
-            fetchPolicy: 'cache-and-network',
         },
         requestId: requestId({ hash: objectHash }),
     });
+}
+
+export function useClient() {
+    return useClientLib<AppClient>();
 }

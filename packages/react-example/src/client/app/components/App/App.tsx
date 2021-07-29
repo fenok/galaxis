@@ -1,6 +1,6 @@
 import { ClientProvider } from '@galaxis/react';
 import { UserDisplay } from '../UserDisplay';
-import { AppClient } from '../../lib/getClient';
+import { AppClient } from '../../lib/Client';
 import { FC } from 'react';
 import { Reset } from '../Reset';
 import { Clear } from '../Clear';

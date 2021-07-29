@@ -13,3 +13,8 @@ export interface CacheData {
     users: Record<string, CacheUser | undefined>;
     emails: Record<string, CacheEmail | undefined>;
 }
+
+export const EMPTY_DATA: CacheData = {
+    users: {},
+    emails: {},
+};

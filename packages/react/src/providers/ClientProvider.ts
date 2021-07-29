@@ -26,7 +26,7 @@ const useClient = <TClient extends Client<any, any, any, any>>() => {
     return client as TClient;
 };
 
-function ensureClient(client: Client | undefined): asserts client is Client {
+function ensureClient<TClient>(client: TClient | undefined): asserts client is TClient {
     if (!client) {
         throw new Error('No client provided');
     }
