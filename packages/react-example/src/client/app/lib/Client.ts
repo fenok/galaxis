@@ -1,7 +1,7 @@
 import { Client, NonUndefined, useClient as useClientLib } from '@galaxis/react';
 import { InMemoryCache } from '@galaxis/in-memory-cache';
 import { CacheData, EMPTY_DATA } from './CacheData';
-import { processResponseJson, request, requestId, ResponseError } from '@galaxis/fetch';
+import { processResponseJson, request, requestId, ResponseError, FetchResource } from '@galaxis/fetch';
 import { objectHash } from '@galaxis/utils';
 import { ErrorResponse } from './ErrorResponse';
 
@@ -9,7 +9,13 @@ export interface GetClientOptions {
     fetch?: typeof fetch;
 }
 
-export type AppClient = Client<CacheData, InMemoryCache<CacheData>, NonUndefined, ResponseError<ErrorResponse>>;
+export type AppClient = Client<
+    CacheData,
+    InMemoryCache<CacheData>,
+    NonUndefined,
+    ResponseError<ErrorResponse>,
+    FetchResource
+>;
 
 export function getClient({ fetch }: GetClientOptions): AppClient {
     return new Client({
