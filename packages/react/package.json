@@ -7,7 +7,7 @@
         "react-hooks",
         "ssr"
     ],
-    "version": "0.1.0",
+    "version": "0.2.0",
     "repository": "github:fenok/galaxis",
     "license": "MIT",
     "author": "Leonid Fenko <fenok2112@gmail.com>",
@@ -25,7 +25,7 @@
         "format": "prettier --write \"**/*.{js,ts,tsx,json,md,*rc}\""
     },
     "dependencies": {
-        "@galaxis/core": "^0.1.0"
+        "@galaxis/core": "^0.2.0"
     },
     "devDependencies": {
         "@types/react": "^17.0.3",

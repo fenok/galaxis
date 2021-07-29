@@ -1652,7 +1652,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@galaxis/core@^0.1.0, @galaxis/core@workspace:packages/core":
+"@galaxis/core@^0.2.0, @galaxis/core@workspace:packages/core":
   version: 0.0.0-use.local
   resolution: "@galaxis/core@workspace:packages/core"
   dependencies:
@@ -1670,11 +1670,11 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@galaxis/fetch@0.1.0, @galaxis/fetch@workspace:packages/fetch":
+"@galaxis/fetch@0.2.0, @galaxis/fetch@workspace:packages/fetch":
   version: 0.0.0-use.local
   resolution: "@galaxis/fetch@workspace:packages/fetch"
   dependencies:
-    "@galaxis/core": ^0.1.0
+    "@galaxis/core": ^0.2.0
     "@typescript-eslint/eslint-plugin": ^4.28.5
     "@typescript-eslint/parser": ^4.28.5
     eslint: ^7.31.0
@@ -1685,15 +1685,15 @@ __metadata:
     rimraf: ^3.0.2
     typescript: ^4.3.5
   peerDependencies:
-    "@galaxis/core": ^0.1.0
+    "@galaxis/core": ^0.2.0
   languageName: unknown
   linkType: soft
 
-"@galaxis/in-memory-cache@0.1.0, @galaxis/in-memory-cache@workspace:packages/in-memory-cache":
+"@galaxis/in-memory-cache@0.2.0, @galaxis/in-memory-cache@workspace:packages/in-memory-cache":
   version: 0.0.0-use.local
   resolution: "@galaxis/in-memory-cache@workspace:packages/in-memory-cache"
   dependencies:
-    "@galaxis/core": ^0.1.0
+    "@galaxis/core": ^0.2.0
     "@typescript-eslint/eslint-plugin": ^4.28.5
     "@typescript-eslint/parser": ^4.28.5
     eslint: ^7.31.0
@@ -1703,7 +1703,7 @@ __metadata:
     serialize-error: ^8.0.0
     typescript: ^4.3.5
   peerDependencies:
-    "@galaxis/core": ^0.1.0
+    "@galaxis/core": ^0.2.0
   languageName: unknown
   linkType: soft
 
@@ -1717,10 +1717,10 @@ __metadata:
     "@babel/preset-env": 7.12.1
     "@babel/preset-react": 7.12.1
     "@babel/preset-typescript": 7.12.1
-    "@galaxis/fetch": 0.1.0
-    "@galaxis/in-memory-cache": 0.1.0
-    "@galaxis/react": 0.1.0
-    "@galaxis/utils": 0.1.0
+    "@galaxis/fetch": 0.2.0
+    "@galaxis/in-memory-cache": 0.2.0
+    "@galaxis/react": 0.2.0
+    "@galaxis/utils": 0.2.0
     "@types/express": 4.17.8
     "@types/node": ^14.14.37
     "@types/node-fetch": 2.5.7
@@ -1744,11 +1744,11 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@galaxis/react@0.1.0, @galaxis/react@workspace:packages/react":
+"@galaxis/react@0.2.0, @galaxis/react@workspace:packages/react":
   version: 0.0.0-use.local
   resolution: "@galaxis/react@workspace:packages/react"
   dependencies:
-    "@galaxis/core": ^0.1.0
+    "@galaxis/core": ^0.2.0
     "@types/react": ^17.0.3
     "@types/react-dom": ^17.0.3
     "@typescript-eslint/eslint-plugin": ^4.28.5
@@ -1767,11 +1767,11 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@galaxis/utils@0.1.0, @galaxis/utils@workspace:packages/utils":
+"@galaxis/utils@0.2.0, @galaxis/utils@workspace:packages/utils":
   version: 0.0.0-use.local
   resolution: "@galaxis/utils@workspace:packages/utils"
   dependencies:
-    "@galaxis/core": ^0.1.0
+    "@galaxis/core": ^0.2.0
     "@types/object-hash": ^2.0.0
     "@typescript-eslint/eslint-plugin": ^4.28.5
     "@typescript-eslint/parser": ^4.28.5
@@ -1783,7 +1783,7 @@ __metadata:
     rimraf: ^3.0.2
     typescript: ^4.3.5
   peerDependencies:
-    "@galaxis/core": ^0.1.0
+    "@galaxis/core": ^0.2.0
   languageName: unknown
   linkType: soft
 
@@ -1797,10 +1797,10 @@ __metadata:
     "@babel/preset-env": 7.12.1
     "@babel/preset-react": 7.12.1
     "@babel/preset-typescript": 7.12.1
-    "@galaxis/fetch": 0.1.0
-    "@galaxis/in-memory-cache": 0.1.0
-    "@galaxis/utils": 0.1.0
-    "@galaxis/vue": 0.1.0
+    "@galaxis/fetch": 0.2.0
+    "@galaxis/in-memory-cache": 0.2.0
+    "@galaxis/utils": 0.2.0
+    "@galaxis/vue": 0.2.0
     "@types/express": 4.17.8
     "@types/node": ^14.14.37
     "@types/node-fetch": 2.5.7
@@ -1825,11 +1825,11 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@galaxis/vue@0.1.0, @galaxis/vue@workspace:packages/vue":
+"@galaxis/vue@0.2.0, @galaxis/vue@workspace:packages/vue":
   version: 0.0.0-use.local
   resolution: "@galaxis/vue@workspace:packages/vue"
   dependencies:
-    "@galaxis/core": ^0.1.0
+    "@galaxis/core": ^0.2.0
     "@typescript-eslint/eslint-plugin": ^4.28.5
     "@typescript-eslint/parser": ^4.28.5
     eslint: ^7.31.0
