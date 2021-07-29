@@ -67,7 +67,7 @@ export class ObservableQuery<
                 const queryState = this.client.readQuery(this.query);
 
                 this.setState({
-                    loading: queryState.requestRequired,
+                    loading: queryState.willFetch,
                     data: queryState.data,
                     error: queryState.error,
                 });
@@ -85,7 +85,7 @@ export class ObservableQuery<
             this.unsubscribeFromQueryState = unsubscribe;
 
             this.setState({
-                loading: queryState.requestRequired,
+                loading: queryState.willFetch,
                 data: queryState.data,
                 error: queryState.error,
             });

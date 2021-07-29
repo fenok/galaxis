@@ -9,7 +9,7 @@ export interface QueryCache<TData extends NonUndefined, TError extends Error> {
 }
 
 export interface QueryState<TData extends NonUndefined, TError extends Error> extends QueryCache<TData, TError> {
-    requestRequired: boolean;
+    willFetch: boolean;
 }
 
 export interface QueryRequest {
@@ -69,7 +69,7 @@ export class QueryProcessor<TCacheData extends NonUndefined> {
 
         return [
             queryState,
-            queryState.requestRequired && this.isRequestAllowed(query, queryState)
+            queryState.willFetch && this.isRequestAllowed(query, queryState)
                 ? this.getRequestPromise(query, requestId)
                 : undefined,
             unsubscribe,
@@ -102,7 +102,7 @@ export class QueryProcessor<TCacheData extends NonUndefined> {
 
         return {
             ...cache,
-            requestRequired: this.isRequestRequired(query, cache),
+            willFetch: this.isRequestRequired(query, cache),
         };
     }
 
