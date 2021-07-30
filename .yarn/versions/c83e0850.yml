@@ -1,2 +1,6 @@
 releases:
+  "@galaxis/core": patch
   "@galaxis/vue": patch
+
+undecided:
+  - galaxis
