@@ -1,0 +1,12 @@
+releases:
+  "@galaxis/core": patch
+  "@galaxis/fetch": patch
+  "@galaxis/in-memory-cache": patch
+  "@galaxis/react": patch
+  "@galaxis/utils": patch
+  "@galaxis/vue": patch
+  galaxis: patch
+
+declined:
+  - "@galaxis/react-example"
+  - "@galaxis/vue-example"

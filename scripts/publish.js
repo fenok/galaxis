@@ -23,7 +23,7 @@ function publish() {
     execSync('git push');
     execSync('git push --tags');
 
-    execSync('yarn workspaces foreach -p --topological-dev npm publish --tolerate-republish', { stdio: 'inherit' });
+    execSync('yarn workspaces foreach -p --topological-dev run publish', { stdio: 'inherit' });
 
     execSync('git checkout master');
     execSync('git pull');

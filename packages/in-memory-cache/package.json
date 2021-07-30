@@ -21,7 +21,8 @@
         "prepublish": "yarn lint",
         "build": "rimraf ./dist && tsc",
         "lint": "eslint .",
-        "format": "prettier --write \"**/*.{js,ts,tsx,json,md,*rc}\""
+        "format": "prettier --write \"**/*.{js,ts,tsx,json,md,*rc}\"",
+        "publish": "yarn npm publish --tolerate-republish"
     },
     "devDependencies": {
         "@galaxis/core": "^0.2.1",

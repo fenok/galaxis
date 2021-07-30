@@ -20,7 +20,8 @@
         "prepublish": "yarn lint",
         "build": "rimraf ./dist && tsc",
         "lint": "eslint .",
-        "format": "prettier --write \"**/*.{js,ts,tsx,json,md,*rc}\""
+        "format": "prettier --write \"**/*.{js,ts,tsx,json,md,*rc}\"",
+        "publish": "yarn npm publish --tolerate-republish"
     },
     "dependencies": {
         "@types/object-hash": "^2.0.0",
