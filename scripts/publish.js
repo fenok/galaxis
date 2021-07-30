@@ -14,7 +14,7 @@ function publish() {
 
     const versions = getVersions();
 
-    execSync(`git commit -m "${getCommitMessage(versions)}"`);
+    execSync(`git commit ${getCommitMessageParagraphs(versions)}`);
 
     versions.forEach(([packageName, version]) => {
         execSync(`git tag ${packageName}/${version}`);
@@ -23,7 +23,7 @@ function publish() {
     execSync('git push');
     execSync('git push --tags');
 
-    execSync('yarn workspaces foreach npm publish --tolerate-republish');
+    execSync('yarn workspaces foreach -p --topological-dev npm publish --tolerate-republish', { stdio: 'inherit' });
 
     execSync('git checkout master');
     execSync('git pull');
@@ -34,15 +34,17 @@ function publish() {
 }
 
 function getVersions() {
-    return execSync('git diff --name-only HEAD', { encoding: 'utf8' })
+    return execSync('git diff -G version --name-only HEAD', { encoding: 'utf8' })
         .split('\n')
         .filter((name) => name.includes('package.json'))
         .map((packageName) => path.resolve(process.cwd(), packageName))
-        .map((packagePath) => [require(packagePath).name, require(packagePath).version]);
+        .map(require)
+        .filter(({ private }) => !private)
+        .map(({ name, version }) => [name, version]);
 }
 
-function getCommitMessage(versions) {
-    return `Bump versions\n\n${versions.map(([packageName, version]) => `${packageName}: ${version}`).join('\n')}`;
+function getCommitMessageParagraphs(versions) {
+    return `-m "Bump versions" ${versions.map(([packageName, version]) => `-m "${packageName}/${version}"`).join(' ')}`;
 }
 
 publish();
