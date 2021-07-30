@@ -7,7 +7,7 @@
         "composition-api",
         "ssr"
     ],
-    "version": "0.2.1",
+    "version": "0.2.2",
     "repository": "github:fenok/galaxis",
     "license": "MIT",
     "author": "Leonid Fenko <fenok2112@gmail.com>",
@@ -26,7 +26,7 @@
         "publish": "yarn npm publish --tolerate-republish"
     },
     "dependencies": {
-        "@galaxis/core": "^0.2.1"
+        "@galaxis/core": "^0.2.2"
     },
     "devDependencies": {
         "@typescript-eslint/eslint-plugin": "^4.28.5",

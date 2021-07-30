@@ -7,7 +7,7 @@
         "react-hooks",
         "ssr"
     ],
-    "version": "0.2.0",
+    "version": "0.2.1",
     "repository": "github:fenok/galaxis",
     "license": "MIT",
     "author": "Leonid Fenko <fenok2112@gmail.com>",
@@ -26,7 +26,7 @@
         "publish": "yarn npm publish --tolerate-republish"
     },
     "dependencies": {
-        "@galaxis/core": "^0.2.1"
+        "@galaxis/core": "^0.2.2"
     },
     "devDependencies": {
         "@types/react": "^17.0.3",
