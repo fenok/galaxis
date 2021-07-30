@@ -6,7 +6,7 @@
         "fetch",
         "types"
     ],
-    "version": "0.2.0",
+    "version": "0.2.1",
     "repository": "github:fenok/galaxis",
     "license": "MIT",
     "author": "Leonid Fenko <fenok2112@gmail.com>",
@@ -21,14 +21,15 @@
         "prepublish": "yarn lint",
         "build": "rimraf ./dist && tsc",
         "lint": "eslint .",
-        "format": "prettier --write \"**/*.{js,ts,tsx,json,md,*rc}\""
+        "format": "prettier --write \"**/*.{js,ts,tsx,json,md,*rc}\"",
+        "publish": "yarn npm publish --tolerate-republish"
     },
     "dependencies": {
         "path-to-regexp": "^6.0.0",
         "query-string": "^7.0.0"
     },
     "devDependencies": {
-        "@galaxis/core": "^0.2.1",
+        "@galaxis/core": "^0.2.2",
         "@typescript-eslint/eslint-plugin": "^4.28.5",
         "@typescript-eslint/parser": "^4.28.5",
         "eslint": "^7.31.0",
@@ -38,6 +39,6 @@
         "typescript": "^4.3.5"
     },
     "peerDependencies": {
-        "@galaxis/core": "^0.2.1"
+        "@galaxis/core": "^0.2.2"
     }
 }

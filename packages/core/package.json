@@ -9,7 +9,7 @@
         "rest",
         "ssr"
     ],
-    "version": "0.2.1",
+    "version": "0.2.2",
     "repository": "github:fenok/galaxis",
     "license": "MIT",
     "author": "Leonid Fenko <fenok2112@gmail.com>",
@@ -25,7 +25,8 @@
         "build": "rimraf ./dist && tsc -p tsconfig.build.json",
         "lint": "eslint .",
         "test": "jest",
-        "format": "prettier --write \"**/*.{js,ts,tsx,json,md,*rc}\""
+        "format": "prettier --write \"**/*.{js,ts,tsx,json,md,*rc}\"",
+        "publish": "yarn npm publish --tolerate-republish"
     },
     "devDependencies": {
         "@types/jest": "^26.0.22",
