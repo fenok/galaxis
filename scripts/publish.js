@@ -1,4 +1,5 @@
 const { execSync } = require('child_process');
+const path = require('path');
 
 function publish() {
     execSync('git checkout dev');
@@ -9,26 +10,41 @@ function publish() {
     execSync('yarn version check');
     execSync('yarn version apply --all');
 
-    const version = getVersion();
-
     execSync(`git add .`);
-    execSync(`git commit -m "Bump version to v${version}"`);
-    execSync(`git tag v${version}`);
+
+    const versions = getVersions();
+
+    execSync(`git commit ${getCommitMessageParagraphs(versions)}`);
+
+    versions.forEach(([packageName, version]) => {
+        execSync(`git tag ${packageName}/${version}`);
+    });
 
     execSync('git push');
     execSync('git push --tags');
 
-    execSync('yarn workspaces foreach npm publish')
+    execSync('yarn workspaces foreach -p --topological-dev npm publish --tolerate-republish', { stdio: 'inherit' });
 
     execSync('git checkout master');
+    execSync('git pull');
     execSync('git merge dev --no-ff');
     execSync('git push');
 
     execSync('git checkout dev');
 }
 
-function getVersion() {
-    return require('../package.json').version;
+function getVersions() {
+    return execSync('git diff -G version --name-only HEAD', { encoding: 'utf8' })
+        .split('\n')
+        .filter((name) => name.includes('package.json'))
+        .map((packageName) => path.resolve(process.cwd(), packageName))
+        .map(require)
+        .filter(({ private }) => !private)
+        .map(({ name, version }) => [name, version]);
+}
+
+function getCommitMessageParagraphs(versions) {
+    return `-m "Bump versions" ${versions.map(([packageName, version]) => `-m "${packageName}/${version}"`).join(' ')}`;
 }
 
 publish();

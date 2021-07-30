@@ -1,6 +1,6 @@
 import { NonUndefined, Query, ObservableQuery, ObservableQueryState, Resource, Client, Cache } from '@galaxis/core';
 import { useClient } from './useClientProvider';
-import { computed, onServerPrefetch, onUnmounted, onUpdated, onMounted, reactive, toRefs, watch } from 'vue';
+import { computed, onServerPrefetch, onUnmounted, onMounted, reactive, toRefs, watch } from 'vue';
 
 export function useQuery<
     TCacheData extends NonUndefined,
@@ -16,23 +16,17 @@ export function useQuery<
     });
 
     observableQuery.setOptions(client, queryRef.value);
-    let state = reactive(observableQuery.getState());
+    const state = reactive(observableQuery.getState());
 
     watch(queryRef, (nextQuery) => {
         observableQuery.setOptions(client, nextQuery);
         updateState(observableQuery.getState());
+
+        startObservableQuery();
     });
 
     onMounted(() => {
-        void observableQuery.start()?.catch(() => {
-            // Prevent unnecessary uncaught error message
-        });
-    });
-
-    onUpdated(() => {
-        void observableQuery.start()?.catch(() => {
-            // Prevent unnecessary uncaught error message
-        });
+        startObservableQuery();
     });
 
     onServerPrefetch(() => {
@@ -43,8 +37,14 @@ export function useQuery<
         observableQuery.dispose();
     });
 
+    function startObservableQuery() {
+        void observableQuery.start()?.catch(() => {
+            // Prevent unnecessary uncaught error message
+        });
+    }
+
     function updateState(nextState: ObservableQueryState<TData, TError>) {
-        state = Object.assign(state, nextState);
+        Object.assign(state, nextState);
     }
 
     return { ...toRefs(state), refetch: observableQuery.refetch };
